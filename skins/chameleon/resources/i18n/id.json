@@ -1,0 +1,15 @@
+{
+	"@metadata": {
+		"authors": [
+			"Arifin.wijaya",
+			"Diki Ananta",
+			"Sumbukompor"
+		]
+	},
+	"skinname-chameleon": "Bunglon",
+	"chameleon-desc": "Kulit responsif yang sangat fleksibel menggunakan Bootstrap 4",
+	"chameleon-loggedin": "Anda telah masuk log sebagai $1.",
+	"chameleon-notloggedin": "Anda belum masuk log",
+	"chameleon-newmessages": "Anda memiliki pesan baru.",
+	"chameleon-nonewmessages": "Anda tidak memiliki pesan baru."
+}

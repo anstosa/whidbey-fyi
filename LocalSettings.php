@@ -128,11 +128,12 @@ $wgGroupPermissions['*']['edit'] = false;
 
 ## Default skin: you can change the default skin. Use the internal symbolic
 ## names, ie 'vector', 'monobook':
-$wgDefaultSkin = "vector";
+$wgDefaultSkin = "chameleon";
 
 # Enabled skins.
 # The following skins were automatically enabled:
 wfLoadSkin( 'Vector' );
+wfLoadSkin( 'chameleon' );
 
 
 # Enabled extensions. Most of the extensions are enabled by adding
@@ -167,7 +168,7 @@ wfLoadExtension( 'TextExtracts' );
 wfLoadExtension( 'TitleBlacklist' );
 wfLoadExtension( 'VisualEditor' );
 wfLoadExtension( 'WikiEditor' );
-
+wfLoadExtension( 'Bootstrap' );
 
 # End of automatically generated settings.
 # Add more configuration options below.
