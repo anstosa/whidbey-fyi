@@ -42,7 +42,7 @@ $wgLogos = [ '1x' => "$wgResourceBasePath/images/Logo.png" ];
 ## UPO means: this is also a user preference option
 
 $wgEnableEmail = true;
-$wgEnableUserEmail = true; # UPO
+$wgEnableUserEmail = false; # UPO
 
 $wgSMTP = [
     'host' => "tls://" . getenv("SMTP_HOST"),
