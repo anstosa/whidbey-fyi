@@ -30,14 +30,14 @@ $wgMetaNamespace = "Meta";
 $wgScriptPath = "";
 
 ## The protocol and server name to use in fully-qualified URLs
-$wgServer = "http://wiki.whidbey.fyi";
+$wgServer = "https://wiki.whidbey.fyi";
 
 ## The URL path to static resources (images, scripts, etc.)
 $wgResourceBasePath = $wgScriptPath;
 
 ## The URL paths to the logo.  Make sure you change this from the default,
 ## or else you'll overwrite your logo when you upgrade!
-$wgLogos = [ '1x' => "$wgResourceBasePath/resources/assets/wiki.png" ];
+$wgLogos = [ '1x' => "$wgResourceBasePath/images/Logo.png" ];
 
 ## UPO means: this is also a user preference option
 
