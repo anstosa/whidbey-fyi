@@ -135,6 +135,18 @@ $wgGroupPermissions['*']['edit'] = false;
 $wgDefaultSkin = "Vector";
 $wgMFDefaultSkinClass = 'SkinMinerva'; // use Minerva skin (You need to download and install it separately, otherwise you'll get an exception)
 
+# Maps
+// $egMapsDefaultService = 'googlemaps3';
+// $egMapsGMaps3Controls = [
+// 	'pan',
+// 	'zoom',
+// 	'type',
+// 	'scale',
+// ];
+$egMapsDefaultGeoService = 'google';
+$egMapsGMaps3ApiKey = getenv('GOOGLE_API_KEY');
+$egMapsDistanceUnit = 'mi';
+
 # Enabled skins.
 # The following skins were automatically enabled:
 wfLoadSkin( 'Vector' );
@@ -156,6 +168,7 @@ wfLoadExtension( 'ImageMap' );
 wfLoadExtension( 'InputBox' );
 wfLoadExtension( 'Interwiki' );
 wfLoadExtension( 'LocalisationUpdate' );
+wfLoadExtension( 'Maps' );
 wfLoadExtension( 'MobileFrontend' );
 wfLoadExtension( 'MultimediaViewer' );
 wfLoadExtension( 'Nuke' );

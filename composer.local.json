@@ -1,6 +1,7 @@
 {
     "require": {
 		"ext-apcu": "*",
-        "mediawiki/chameleon-skin": "~3.0"
+        "mediawiki/chameleon-skin": "~3.0",
+        "mediawiki/maps": "~7.0"
     }
 }
