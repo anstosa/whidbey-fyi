@@ -133,17 +133,19 @@ $wgGroupPermissions['*']['edit'] = false;
 ## Default skin: you can change the default skin. Use the internal symbolic
 ## names, ie 'vector', 'monobook':
 $wgDefaultSkin = "Vector";
+$wgMFDefaultSkinClass = 'SkinMinerva'; // use Minerva skin (You need to download and install it separately, otherwise you'll get an exception)
 
 # Enabled skins.
 # The following skins were automatically enabled:
 wfLoadSkin( 'Vector' );
 wfLoadSkin( 'chameleon' );
-
+wfLoadSkin( 'MinervaNeue' );
 
 # Enabled extensions. Most of the extensions are enabled by adding
 # wfLoadExtension( 'ExtensionName' );
 # to LocalSettings.php. Check specific extension documentation for more details.
 # The following extensions were automatically enabled:
+wfLoadExtension( 'Bootstrap' );
 wfLoadExtension( 'CategoryTree' );
 wfLoadExtension( 'Cite' );
 wfLoadExtension( 'CiteThisPage' );
@@ -154,6 +156,7 @@ wfLoadExtension( 'ImageMap' );
 wfLoadExtension( 'InputBox' );
 wfLoadExtension( 'Interwiki' );
 wfLoadExtension( 'LocalisationUpdate' );
+wfLoadExtension( 'MobileFrontend' );
 wfLoadExtension( 'MultimediaViewer' );
 wfLoadExtension( 'Nuke' );
 wfLoadExtension( 'OATHAuth' );
@@ -172,7 +175,6 @@ wfLoadExtension( 'TextExtracts' );
 wfLoadExtension( 'TitleBlacklist' );
 wfLoadExtension( 'VisualEditor' );
 wfLoadExtension( 'WikiEditor' );
-wfLoadExtension( 'Bootstrap' );
 
 # End of automatically generated settings.
 # Add more configuration options below.
