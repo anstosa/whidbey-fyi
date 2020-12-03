@@ -1,1 +1,1 @@
-release: php update.php
+release: php maintenance/update.php
