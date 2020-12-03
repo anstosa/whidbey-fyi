@@ -28,6 +28,9 @@ $wgMetaNamespace = "Meta";
 ## (like /w/index.php/Page_title to /wiki/Page_title) please see:
 ## https://www.mediawiki.org/wiki/Manual:Short_URL
 $wgScriptPath = "";
+$wgScriptExtension = ".php";
+$wgArticlePath = "/$1";
+$wgUsePathInfo = true;
 
 ## The protocol and server name to use in fully-qualified URLs
 $wgServer = "https://wiki.whidbey.fyi";
@@ -79,6 +82,7 @@ $wgMemCachedServers = [];
 ## To enable image uploads, make sure the 'images' directory
 ## is writable, then set this to true:
 $wgEnableUploads = true;
+$wgGenerateThumbnailOnParse = false;
 $wgUseImageMagick = true;
 $wgImageMagickConvertCommand = "/usr/bin/convert";
 
