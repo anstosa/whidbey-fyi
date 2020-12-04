@@ -1,8 +1,14 @@
 {
-    "require": {
-		"ext-apcu": "*",
-        "mediawiki/chameleon-skin": "~3.0",
-        "mediawiki/maps": "~7.0",
-        "mediawiki/semantic-media-wiki": "^3.2"
+  "require": {
+    "ext-apcu": "*",
+    "mediawiki/chameleon-skin": "~3.0",
+    "mediawiki/maps": "~7.0",
+    "mediawiki/semantic-media-wiki": "^3.2",
+    "monolog/monolog": "~1.25.5"
+  },
+  "extra": {
+    "merge-plugin": {
+      "include": ["extensions/Wikibase/composer.json"]
     }
+  }
 }

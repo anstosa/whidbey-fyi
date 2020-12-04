@@ -164,6 +164,14 @@ $egMapsDistanceUnit = 'mi';
 # SMW
 $smwgConfigFileDir = "/app";
 
+# Wikibase
+$wgEnableWikibaseRepo = true;
+$wgEnableWikibaseClient = true;
+require_once "$IP/extensions/Wikibase/repo/Wikibase.php";
+require_once "$IP/extensions/Wikibase/repo/ExampleSettings.php";
+require_once "$IP/extensions/Wikibase/client/WikibaseClient.php";
+require_once "$IP/extensions/Wikibase/client/ExampleSettings.php";
+
 # Enabled skins.
 # The following skins were automatically enabled:
 wfLoadSkin('Vector');
