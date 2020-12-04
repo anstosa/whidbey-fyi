@@ -18,7 +18,6 @@ use Wikibase\Repo\Store\Sql\SqlEntityIdPager;
 use Wikibase\Repo\Store\Sql\SqlEntityIdPagerFactory;
 use Wikibase\Repo\Store\Store;
 use Wikibase\Repo\WikibaseRepo;
-use Wikimedia\AtEase\AtEase;
 
 $basePath = getenv( 'MW_INSTALL_PATH' ) !== false ? getenv( 'MW_INSTALL_PATH' ) : __DIR__ . '/../../../..';
 
@@ -42,10 +41,8 @@ abstract class DumpEntities extends Maintenance {
 	 */
 	private $logFileHandle = false;
 
-	/** @var string[] */
 	private $existingEntityTypes = [];
 
-	/** @var string[] */
 	private $entityTypesToExcludeFromOutput = [];
 
 	public function __construct() {
@@ -222,9 +219,9 @@ abstract class DumpEntities extends Maintenance {
 		$dumper->setBatchSize( $batchSize );
 
 		$idStream = $this->makeIdStream( $entityTypes, $exceptionReporter );
-		AtEase::suppressWarnings();
+		\Wikimedia\suppressWarnings();
 		$dumper->generateDump( $idStream );
-		AtEase::restoreWarnings();
+		\Wikimedia\restoreWarnings();
 
 		if ( $idStream instanceof EntityIdReader ) {
 			// close stream / free resources
@@ -348,7 +345,7 @@ abstract class DumpEntities extends Maintenance {
 			throw new MWException( "Failed to open ID file: $listFile" );
 		}
 
-		$stream = new EntityIdReader( new LineReader( $input ), WikibaseRepo::getEntityIdParser() );
+		$stream = new EntityIdReader( new LineReader( $input ), WikibaseRepo::getDefaultInstance()->getEntityIdParser() );
 		$stream->setExceptionHandler( $exceptionReporter );
 
 		return $stream;

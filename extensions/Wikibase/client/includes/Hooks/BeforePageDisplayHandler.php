@@ -35,7 +35,7 @@ class BeforePageDisplayHandler implements BeforePageDisplayHook {
 		$this->dataBridgeEnabled = $dataBridgeEnabled;
 	}
 
-	public static function factory(): self {
+	public static function newFromGlobalState(): self {
 		$wikibaseClient = WikibaseClient::getDefaultInstance();
 		return new self(
 			$wikibaseClient->getNamespaceChecker(),

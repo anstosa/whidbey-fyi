@@ -2,7 +2,6 @@
 
 namespace Wikibase\Lib\Tests\Store;
 
-use MediaWikiIntegrationTestCase;
 use Wikibase\DataModel\Entity\PropertyId;
 use Wikibase\Lib\Store\PropertyInfoLookup;
 
@@ -16,7 +15,7 @@ use Wikibase\Lib\Store\PropertyInfoLookup;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class MockPropertyInfoLookupTest extends MediaWikiIntegrationTestCase {
+class MockPropertyInfoLookupTest extends \MediaWikiTestCase {
 
 	private function newMockPropertyInfoLookup() {
 		return new MockPropertyInfoLookup( [

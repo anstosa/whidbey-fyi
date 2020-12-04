@@ -3,7 +3,7 @@
 namespace Wikibase\Client\Tests\Integration\Hooks;
 
 use ExtensionRegistry;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use Wikibase\Client\Hooks\EchoNotificationsHandlers;
 use Wikibase\Client\Hooks\EchoSetupHookHandlers;
 
@@ -17,7 +17,7 @@ use Wikibase\Client\Hooks\EchoSetupHookHandlers;
  * @license GPL-2.0-or-later
  * @author Katie Filbert < aude.wiki@gmail.com >
  */
-class EchoSetupHookHandlersTest extends MediaWikiIntegrationTestCase {
+class EchoSetupHookHandlersTest extends MediaWikiTestCase {
 
 	public function beforeCreateEchoEventProvider() {
 		return [

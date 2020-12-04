@@ -4,8 +4,6 @@ namespace Wikibase\Repo\Tests\Api;
 
 use ApiMain;
 use FauxRequest;
-use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
 use User;
 use Wikibase\DataModel\Entity\Item;
 use Wikibase\DataModel\Entity\Property;
@@ -13,7 +11,6 @@ use Wikibase\DataModel\Entity\PropertyId;
 use Wikibase\DataModel\Snak\PropertyNoValueSnak;
 use Wikibase\Lib\Store\EntityRevision;
 use Wikibase\Repo\WikibaseRepo;
-use Wikimedia\ObjectFactory;
 
 /**
  * @group API
@@ -26,7 +23,7 @@ use Wikimedia\ObjectFactory;
  * @author Katie Filbert < aude.wiki@gmail.com >
  * @author Addshore
  */
-abstract class ApiFormatTestCase extends MediaWikiIntegrationTestCase {
+abstract class ApiFormatTestCase extends \MediaWikiTestCase {
 
 	/**
 	 * @var PropertyId|null
@@ -68,11 +65,13 @@ abstract class ApiFormatTestCase extends MediaWikiIntegrationTestCase {
 		$ctx = $ctx->newTestContext( $request, $this->user );
 		$main = new ApiMain( $ctx, true );
 
-		return ObjectFactory::getObjectFromSpec( $wgAPIModules[$moduleName], [
-			'assertClass' => $moduleClass,
-			'extraArgs' => [ $main, $moduleName ],
-			'serviceContainer' => MediaWikiServices::getInstance(),
-		] );
+		if ( isset( $wgAPIModules[$moduleName]['factory'] )
+			&& $wgAPIModules[$moduleName]['class'] === $moduleClass
+		) {
+			return $wgAPIModules[$moduleName]['factory']( $main, $moduleName );
+		}
+
+		return new $moduleClass( $main, $moduleName );
 	}
 
 	protected function getNewEntityRevision( $withData = false ) {

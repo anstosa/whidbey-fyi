@@ -7,7 +7,6 @@ use ApiQueryInfo;
 use Article;
 use Exception;
 use FauxRequest;
-use MediaWikiIntegrationTestCase;
 use MWException;
 use OutputPage;
 use RequestContext;
@@ -26,7 +25,7 @@ use WikiPage;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class ActionTestCase extends MediaWikiIntegrationTestCase {
+class ActionTestCase extends \MediaWikiTestCase {
 
 	/** @var User */
 	protected $user;

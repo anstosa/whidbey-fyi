@@ -2,7 +2,6 @@
 
 namespace Wikibase\Lib\Tests;
 
-use MediaWikiIntegrationTestCase;
 use Wikibase\DataModel\Entity\EntityId;
 use Wikibase\DataModel\Entity\EntityRedirect;
 use Wikibase\DataModel\Entity\Item;
@@ -24,7 +23,7 @@ use Wikibase\Lib\Store\StorageException;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-abstract class EntityRevisionLookupTestCase extends MediaWikiIntegrationTestCase {
+abstract class EntityRevisionLookupTestCase extends \MediaWikiTestCase {
 
 	/**
 	 * @return EntityRevision[]
@@ -52,9 +51,11 @@ abstract class EntityRevisionLookupTestCase extends MediaWikiIntegrationTestCase
 	 * @return EntityRedirect[]
 	 */
 	protected function getTestRedirects() {
-		return [
-			new EntityRedirect( new ItemId( 'Q23' ), new ItemId( 'Q42' ) ),
-		];
+		$redirects = [];
+
+		$redirects[] = new EntityRedirect( new ItemId( 'Q23' ), new ItemId( 'Q42' ) );
+
+		return $redirects;
 	}
 
 	protected function resolveLogicalRevision( $revision ) {
@@ -136,9 +137,14 @@ abstract class EntityRevisionLookupTestCase extends MediaWikiIntegrationTestCase
 	}
 
 	public function provideGetEntityRevision_redirect() {
-		foreach ( $this->getTestRedirects() as $redirect ) {
-			yield [ $redirect->getEntityId(), $redirect->getTargetId() ];
+		$redirects = $this->getTestRedirects();
+		$cases = [];
+
+		foreach ( $redirects as $redirect ) {
+			$cases[] = [ $redirect->getEntityId(), $redirect->getTargetId() ];
 		}
+
+		return $cases;
 	}
 
 	/**

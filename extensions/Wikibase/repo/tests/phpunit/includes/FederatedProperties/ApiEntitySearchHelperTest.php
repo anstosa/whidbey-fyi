@@ -4,6 +4,7 @@ declare( strict_types = 1 );
 namespace Wikibase\Repo\Tests\FederatedProperties;
 
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\ResponseInterface;
 use Wikibase\DataModel\Entity\PropertyId;
 use Wikibase\DataModel\Term\Term;
 use Wikibase\Lib\Interactors\TermSearchResult;
@@ -12,8 +13,8 @@ use Wikibase\Repo\FederatedProperties\ApiEntitySearchHelper;
 use Wikibase\Repo\FederatedProperties\ApiRequestException;
 use Wikibase\Repo\FederatedProperties\FederatedPropertiesException;
 use Wikibase\Repo\FederatedProperties\GenericActionApiClient;
-use Wikibase\Repo\Tests\HttpResponseMockerTrait;
 use Wikibase\Repo\WikibaseRepo;
+use function GuzzleHttp\Psr7\stream_for;
 
 /**
  * @covers \Wikibase\Repo\FederatedProperties\ApiEntitySearchHelper
@@ -23,8 +24,6 @@ use Wikibase\Repo\WikibaseRepo;
  * @license GPL-2.0-or-later
  */
 class ApiEntitySearchHelperTest extends TestCase {
-
-	use HttpResponseMockerTrait;
 
 	private $responseDataFiles = [
 		'api-entity-search-helper-test-data-emptyResponse.json',
@@ -51,7 +50,7 @@ class ApiEntitySearchHelperTest extends TestCase {
 
 	private function getNewApiSearchHelper( $api, $dataTypes = null ) {
 		if ( $dataTypes === null ) {
-			$dataTypes = WikibaseRepo::getDataTypeDefinitions()->getTypeIds();
+			$dataTypes = WikibaseRepo::getDefaultInstance()->getDataTypeDefinitions()->getTypeIds();
 		}
 		return new ApiEntitySearchHelper( $api, $dataTypes );
 	}
@@ -64,7 +63,7 @@ class ApiEntitySearchHelperTest extends TestCase {
 		$api->expects( $this->once() )
 			->method( 'get' )
 			->with( $requestParams )
-			->willReturn( $this->newMockResponse( json_encode( $this->data[ $responseDataFile ] ), $statusCode ) );
+			->willReturn( $this->newMockResponse( $responseDataFile, $statusCode ) );
 		return $api;
 	}
 
@@ -180,54 +179,68 @@ class ApiEntitySearchHelperTest extends TestCase {
 
 			$this->assertTrue( $resultToTest instanceof TermSearchResult );
 
-			if ( $expectedResult->match->type === 'entityId' ) {
+			if ( $expectedResult[ 'match' ][ 'type' ] === 'entityId' ) {
 
 				$this->assertEquals(
 					new Term(
-						'qid', $expectedResult->match->text ),
+						'qid', $expectedResult[ 'match' ][ 'text' ] ),
 						$resultToTest->getMatchedTerm()
 					);
 			} else {
 
 				$this->assertEquals(
 					new Term(
-						$expectedResult->match->language,
-						$expectedResult->match->text
+						$expectedResult[ 'match' ][ 'language' ],
+						$expectedResult[ 'match' ][ 'text' ]
 					),
 					$resultToTest->getMatchedTerm()
 				);
 			}
 			$this->assertEquals(
-				$expectedResult->match->type,
+				$expectedResult[ 'match' ][ 'type' ],
 				$resultToTest->getMatchedTermType()
 			);
 			$this->assertEquals(
-				new PropertyId( $expectedResult->id ),
+				new PropertyId( $expectedResult[ 'id' ] ),
 				$resultToTest->getEntityId()
 			);
 			$this->assertEquals(
-				isset( $expectedResult->label ) ? new Term( $langCode, $expectedResult->label ) : null,
+				array_key_exists( 'label', $expectedResult ) ? new Term( $langCode, $expectedResult[ 'label' ] ) : null,
 				$resultToTest->getDisplayLabel()
 			);
 			$this->assertEquals(
-				isset( $expectedResult->description ) ? new Term( $langCode, $expectedResult->description ) : null,
+				array_key_exists( 'description', $expectedResult ) ? new Term( $langCode, $expectedResult[ 'description' ] ) : null,
 				$resultToTest->getDisplayDescription()
 			);
 			$this->assertEquals(
-				$expectedResult->datatype,
+				$expectedResult['datatype'],
 				$resultToTest->getMetaData()[PropertyDataTypeSearchHelper::DATATYPE_META_DATA_KEY]
 			);
 		}
 	}
 
-	private function getResponseDataForId( array $searchResponses, $resultId ) {
-		$searchResponses = array_filter( $searchResponses, function ( $response ) use ( $resultId ) {
-			return $response->id === $resultId;
-		} );
-		if ( count( $searchResponses ) > 1 ) {
-			throw new RuntimeException( 'Ambigious search responses for id ' . $resultId );
+	private function newMockResponse( $responseDataFile, $statusCode ) {
+		$mwResponse = $this->createMock( ResponseInterface::class );
+		$mwResponse->expects( $this->any() )
+			->method( 'getStatusCode' )
+			->willReturn( $statusCode );
+		$mwResponse->expects( $this->any() )
+			->method( 'getBody' )
+			->willReturn( stream_for( json_encode( $this->data[ $responseDataFile ] ) ) );
+		return $mwResponse;
+	}
+
+	private function getResponseDataForId( $searchResponses, $resultId ) {
+		//convert $searchResponse to array
+		$searchResponses = \GuzzleHttp\json_decode( \GuzzleHttp\json_encode( $searchResponses ), true );
+		foreach ( $searchResponses as $response ) {
+			if ( $response['id'] === $resultId ) {
+				return $response;
+
+			}
 		}
-		return array_shift( $searchResponses );
+
+		return [];
 	}
 
 	/**
@@ -352,5 +365,4 @@ class ApiEntitySearchHelperTest extends TestCase {
 			],
 		];
 	}
-
 }

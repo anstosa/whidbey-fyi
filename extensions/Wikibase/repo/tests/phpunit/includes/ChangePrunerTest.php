@@ -4,7 +4,7 @@ namespace Wikibase\Repo\Tests;
 
 use InvalidArgumentException;
 use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use Onoi\MessageReporter\MessageReporter;
 use Onoi\MessageReporter\ObservableMessageReporter;
 use Wikibase\Lib\Changes\EntityChange;
@@ -22,7 +22,7 @@ use Wikibase\Repo\ChangePruner;
  * @license GPL-2.0-or-later
  * @author Katie Filbert < aude.wiki@gmail.com >
  */
-class ChangePrunerTest extends MediaWikiIntegrationTestCase {
+class ChangePrunerTest extends MediaWikiTestCase {
 
 	private $messages = [];
 

@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Api;
 
 use ApiBase;
@@ -14,7 +12,6 @@ use Wikibase\DataModel\Entity\EntityIdParser;
 use Wikibase\DataModel\Entity\EntityIdParsingException;
 use Wikibase\Repo\Interactors\ItemRedirectCreationInteractor;
 use Wikibase\Repo\Interactors\RedirectCreationException;
-use Wikibase\Repo\WikibaseRepo;
 
 /**
  * API module for creating entity redirects.
@@ -56,7 +53,7 @@ class CreateRedirect extends ApiBase {
 	 */
 	public function __construct(
 		ApiMain $mainModule,
-		string $moduleName,
+		$moduleName,
 		EntityIdParser $idParser,
 		ApiErrorReporter $errorReporter,
 		ItemRedirectCreationInteractor $interactor,
@@ -70,28 +67,10 @@ class CreateRedirect extends ApiBase {
 		$this->permissionManager = $permissionManager;
 	}
 
-	public static function factory(
-		ApiMain $apiMain,
-		string $moduleName,
-		PermissionManager $permissionManager,
-		EntityIdParser $entityIdParser
-	): self {
-		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
-		$apiHelperFactory = $wikibaseRepo->getApiHelperFactory( $apiMain->getContext() );
-		return new self(
-			$apiMain,
-			$moduleName,
-			$entityIdParser,
-			$apiHelperFactory->getErrorReporter( $apiMain ),
-			$wikibaseRepo->newItemRedirectCreationInteractor( $apiMain->getUser(), $apiMain->getContext() ),
-			$permissionManager
-		);
-	}
-
 	/**
 	 * @inheritDoc
 	 */
-	public function execute(): void {
+	public function execute() {
 		$params = $this->extractRequestParams();
 		$bot = $params['bot'] &&
 			$this->permissionManager->userHasRight( $this->getUser(), 'bot' );
@@ -116,7 +95,7 @@ class CreateRedirect extends ApiBase {
 	 *
 	 * @throws RedirectCreationException
 	 */
-	private function createRedirect( EntityId $fromId, EntityId $toId, bool $bot, ApiResult $result ): void {
+	private function createRedirect( EntityId $fromId, EntityId $toId, $bot, ApiResult $result ) {
 		$this->interactor->createRedirect( $fromId, $toId, $bot );
 
 		$result->addValue( null, 'success', 1 );
@@ -128,7 +107,7 @@ class CreateRedirect extends ApiBase {
 	 *
 	 * @throws ApiUsageException always
 	 */
-	private function handleRedirectCreationException( RedirectCreationException $ex ): void {
+	private function handleRedirectCreationException( RedirectCreationException $ex ) {
 		$cause = $ex->getPrevious();
 
 		if ( $cause ) {
@@ -141,28 +120,28 @@ class CreateRedirect extends ApiBase {
 	/**
 	 * @inheritDoc
 	 */
-	public function isWriteMode(): bool {
+	public function isWriteMode() {
 		return true;
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public function needsToken(): string {
+	public function needsToken() {
 		return 'csrf';
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public function mustBePosted(): bool {
+	public function mustBePosted() {
 		return true;
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	protected function getAllowedParams(): array {
+	protected function getAllowedParams() {
 		return [
 			'from' => [
 				self::PARAM_TYPE => 'string',
@@ -186,7 +165,7 @@ class CreateRedirect extends ApiBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getExamplesMessages(): array {
+	protected function getExamplesMessages() {
 		return [
 			'action=wbcreateredirect&from=Q11&to=Q12'
 				=> 'apihelp-wbcreateredirect-example-1',

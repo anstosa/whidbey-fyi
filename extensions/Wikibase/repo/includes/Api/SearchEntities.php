@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Api;
 
 use ApiBase;
@@ -90,28 +88,6 @@ class SearchEntities extends ApiBase {
 		$this->errorReporter = $errorReporter;
 	}
 
-	public static function factory( ApiMain $mainModule, string $moduleName ): self {
-		$repo = WikibaseRepo::getDefaultInstance();
-		$entitySearchHelper = new TypeDispatchingEntitySearchHelper(
-			$repo->getEntitySearchHelperCallbacks(),
-			$mainModule->getRequest()
-		);
-		$apiHelperFactory = $repo->getApiHelperFactory( $mainModule->getContext() );
-
-		return new self(
-			$mainModule,
-			$moduleName,
-			$entitySearchHelper,
-			null,
-			$repo->getTermsLanguages(),
-			$repo->getEntitySourceDefinitions(),
-			$repo->getEntityTitleTextLookup(),
-			$repo->getEntityUrlLookup(),
-			$repo->getEntityArticleIdLookup(),
-			$apiHelperFactory->getErrorReporter( $mainModule )
-		);
-	}
-
 	/**
 	 * Populates the search result returning the number of requested matches plus one additional
 	 * item for being able to determine if there would be any more results.
@@ -122,7 +98,7 @@ class SearchEntities extends ApiBase {
 	 *
 	 * @return array[]
 	 */
-	private function getSearchEntries( array $params ): array {
+	private function getSearchEntries( array $params ) {
 		$searchResults = $this->entitySearchHelper->getRankedSearchResults(
 			$params['search'],
 			$params['language'],
@@ -145,7 +121,7 @@ class SearchEntities extends ApiBase {
 	 *
 	 * @return array
 	 */
-	private function buildTermSearchMatchEntry( TermSearchResult $match, ?array $props ): array {
+	private function buildTermSearchMatchEntry( TermSearchResult $match, array $props = null ) {
 		$entityId = $match->getEntityId();
 
 		$entry = [
@@ -208,7 +184,7 @@ class SearchEntities extends ApiBase {
 		return $entry;
 	}
 
-	private function getRepositoryOrEntitySourceName( EntityId $entityId ): string {
+	private function getRepositoryOrEntitySourceName( EntityId $entityId ) {
 		$source = $this->entitySourceDefinitions->getSourceForEntityType( $entityId->getEntityType() );
 		if ( $source === null ) {
 			return '';
@@ -219,7 +195,7 @@ class SearchEntities extends ApiBase {
 	/**
 	 * @inheritDoc
 	 */
-	public function execute(): void {
+	public function execute() {
 		try {
 			$this->executeInternal();
 		} catch ( FederatedPropertiesException $ex ) {
@@ -230,7 +206,7 @@ class SearchEntities extends ApiBase {
 		}
 	}
 
-	public function executeInternal(): void {
+	public function executeInternal() {
 		$this->getMain()->setCacheMode( 'public' );
 
 		$params = $this->extractRequestParams();
@@ -289,7 +265,7 @@ class SearchEntities extends ApiBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getAllowedParams(): array {
+	protected function getAllowedParams() {
 		return [
 			'search' => [
 				self::PARAM_TYPE => 'string',
@@ -330,7 +306,7 @@ class SearchEntities extends ApiBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getExamplesMessages(): array {
+	protected function getExamplesMessages() {
 		return [
 			'action=wbsearchentities&search=abc&language=en' =>
 				'apihelp-wbsearchentities-example-1',

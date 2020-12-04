@@ -40,9 +40,10 @@ return call_user_func( function() {
 		'referencedEntityIdMaxReferencedEntityVisits' => 50,
 		'pageSchemaNamespaces' => [],
 		'allowLocalShortDesc' => false,
-		'forceLocalShortDesc' => false,
 		'propagateChangesToRepo' => true,
 		'propertyOrderUrl' => null,
+		'useTermsTableSearchFields' => true,
+		'forceWriteTermsTableSearchFields' => false,
 		// List of additional CSS class names for site links that have badges,
 		// e.g. [ 'Q101' => 'badge-goodarticle' ]
 		'badgeClassNames' => [],
@@ -122,7 +123,8 @@ return call_user_func( function() {
 		'useKartographerMaplinkInWikitext' => false,
 		'trackLuaFunctionCallsPerSiteGroup' => false,
 		'trackLuaFunctionCallsPerWiki' => false,
-		'itemAndPropertySourceName' => 'local',
+
+		'localEntitySourceName' => 'local',
 		'entitySources' => [],
 
 		'dataBridgeEnabled' => false, # if true, the next setting must also be specified
@@ -141,11 +143,6 @@ return call_user_func( function() {
 			'publicationDate' => null,
 			'retrievedDate' => null,
 		],
-
-		'termFallbackCacheVersion' => null,
-
-		// enable implicit usage on the description of a page in its content language (T191831)
-		'enableImplicitDescriptionUsage' => false,
 	];
 
 	// Some defaults depend on information not available at this time.

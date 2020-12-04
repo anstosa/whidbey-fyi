@@ -13,9 +13,8 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Wikibase\DataModel\Entity\ItemId;
-use Wikibase\Lib\ContentLanguages;
+use Wikibase\Lib\LanguageFallbackChain;
 use Wikibase\Lib\LanguageWithConversion;
-use Wikibase\Lib\TermLanguageFallbackChain;
 use Wikibase\View\Termbox\Renderer\TermboxRemoteRenderer;
 use Wikibase\View\Termbox\Renderer\TermboxRenderingException;
 
@@ -160,7 +159,7 @@ class TermboxRemoteRendererTest extends TestCase {
 			->willReturn( $responseHeaders );
 
 		$this->logger->expects( $this->once() )
-			->method( 'notice' )
+			->method( 'error' )
 			->with(
 				'{class}: encountered a bad response from the remote renderer',
 				[
@@ -206,7 +205,7 @@ class TermboxRemoteRendererTest extends TestCase {
 			->willReturn( $responseHeaders );
 
 		$this->logger->expects( $this->once() )
-			->method( 'notice' )
+			->method( 'error' )
 			->with(
 				'{class}: encountered a bad response from the remote renderer',
 				[
@@ -316,15 +315,12 @@ class TermboxRemoteRendererTest extends TestCase {
 	}
 
 	/**
-	 * @return TermLanguageFallbackChain
+	 * @return LanguageFallbackChain
 	 */
 	private function newLanguageFallbackChain( $languages = [] ) {
-		$stubContentLanguages = $this->createStub( ContentLanguages::class );
-		$stubContentLanguages->method( 'hasLanguage' )
-			->willReturn( true );
-		return new TermLanguageFallbackChain( array_map( function ( $languageCode ) {
+		return new LanguageFallbackChain( array_map( function ( $languageCode ) {
 			return LanguageWithConversion::factory( Language::factory( $languageCode ) );
-		}, $languages ), $stubContentLanguages );
+		}, $languages ) );
 	}
 
 }

@@ -4,7 +4,6 @@ namespace Wikibase\Lib\Tests\Store\Sql\Terms;
 
 use JobQueueGroup;
 use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
 use Psr\Log\NullLogger;
 use Wikibase\DataModel\Entity\Item;
 use Wikibase\DataModel\Entity\ItemId;
@@ -25,13 +24,13 @@ use Wikimedia\Rdbms\IDatabase;
 use Wikimedia\Rdbms\ILBFactory;
 
 /**
- * @covers \Wikibase\Lib\Store\Sql\Terms\DatabaseMatchingTermsLookup
+ * @covers \Wikibase\Lib\Store\Sql\Terms\DatabaseTermInLangIdsAcquirer
  *
  * @group Wikibase
  *
  * @license GPL-2.0-or-later
  */
-class DatabaseMatchingTermsLookupTest extends MediaWikiIntegrationTestCase {
+class DatabaseMatchingTermsLookupTest extends \MediaWikiIntegrationTestCase {
 	/**
 	 * @var IDatabase
 	 */
@@ -56,7 +55,7 @@ class DatabaseMatchingTermsLookupTest extends MediaWikiIntegrationTestCase {
 	private function setUpNewDb() {
 		$db = DatabaseSqlite::newStandaloneInstance( ':memory:' );
 		$db->sourceFile(
-			__DIR__ . '/../../../../../../repo/sql/sqlite/term_store.sql' );
+			__DIR__ . '/../../../../../../repo/sql/AddNormalizedTermsTablesDDL.sql' );
 
 		return $db;
 	}
@@ -77,87 +76,101 @@ class DatabaseMatchingTermsLookupTest extends MediaWikiIntegrationTestCase {
 		return [ $item0, $item1, $item2 ];
 	}
 
-	/** @see testGetMatchingTerms */
-	public function provideGetMatchingTerms() {
-		[ $item0, $item1, $item2 ] = $this->getTestItems();
+	/**
+	 * @see testGetTopMatchingTerms
+	 */
+	public function provideGetTopMatchingTerms() {
+		list( $item0, $item1, $item2 ) = $this->getTestItems();
 
-		yield 'EXACT MATCH not prefix, case sensitive' => [
-			'entities' => [ $item0, $item1, $item2 ],
-			'criteria' => [
-				new TermIndexSearchCriteria( [
-					'termText' => 'Mittens',
-				] ),
+		return [
+			'EXACT MATCH not prefix, case sensitive' => [
+				[ // $entities
+					$item0, $item1, $item2
+				],
+				[ // $criteria
+					new TermIndexSearchCriteria( [
+						'termText' => 'Mittens',
+					] ),
+				],
+				null, // $termTypes
+				null, // $entityTypes
+				[ // $options
+					'prefixSearch' => false,
+					'caseSensitive' => true,
+				],
+				[ // $expectedTermKeys
+					'Q11/label.de:Mittens',
+				],
 			],
-			'termTypes' => null,
-			'entityTypes' => null,
-			'options' => [
-				'prefixSearch' => false,
-				'caseSensitive' => true,
+			'prefix, case sensitive' => [
+				[ // $entities
+					$item0, $item1, $item2
+				],
+				[ // $criteria
+					new TermIndexSearchCriteria( [
+						'termText' => 'Mitte',
+					] ),
+				],
+				null, // $termTypes
+				null, // $entityTypes
+				[ // $options
+					'prefixSearch' => true,
+					'caseSensitive' => true,
+				],
+				[ // $expectedTermKeys
+					'Q11/label.de:Mittens',
+				],
 			],
-			'expectedTermKeys' => [
-				'Q11/label.de:Mittens',
+			'prefixSearch and not caseSensitive' => [
+				[ // $entities
+					$item0, $item1, $item2
+				],
+				[ // $criteria
+					new TermIndexSearchCriteria( [
+						'termText' => 'KiTTeNS',
+					] ),
+				],
+				null, // $termTypes
+				null, // $entityTypes
+				[ // $options
+					'prefixSearch' => true,
+					'caseSensitive' => false,
+				],
+				[ // $expectedTermKeys
+					'Q11/label.fr:kittens love mittens',
+					'Q22/label.en:KITTENS should have mittens',
+					// If not asking for top terms the below would normally also be expected
+					//'Q22/label.sv:kittens should have mittens',
+					'Q10/label.en:kittens',
+				],
 			],
-		];
-		yield 'prefix, case sensitive' => [
-			'entities' => [ $item0, $item1, $item2 ],
-			'criteria' => [
-				new TermIndexSearchCriteria( [
-					'termText' => 'Mitte',
-				] ),
-			],
-			'termTypes' => null,
-			'entityTypes' => null,
-			'options' => [
-				'prefixSearch' => true,
-				'caseSensitive' => true,
-			],
-			'expectedTermKeys' => [
-				'Q11/label.de:Mittens',
-			],
-		];
-		yield 'prefixSearch and not caseSensitive' => [
-			'entities' => [ $item0, $item1, $item2 ],
-			'criteria' => [
-				new TermIndexSearchCriteria( [
-					'termText' => 'KiTTeNS',
-				] ),
-			],
-			'termTypes' => null,
-			'entityTypes' => null,
-			'options' => [
-				'prefixSearch' => true,
-				'caseSensitive' => false,
-			],
-			'expectedTermKeys' => [
-				'Q11/label.fr:kittens love mittens',
-				'Q22/label.en:KITTENS should have mittens',
-				// If not asking for top terms the below would normally also be expected
-				//'Q22/label.sv:kittens should have mittens',
-				'Q10/label.en:kittens',
-			],
-		];
-		yield 'prefixSearch and not caseSensitive LIMIT 1' => [
-			'entities' => [ $item0, $item1, $item2 ],
-			'criteria' => [
-				new TermIndexSearchCriteria( [
-					'termText' => 'KiTTeNS',
-				] ),
-			],
-			'termTypes' => null,
-			'entityTypes' => null,
-			'options' => [
-				'prefixSearch' => true,
-				'caseSensitive' => false,
-				'LIMIT' => 1,
-			],
-			'expectedTermKeys' => [
-				'Q11/label.fr:kittens love mittens',
+			'prefixSearch and not caseSensitive LIMIT 1' => [
+				[ // $entities
+					$item0, $item1, $item2
+				],
+				[ // $criteria
+					new TermIndexSearchCriteria( [
+						'termText' => 'KiTTeNS',
+					] ),
+				],
+				null, // $termTypes
+				null, // $entityTypes
+				[ // $options
+					'prefixSearch' => true,
+					'caseSensitive' => false,
+					'LIMIT' => 1,
+				],
+				[ // $expectedTermKeys
+					'Q11/label.fr:kittens love mittens',
+				],
 			],
 		];
 	}
 
-	/** @dataProvider provideGetMatchingTerms */
-	public function testGetMatchingTerms(
+	/**
+	 * @dataProvider provideGetTopMatchingTerms
+	 */
+	public function testGetTopMatchingTerms(
 		array $entities,
 		array $criteria,
 		$termTypes,
@@ -171,12 +184,12 @@ class DatabaseMatchingTermsLookupTest extends MediaWikiIntegrationTestCase {
 		$lookup = $this->getMatchingTermsLookup();
 		$store = $this->getItemTermStoreWriter();
 
-		foreach ( $entities as $entity ) {
-			/** @var Item $entity */
-			$store->storeTerms( $entity->getId(), $entity->getFingerprint() );
+		foreach ( $entities as $entitiy ) {
+			/** @var Item $entitiy */
+			$store->storeTerms( $entitiy->getId(), $entitiy->getFingerprint() );
 		}
 
-		$actual = $lookup->getMatchingTerms( $criteria, $termTypes, $entityTypes, $options );
+		$actual = $lookup->getTopMatchingTerms( $criteria, $termTypes, $entityTypes, $options );
 
 		$this->assertIsArray( $actual );
 

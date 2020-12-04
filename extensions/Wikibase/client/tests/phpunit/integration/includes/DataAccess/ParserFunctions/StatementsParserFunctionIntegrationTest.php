@@ -5,7 +5,7 @@ namespace Wikibase\Client\Tests\Integration\DataAccess\ParserFunctions;
 use ExtensionRegistry;
 use Language;
 use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use Parser;
 use ParserOptions;
 use ParserOutput;
@@ -40,7 +40,7 @@ use Wikimedia\TestingAccessWrapper;
  * @license GPL-2.0-or-later
  * @author Marius Hoch < hoo@online.de >
  */
-class StatementsParserFunctionIntegrationTest extends MediaWikiIntegrationTestCase {
+class StatementsParserFunctionIntegrationTest extends MediaWikiTestCase {
 
 	/**
 	 * @var bool|null
@@ -168,10 +168,7 @@ class StatementsParserFunctionIntegrationTest extends MediaWikiIntegrationTestCa
 	public function testStatementsParserFunction_multipleValues() {
 		$result = $this->parseWikitextToHtml( '{{#statements:P342|from=Q32489}}' );
 
-		$this->assertSame(
-			"<p><span><span>Lua&#160;:)</span>, <span>Lua&#160;:)</span></span>\n</p>",
-			$result->getText( [ 'unwrap' => true ] )
-		);
+		$this->assertSame( "<p><span><span>Lua&#160;:)</span>, <span>Lua&#160;:)</span></span>\n</p>", $result->getText( [ 'unwrap' => true ] ) );
 
 		$usageAccumulator = $this->newParserOutputUsageAccumulator( $result );
 		$this->assertArrayEquals(

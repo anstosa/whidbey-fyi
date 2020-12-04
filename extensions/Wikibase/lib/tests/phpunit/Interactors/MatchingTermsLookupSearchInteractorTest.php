@@ -2,7 +2,6 @@
 
 namespace Wikibase\Lib\Tests\Interactors;
 
-use Wikibase\DataAccess\PrefetchingTermLookup;
 use Wikibase\DataModel\Entity\EntityId;
 use Wikibase\DataModel\Entity\ItemId;
 use Wikibase\DataModel\Entity\PropertyId;
@@ -11,9 +10,10 @@ use Wikibase\DataModel\Term\TermFallback;
 use Wikibase\Lib\Interactors\MatchingTermsLookupSearchInteractor;
 use Wikibase\Lib\Interactors\TermSearchOptions;
 use Wikibase\Lib\Interactors\TermSearchResult;
+use Wikibase\Lib\LanguageFallbackChain;
 use Wikibase\Lib\LanguageFallbackChainFactory;
+use Wikibase\Lib\Store\BufferingTermIndexTermLookup;
 use Wikibase\Lib\TermIndexEntry;
-use Wikibase\Lib\TermLanguageFallbackChain;
 use Wikibase\Lib\Tests\Store\MockMatchingTermsLookup;
 
 /**
@@ -29,12 +29,6 @@ class MatchingTermsLookupSearchInteractorTest extends \PHPUnit\Framework\TestCas
 	private function getMockTermIndex() {
 		return new MockMatchingTermsLookup(
 			[
-				/**
-				 * NOTE: The ordering of the properties is important for the test-case that covers the limit being applied in case of
-				 * a language fallback being used. If the order is changed, it might subtly lead to that line not being covered despite all
-				 * tests passing!
-				 */
-
 				//Q111 - Has label, description and alias all the same
 				$this->getTermIndexEntry( 'Foo', 'en', TermIndexEntry::TYPE_LABEL, new ItemId( 'Q111' ) ),
 				$this->getTermIndexEntry( 'Foo', 'en', TermIndexEntry::TYPE_DESCRIPTION, new ItemId( 'Q111' ) ),
@@ -47,13 +41,11 @@ class MatchingTermsLookupSearchInteractorTest extends \PHPUnit\Framework\TestCas
 				$this->getTermIndexEntry( 'Taa', 'en', TermIndexEntry::TYPE_ALIAS, new ItemId( 'Q555' ) ),
 				$this->getTermIndexEntry( 'TAAA', 'en-ca', TermIndexEntry::TYPE_ALIAS, new ItemId( 'Q555' ) ),
 				$this->getTermIndexEntry( 'Taa', 'en-ca', TermIndexEntry::TYPE_ALIAS, new ItemId( 'Q555' ) ),
-				//P11
-				$this->getTermIndexEntry( 'Lahmacun', 'en', TermIndexEntry::TYPE_LABEL, new PropertyId( 'P11' ) ),
 				//P22
-				$this->getTermIndexEntry( 'Lama', 'en', TermIndexEntry::TYPE_LABEL, new PropertyId( 'P22' ) ),
+				$this->getTermIndexEntry( 'Lama', 'en-ca', TermIndexEntry::TYPE_LABEL, new PropertyId( 'P22' ) ),
 				$this->getTermIndexEntry( 'La-description', 'en', TermIndexEntry::TYPE_DESCRIPTION, new PropertyId( 'P22' ) ),
 				//P44
-				$this->getTermIndexEntry( 'Lama', 'en-ca', TermIndexEntry::TYPE_LABEL, new PropertyId( 'P44' ) ),
+				$this->getTermIndexEntry( 'Lama', 'en', TermIndexEntry::TYPE_LABEL, new PropertyId( 'P44' ) ),
 				$this->getTermIndexEntry( 'Lama-de-desc', 'de', TermIndexEntry::TYPE_DESCRIPTION, new PropertyId( 'P44' ) ),
 			]
 		);
@@ -79,10 +71,10 @@ class MatchingTermsLookupSearchInteractorTest extends \PHPUnit\Framework\TestCas
 	/**
 	 * Get a lookup that always returns a pt label and description suffixed by the entity ID
 	 *
-	 * @return PrefetchingTermLookup
+	 * @return BufferingTermIndexTermLookup
 	 */
-	private function getMockPrefetchingTermLookup() {
-		$mock = $this->getMockBuilder( PrefetchingTermLookup::class )
+	private function getMockBufferingTermLookup() {
+		$mock = $this->getMockBuilder( BufferingTermIndexTermLookup::class )
 			->disableOriginalConstructor()
 			->getMock();
 		$mock->expects( $this->any() )
@@ -133,10 +125,10 @@ class MatchingTermsLookupSearchInteractorTest extends \PHPUnit\Framework\TestCas
 	/**
 	 * @param string $langCode
 	 *
-	 * @return TermLanguageFallbackChain
+	 * @return LanguageFallbackChain
 	 */
 	public function getMockLanguageFallbackChainFromLanguage( $langCode ) {
-		$mockFallbackChain = $this->getMockBuilder( TermLanguageFallbackChain::class )
+		$mockFallbackChain = $this->getMockBuilder( LanguageFallbackChain::class )
 			->disableOriginalConstructor()
 			->getMock();
 		$mockFallbackChain->expects( $this->any() )
@@ -177,7 +169,7 @@ class MatchingTermsLookupSearchInteractorTest extends \PHPUnit\Framework\TestCas
 		$interactor = new MatchingTermsLookupSearchInteractor(
 			$this->getMockTermIndex(),
 			$this->getMockLanguageFallbackChainFactory(),
-			$this->getMockPrefetchingTermLookup(),
+			$this->getMockBufferingTermLookup(),
 			'pt'
 		);
 
@@ -280,21 +272,6 @@ class MatchingTermsLookupSearchInteractorTest extends \PHPUnit\Framework\TestCas
 						'term' => new Term( 'en', 'Foo' ),
 						'termtype' => 'label',
 					],
-					[
-						'entityId' => new ItemId( 'Q111' ),
-						'term' => new Term( 'en', 'Foo' ),
-						'termtype' => 'description',
-					],
-					[
-						'entityId' => new ItemId( 'Q111' ),
-						'term' => new Term( 'en', 'Foo' ),
-						'termtype' => 'alias',
-					],
-					[
-						'entityId' => new ItemId( 'Q111' ),
-						'term' => new Term( 'en', 'FOO' ),
-						'termtype' => 'alias',
-					],
 				],
 			],
 			'Q111 Foo en aliases match case sensitive' => [
@@ -307,16 +284,6 @@ class MatchingTermsLookupSearchInteractorTest extends \PHPUnit\Framework\TestCas
 						'entityId' => new ItemId( 'Q111' ),
 						'term' => new Term( 'en', 'Foo' ),
 						'termtype' => 'label',
-					],
-					[
-						'entityId' => new ItemId( 'Q111' ),
-						'term' => new Term( 'en', 'Foo' ),
-						'termtype' => 'description',
-					],
-					[
-						'entityId' => new ItemId( 'Q111' ),
-						'term' => new Term( 'en', 'Foo' ),
-						'termtype' => 'alias',
 					],
 				],
 			],
@@ -331,11 +298,6 @@ class MatchingTermsLookupSearchInteractorTest extends \PHPUnit\Framework\TestCas
 						'term' => new Term( 'en-ca', 'TAAA' ),
 						'termtype' => 'alias',
 					],
-					[
-						'entityId' => new ItemId( 'Q555' ),
-						'term' => new Term( 'en-ca', 'Taa' ),
-						'termtype' => 'alias',
-					],
 				],
 			],
 			'P22&P44 La en-ca with fallback all terms' => [
@@ -345,45 +307,17 @@ class MatchingTermsLookupSearchInteractorTest extends \PHPUnit\Framework\TestCas
 				[ 'La', 'en-ca', 'property', $allTermTypes ],
 				[
 					[
-						'entityId' => new PropertyId( 'P44' ),
+						'entityId' => new PropertyId( 'P22' ),
 						'term' => new Term( 'en-ca', 'Lama' ),
 						'termtype' => 'label',
 					],
 					[
-						'entityId' => new PropertyId( 'P11' ),
-						'term' => new Term( 'en', 'Lahmacun' ),
-						'termtype' => 'label' ,
-					],
-					[
-						'entityId' => new PropertyId( 'P22' ),
+						'entityId' => new PropertyId( 'P44' ),
 						'term' => new Term( 'en', 'Lama' ),
 						'termtype' => 'label' ,
 					],
-					[
-						'entityId' => new PropertyId( 'P22' ),
-						'term' => new Term( 'en', 'La-description' ),
-						'termtype' => 'description' ,
-					],
 				],
 			],
-			'P22&P44 La en-ca with fallback all terms search LIMIT 2' => [
-				'caseSensitive' => true,
-				'prefixSearch' => true,
-				'limit' => 2,
-				[ 'La', 'en-ca', 'property', $allTermTypes ],
-				[
-					[
-						'entityId' => new PropertyId( 'P44' ),
-						'term' => new Term( 'en-ca', 'Lama' ),
-						'termtype' => 'label',
-					],
-					[
-						'entityId' => new PropertyId( 'P11' ),
-						'term' => new Term( 'en', 'Lahmacun' ),
-						'termtype' => 'label' ,
-					],
-				],
-			]
 		];
 	}
 

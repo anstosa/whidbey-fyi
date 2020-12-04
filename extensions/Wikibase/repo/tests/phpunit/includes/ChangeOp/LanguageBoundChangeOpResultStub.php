@@ -7,7 +7,6 @@ use Wikibase\Repo\ChangeOp\LanguageBoundChangeOpResult;
 
 /**
  * Stub class to providing language Bound ChangeOpResults for test
- * @license GPL-2.0-or-later
  */
 class LanguageBoundChangeOpResultStub extends ChangeOpResultStub implements LanguageBoundChangeOpResult {
 

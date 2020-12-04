@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Tests\Api;
 
 use ApiUsageException;
@@ -38,11 +36,11 @@ class SetSiteLinkTest extends WikibaseApiTestCase {
 	 */
 	private static $hasSetup;
 
-	/** @var ItemId */
+	/* @var ItemId */
 	private static $gaItemId;
-	/** @var ItemId */
+	/* @var ItemId */
 	private static $faItemId;
-	/** @var ItemId */
+	/* @var ItemId */
 	private static $otherItemId;
 
 	public function provideData() {
@@ -473,7 +471,7 @@ class SetSiteLinkTest extends WikibaseApiTestCase {
 
 		$siteLink = $siteLinks[$linkSite];
 
-		$this->assertSame( $linkSite, $siteLink['site'],
+		$this->assertEquals( $linkSite, $siteLink['site'],
 			"Returned incorrect site"
 		);
 
@@ -481,7 +479,7 @@ class SetSiteLinkTest extends WikibaseApiTestCase {
 			$expectedSiteLink = $expected['value'][$linkSite];
 
 			$this->assertArrayHasKey( 'url', $siteLink );
-			$this->assertSame( $expectedSiteLink['title'], $siteLink['title'],
+			$this->assertEquals( $expectedSiteLink['title'], $siteLink['title'],
 				"Returned incorrect title"
 			);
 
@@ -496,7 +494,7 @@ class SetSiteLinkTest extends WikibaseApiTestCase {
 		// -- check any warnings ----------------------------------------------
 		if ( array_key_exists( 'warning', $expected ) ) {
 			$this->assertArrayHasKey( 'warnings', $result, "Missing 'warnings' section in response." );
-			$this->assertSame( $expected['warning'], $result['warnings']['messages']['0']['name'] );
+			$this->assertEquals( $expected['warning'], $result['warnings']['messages']['0']['name'] );
 			$this->assertArrayHasKey( 'html', $result['warnings']['messages'] );
 		}
 
@@ -605,7 +603,7 @@ class SetSiteLinkTest extends WikibaseApiTestCase {
 			$userWithAllPermissions
 		);
 
-		$this->assertSame( 1, $result['success'] );
+		$this->assertEquals( 1, $result['success'] );
 	}
 
 	public function testUserCannotSetSiteLinkWhenTheyLackPermission() {
@@ -629,12 +627,10 @@ class SetSiteLinkTest extends WikibaseApiTestCase {
 			'code' => 'permissiondenied'
 		];
 
-		MediaWikiServices::getInstance()->getPermissionManager()->invalidateUsersRightsCache(
-			$userWithAllPermissions
-		);
-		MediaWikiServices::getInstance()->getPermissionManager()->invalidateUsersRightsCache(
-			$userWithInsufficientPermissions
-		);
+		//TODO: later this can be replaced with PermissionManager::invalidateUsersRightsCache()
+		//	but for now we just reset the service one more time to avoid merge issues with
+		//	https://gerrit.wikimedia.org/r/c/mediawiki/core/+/502484
+		MediaWikiServices::getInstance()->resetServiceForTesting( 'PermissionManager' );
 
 		$this->doTestQueryExceptions(
 			$this->getSetSiteLinkRequestParams( $newItem->getId() ),
@@ -657,7 +653,7 @@ class SetSiteLinkTest extends WikibaseApiTestCase {
 			$userWithAllPermissions
 		);
 
-		$this->assertSame( 1, $result['success'] );
+		$this->assertEquals( 1, $result['success'] );
 		$this->assertSame( 'Another Cool Page', $result['entity']['sitelinks']['enwiki']['title'] );
 	}
 

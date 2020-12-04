@@ -5,7 +5,7 @@ import {
 	Rank,
 	SnakType,
 } from '@wmde/wikibase-datamodel-types';
-import { StatementState } from './StatementState';
+import { StatementState } from '@/store/statements';
 import { PathToStatement } from '@/store/statements/PathToStatement';
 import { Getters } from 'vuex-smart-module';
 import EntityId from '@/datamodel/EntityId';

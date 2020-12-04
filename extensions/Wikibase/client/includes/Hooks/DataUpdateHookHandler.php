@@ -62,7 +62,7 @@ class DataUpdateHookHandler implements
 	 */
 	private $entityUsageFactory;
 
-	public static function factory(): self {
+	public static function newFromGlobalState(): self {
 		$wikibaseClient = WikibaseClient::getDefaultInstance();
 
 		return new self(
@@ -162,7 +162,9 @@ class DataUpdateHookHandler implements
 			// schedule the usage updates in the job queue, to avoid writing to the database
 			// during a GET request.
 
-			$currentUsages = $this->usageLookup->getUsagesForPage( $title->getArticleID() );
+			$currentUsages = $this->reindexEntityUsages(
+				$this->usageLookup->getUsagesForPage( $title->getArticleID() )
+			);
 			$newUsages = array_diff_key( $usages, $currentUsages );
 			if ( $newUsages === [] ) {
 				return;

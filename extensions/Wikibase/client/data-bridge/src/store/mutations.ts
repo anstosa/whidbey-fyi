@@ -4,7 +4,7 @@ import clone from '@/store/clone';
 import { ValidApplicationStatus } from '@/definitions/ApplicationStatus';
 import Term from '@/datamodel/Term';
 import ApplicationError from '@/definitions/ApplicationError';
-import { BaseState } from './BaseState';
+import { BaseState } from '@/store/state';
 import { Mutations } from 'vuex-smart-module';
 import Application from '@/store/Application';
 

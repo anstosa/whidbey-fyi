@@ -2,7 +2,7 @@
 
 namespace Wikibase\Repo\Tests\Store\Sql;
 
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use Wikibase\DataModel\Entity\Item;
 use Wikibase\DataModel\Entity\ItemId;
 use Wikibase\Lib\Store\EntityNamespaceLookup;
@@ -20,7 +20,7 @@ use Wikibase\Repo\Store\Sql\SqlItemsWithoutSitelinksFinder;
  * @license GPL-2.0-or-later
  * @author Marius Hoch
  */
-class SqlItemsWithoutSitelinksFinderTest extends MediaWikiIntegrationTestCase {
+class SqlItemsWithoutSitelinksFinderTest extends MediaWikiTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -46,8 +46,7 @@ class SqlItemsWithoutSitelinksFinderTest extends MediaWikiIntegrationTestCase {
 					'page_random' => 0,
 					'page_latest' => 0,
 					'page_len' => 1,
-					'page_is_redirect' => 0,
-					'page_touched' => $dbw->timestamp(),
+					'page_is_redirect' => 0
 				];
 
 				// Make Q105 a redirect
@@ -64,8 +63,7 @@ class SqlItemsWithoutSitelinksFinderTest extends MediaWikiIntegrationTestCase {
 				'page_random' => 0,
 				'page_latest' => 0,
 				'page_len' => 1,
-				'page_is_redirect' => 0,
-				'page_touched' => $dbw->timestamp(),
+				'page_is_redirect' => 0
 			];
 
 			$dbw->insert(

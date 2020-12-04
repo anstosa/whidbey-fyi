@@ -1,8 +1,11 @@
-'use strict';
+var assert = require( 'assert' );
 
-const assert = require( 'assert' );
-
-const NonExistingItemPage = require( 'wdio-wikibase/pageobjects/nonexisting.item' );
+let NonExistingItemPage;
+try {
+	NonExistingItemPage = require( 'wdio-wikibase/pageobjects/nonexisting.item' );
+} catch ( e ) {
+	NonExistingItemPage = require( '../wdio-wikibase/pageobjects/nonexisting.item' );
+}
 
 describe( 'WikibaseRepoNonExistingItemPage', function () {
 
@@ -13,11 +16,12 @@ describe( 'WikibaseRepoNonExistingItemPage', function () {
 	} );
 
 	it( 'the title should match', function () {
+		var fullTitle, title;
 
 		NonExistingItemPage.open();
 
-		const fullTitle = NonExistingItemPage.title.getText();
-		const title = fullTitle.substring( fullTitle.indexOf( ':' ) + 1 );
+		fullTitle = NonExistingItemPage.title.getText();
+		title = fullTitle.substring( fullTitle.indexOf( ':' ) + 1 );
 
 		assert.strictEqual( title, 'Q999999999' );
 	} );

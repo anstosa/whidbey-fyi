@@ -2,7 +2,6 @@
 
 namespace Wikibase\Repo\Tests;
 
-use MediaWikiIntegrationTestCase;
 use User;
 
 /**
@@ -14,7 +13,7 @@ use User;
  * @license GPL-2.0-or-later
  * @author Thiemo Kreuz
  */
-class BabelUserLanguageLookupTest extends MediaWikiIntegrationTestCase {
+class BabelUserLanguageLookupTest extends \MediaWikiTestCase {
 
 	/**
 	 * @param string $subject

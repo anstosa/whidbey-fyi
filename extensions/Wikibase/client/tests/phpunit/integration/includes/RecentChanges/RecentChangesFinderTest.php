@@ -3,7 +3,6 @@
 namespace Wikibase\Client\Tests\Integration\RecentChanges;
 
 use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
 use RecentChange;
 use Wikibase\Client\RecentChanges\RecentChangeFactory;
 use Wikibase\Client\RecentChanges\RecentChangesFinder;
@@ -19,7 +18,7 @@ use Wikimedia\Rdbms\SessionConsistentConnectionManager;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class RecentChangesFinderTest extends MediaWikiIntegrationTestCase {
+class RecentChangesFinderTest extends \MediaWikiTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();

@@ -3,7 +3,7 @@
 namespace Wikibase\Repo\Tests;
 
 /**
- * Should be used in conjunction with MediaWikiIntegrationTestCase
+ * Should be used in conjunction with MediaWikiTestCase
  *
  * @license GPL-2.0-or-later
  */
@@ -17,7 +17,7 @@ trait WikibaseTablesUsed {
 		$this->markAnyTermsStorageUsed();
 		$this->markPropertyInfoTableUsed();
 		$this->markItemsPerSiteTableUsed();
-		// Adding the page table means MediaWikiIntegrationTestCase will reset all content related tables
+		// Adding the page table means MediaWikiTestCase will reset all content related tables
 		$this->markTableUsed( 'page' );
 	}
 
@@ -36,9 +36,14 @@ trait WikibaseTablesUsed {
 	}
 
 	private function markAnyTermsStorageUsed() {
+		$this->markLegacyTermsTableUsed();
 		$this->markTableUsed( 'wbt_item_terms' );
 		$this->markTableUsed( 'wbt_property_terms' );
 		$this->markSharedTermsTablesUsed();
+	}
+
+	private function markLegacyTermsTableUsed() {
+		$this->markTableUsed( 'wb_terms' );
 	}
 
 	private function markSharedTermsTablesUsed() {

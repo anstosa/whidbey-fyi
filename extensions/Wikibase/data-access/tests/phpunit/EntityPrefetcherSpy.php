@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\DataAccess\Tests;
 
 use Wikibase\DataModel\Entity\EntityId;
@@ -12,7 +10,6 @@ use Wikibase\DataModel\Services\Entity\EntityPrefetcher;
  */
 class EntityPrefetcherSpy implements EntityPrefetcher {
 
-	/** @var EntityId[] */
 	private $prefetchedEntities = [];
 
 	/**
@@ -34,7 +31,7 @@ class EntityPrefetcherSpy implements EntityPrefetcher {
 		$this->prefetchedEntities = [];
 	}
 
-	public function getPrefetchedEntities(): array {
+	public function getPrefetchedEntities() {
 		return array_values( $this->prefetchedEntities );
 	}
 

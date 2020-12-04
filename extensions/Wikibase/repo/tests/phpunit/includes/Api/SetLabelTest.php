@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Tests\Api;
 
 use ApiUsageException;
@@ -102,7 +100,7 @@ class SetLabelTest extends ModifyTermTestCase {
 			$userWithAllPermissions
 		);
 
-		$this->assertSame( 1, $result['success'] );
+		$this->assertEquals( 1, $result['success'] );
 	}
 
 	public function testUserCannotSetLabelWhenTheyLackPermission() {
@@ -147,7 +145,7 @@ class SetLabelTest extends ModifyTermTestCase {
 			$userWithAllPermissions
 		);
 
-		$this->assertSame( 1, $result['success'] );
+		$this->assertEquals( 1, $result['success'] );
 		$this->assertSame( 'a label', $result['entity']['labels']['en']['value'] );
 	}
 

@@ -11,6 +11,7 @@ use HttpError;
 use Language;
 use OutputPage;
 use Psr\Log\NullLogger;
+use SiteList;
 use SpecialPage;
 use SpecialPageTestBase;
 use Title;
@@ -20,7 +21,7 @@ use Wikibase\DataModel\Entity\EntityId;
 use Wikibase\DataModel\SerializerFactory;
 use Wikibase\DataModel\Services\Lookup\PropertyDataTypeLookup;
 use Wikibase\Lib\EntityTypeDefinitions;
-use Wikibase\Repo\Content\EntityContentFactory;
+use Wikibase\Lib\Store\EntityTitleLookup;
 use Wikibase\Repo\LinkedData\EntityDataFormatProvider;
 use Wikibase\Repo\LinkedData\EntityDataRequestHandler;
 use Wikibase\Repo\LinkedData\EntityDataSerializationService;
@@ -50,14 +51,14 @@ class SpecialEntityDataTest extends SpecialPageTestBase {
 	const URI_DATA = 'http://data.acme.test/';
 
 	protected function newSpecialPage() {
-		$page = new SpecialEntityData(
-			$this->newRequestHandler(),
-			$this->newEntityDataFormatProvider()
-		);
+		$page = new SpecialEntityData();
 
 		// why is this needed?
 		$page->getContext()->setOutput( new OutputPage( $page->getContext() ) );
 		$page->getContext()->setLanguage( 'qqx' );
+
+		$page->setRequestHandler( $this->newRequestHandler() );
+		$page->setEntityDataFormatProvider( $this->newEntityDataFormatProvider() );
 
 		return $page;
 	}
@@ -65,16 +66,12 @@ class SpecialEntityDataTest extends SpecialPageTestBase {
 	private function newRequestHandler() {
 		$mockRepository = EntityDataTestProvider::getMockRepository();
 
-		$entityContentFactory = $this->createMock( EntityContentFactory::class );
-		// general EntityTitleLookup interface
-		$entityContentFactory->expects( $this->any() )
+		$titleLookup = $this->createMock( EntityTitleLookup::class );
+		$titleLookup->expects( $this->any() )
 			->method( 'getTitleForId' )
 			->will( $this->returnCallback( function( EntityId $id ) {
 				return Title::newFromText( $id->getEntityType() . ':' . $id->getSerialization() );
 			} ) );
-		// EntityContentFactory-specific method – should be unused since we configure no page props
-		$entityContentFactory->expects( $this->never() )
-			->method( 'newFromEntity' );
 
 		$dataTypeLookup = $this->createMock( PropertyDataTypeLookup::class );
 		$dataTypeLookup->expects( $this->any() )
@@ -95,10 +92,11 @@ class SpecialEntityDataTest extends SpecialPageTestBase {
 
 		$serializationService = new EntityDataSerializationService(
 			$mockRepository,
-			$entityContentFactory,
+			$titleLookup,
 			$dataTypeLookup,
 			$rdfBuilder,
 			$wikibaseRepo->getEntityRdfBuilderFactory(),
+			new SiteList(),
 			$entityDataFormatProvider,
 			$serializerFactory,
 			$serializerFactory->newItemSerializer(),
@@ -120,7 +118,8 @@ class SpecialEntityDataTest extends SpecialPageTestBase {
 				'test',
 				[ 'test' => '' ],
 				[ 'test' => '' ]
-			)
+			),
+			true
 		);
 
 		$formats = [ 'json', 'rdfxml', 'ntriples', 'turtle' ];
@@ -134,8 +133,7 @@ class SpecialEntityDataTest extends SpecialPageTestBase {
 		$uriManager = new EntityDataUriManager(
 			$title,
 			$supportedExtensions,
-			[],
-			$entityContentFactory
+			$titleLookup
 		);
 		$mockHtmlCacheUpdater = $this->createMock( HtmlCacheUpdater::class );
 
@@ -147,7 +145,8 @@ class SpecialEntityDataTest extends SpecialPageTestBase {
 		return new EntityDataRequestHandler(
 			$uriManager,
 			$mockHtmlCacheUpdater,
-			WikibaseRepo::getEntityIdParser(),
+			$titleLookup,
+			$wikibaseRepo->getEntityIdParser(),
 			$mockRepository,
 			$mockRepository,
 			$serializationService,
@@ -195,7 +194,6 @@ class SpecialEntityDataTest extends SpecialPageTestBase {
 		array $expHeaders = []
 	) {
 		$request = new FauxRequest( $params );
-		$request->setRequestURL( $this->newSpecialPage()->getPageTitle( $subpage )->getLocalURL( $params ) );
 		$request->response()->header( 'Status: 200 OK', true, 200 ); // init/reset
 
 		foreach ( $headers as $name => $value ) {

@@ -4,7 +4,6 @@ namespace Wikibase\Repo\Tests\Specials;
 
 use MediaWiki\MediaWikiServices;
 use SpecialPageTestBase;
-use Wikibase\Lib\DataTypeDefinitions;
 use Wikibase\Repo\Specials\SpecialListDatatypes;
 
 /**
@@ -41,10 +40,7 @@ class SpecialListDatatypesTest extends SpecialPageTestBase {
 	}
 
 	protected function newSpecialPage() {
-		$dataTypeDefinitions = new DataTypeDefinitions( [
-			'PT:wikibase-item' => [ 'value-type' => 'wikibase-entityid' ],
-		] );
-		return new SpecialListDatatypes( $dataTypeDefinitions );
+		return new SpecialListDatatypes();
 	}
 
 	public function testExecute() {

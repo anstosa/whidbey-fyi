@@ -12,7 +12,6 @@ use MWException;
 use Page;
 use Status;
 use Title;
-use User;
 use WatchAction;
 use Wikibase\Lib\Summary;
 use Wikibase\Repo\Content\EntityContent;
@@ -83,8 +82,6 @@ class SubmitEntityAction extends EditEntityAction {
 	public function undo() {
 		$request = $this->getRequest();
 		$undidRevId = $request->getInt( 'undo' );
-		$undidAfterRevId = $request->getInt( 'undoafter' );
-		$restoreId = $request->getInt( 'restore' );
 		$title = $this->getTitle();
 
 		if ( !$request->wasPosted() || !$request->getCheck( 'wpSave' ) ) {
@@ -94,12 +91,12 @@ class SubmitEntityAction extends EditEntityAction {
 				$args['undo'] = $undidRevId;
 			}
 
-			if ( $undidAfterRevId !== 0 ) {
-				$args['undoafter'] = $undidAfterRevId;
+			if ( $request->getCheck( 'undoafter' ) ) {
+				$args['undoafter'] = $request->getInt( 'undoafter' );
 			}
 
-			if ( $restoreId !== 0 ) {
-				$args['restore'] = $restoreId;
+			if ( $request->getCheck( 'restore' ) ) {
+				$args['restore'] = $request->getInt( 'restore' );
 			}
 
 			$undoUrl = $title->getLocalURL( $args );
@@ -143,8 +140,7 @@ class SubmitEntityAction extends EditEntityAction {
 			}
 
 			$editToken = $request->getText( 'wpEditToken' );
-			$status = $this->attemptSave( $title, $patchedContent, $summary,
-				$undidRevId, $undidAfterRevId ?: $restoreId, $editToken );
+			$status = $this->attemptSave( $title, $patchedContent, $summary, $undidRevId, $editToken );
 		}
 
 		if ( $status->isOK() ) {
@@ -212,14 +208,11 @@ class SubmitEntityAction extends EditEntityAction {
 	 * @param Content $content
 	 * @param string $summary
 	 * @param int $undidRevId
-	 * @param int $originalRevId
 	 * @param string $editToken
 	 *
 	 * @return Status
 	 */
-	private function attemptSave(
-		Title $title, Content $content, $summary, $undidRevId, $originalRevId, $editToken
-	) {
+	private function attemptSave( Title $title, Content $content, $summary, $undidRevId, $editToken ) {
 		$status = $this->getEditTokenStatus( $editToken );
 
 		if ( !$status->isOK() ) {
@@ -239,10 +232,10 @@ class SubmitEntityAction extends EditEntityAction {
 		$status = $page->doEditContent(
 			$content,
 			$summary,
-			/* flags */ 0,
-			$originalRevId ?: false,
+			0,
+			false,
 			$this->getUser(),
-			/* serialFormat */ null,
+			null,
 			[],
 			$undidRevId
 		);
@@ -314,9 +307,9 @@ class SubmitEntityAction extends EditEntityAction {
 
 		if ( $user->isLoggedIn()
 			&& $user->getOption( 'watchdefault' )
-			&& !$user->isWatched( $title, User::IGNORE_USER_RIGHTS )
+			&& !$user->isWatched( $title )
 		) {
-			WatchAction::doWatch( $title, $user, User::IGNORE_USER_RIGHTS );
+			WatchAction::doWatch( $title, $user );
 		}
 	}
 

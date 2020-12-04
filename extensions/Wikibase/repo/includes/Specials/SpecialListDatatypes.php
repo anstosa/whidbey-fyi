@@ -3,7 +3,7 @@
 namespace Wikibase\Repo\Specials;
 
 use Html;
-use Wikibase\Lib\DataTypeDefinitions;
+use Wikibase\Repo\WikibaseRepo;
 
 /**
  * Page for listing available datatypes.
@@ -13,13 +13,8 @@ use Wikibase\Lib\DataTypeDefinitions;
  */
 class SpecialListDatatypes extends SpecialWikibasePage {
 
-	/** @var DataTypeDefinitions */
-	private $dataTypeDefinitions;
-
-	public function __construct( DataTypeDefinitions $dataTypeDefinitions ) {
+	public function __construct() {
 		parent::__construct( 'ListDatatypes' );
-
-		$this->dataTypeDefinitions = $dataTypeDefinitions;
 	}
 
 	/**
@@ -69,7 +64,7 @@ class SpecialListDatatypes extends SpecialWikibasePage {
 	}
 
 	protected function getDataTypeIdsAndValues() {
-		return $this->dataTypeDefinitions->getValueTypes();
+		return WikibaseRepo::getDefaultInstance()->getDataTypeDefinitions()->getValueTypes();
 	}
 
 	protected function getHtmlForDataTypeId( $dataTypeId, $valueType ) {

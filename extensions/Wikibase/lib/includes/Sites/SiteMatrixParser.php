@@ -25,7 +25,7 @@ class SiteMatrixParser {
 	private $articlePath;
 
 	/**
-	 * @var bool
+	 * @var boolean
 	 */
 	private $expandGroup;
 

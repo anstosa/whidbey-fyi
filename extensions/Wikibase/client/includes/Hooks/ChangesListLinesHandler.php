@@ -4,6 +4,7 @@ declare( strict_types = 1 );
 
 namespace Wikibase\Client\Hooks;
 
+use ChangesList;
 use EnhancedChangesList;
 use MediaWiki\Hook\EnhancedChangesListModifyBlockLineDataHook;
 use MediaWiki\Hook\EnhancedChangesListModifyLineDataHook;
@@ -44,7 +45,7 @@ class ChangesListLinesHandler implements
 		$this->formatter = $formatter;
 	}
 
-	public static function factory(): self {
+	public static function newFromGlobalState(): self {
 		$wikibaseClient = WikibaseClient::getDefaultInstance();
 		$changeFactory = new ExternalChangeFactory(
 			$wikibaseClient->getSettings()->getSetting( 'repoSiteId' ),

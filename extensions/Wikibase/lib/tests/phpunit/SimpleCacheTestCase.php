@@ -567,7 +567,8 @@ abstract class SimpleCacheTestCase extends TestCase {
 
 		$this->cache->set( 'key', '5' );
 		$result = $this->cache->get( 'key' );
-		$this->assertSame( '5', $result );
+		$this->assertTrue( '5' === $result, 'Wrong data type. If we store a string we must get an string back.' );
+		$this->assertTrue( is_string( $result ), 'Wrong data type. If we store a string we must get an string back.' );
 	}
 
 	public function testDataTypeInteger() {
@@ -577,7 +578,8 @@ abstract class SimpleCacheTestCase extends TestCase {
 
 		$this->cache->set( 'key', 5 );
 		$result = $this->cache->get( 'key' );
-		$this->assertSame( 5, $result );
+		$this->assertTrue( 5 === $result, 'Wrong data type. If we store an int we must get an int back.' );
+		$this->assertTrue( is_int( $result ), 'Wrong data type. If we store an int we must get an int back.' );
 	}
 
 	public function testDataTypeFloat() {

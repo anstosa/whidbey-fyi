@@ -6,7 +6,7 @@ use EchoEvent;
 use EchoEventPresentationModel;
 use ExtensionRegistry;
 use Language;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use Message;
 use Title;
 use User;
@@ -23,7 +23,7 @@ use Wikibase\Client\Notifications\PageConnectionPresentationModel;
  * @license GPL-2.0-or-later
  * @author Matěj Suchánek
  */
-class PageConnectionPresentationModelTest extends MediaWikiIntegrationTestCase {
+class PageConnectionPresentationModelTest extends MediaWikiTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();

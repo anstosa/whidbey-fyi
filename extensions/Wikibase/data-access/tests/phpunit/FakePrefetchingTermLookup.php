@@ -15,7 +15,6 @@ use Wikibase\DataModel\Term\TermTypes;
  */
 class FakePrefetchingTermLookup implements PrefetchingTermLookup {
 
-	/** @var (string|string[])[][] */
 	private $buffer;
 
 	/**

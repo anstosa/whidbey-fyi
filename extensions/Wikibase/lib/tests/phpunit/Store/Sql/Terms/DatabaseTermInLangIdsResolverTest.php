@@ -30,7 +30,7 @@ class DatabaseTermInLangIdsResolverTest extends TestCase {
 	private $db;
 
 	private function getSqlFileAbsolutePath() {
-		return __DIR__ . '/../../../../../../repo/sql/sqlite/term_store.sql';
+		return __DIR__ . '/../../../../../../repo/sql/AddNormalizedTermsTablesDDL.sql';
 	}
 
 	protected function setUp(): void {

@@ -1,5 +1,3 @@
-'use strict';
-
 const Util = require( 'wdio-mediawiki/Util' );
 const assert = require( 'assert' );
 const WikibaseApi = require( 'wdio-wikibase/wikibase.api' );
@@ -33,7 +31,7 @@ describe( 'item', function () {
 		browser.keys( [ 'Tab' ] );
 		browser.keys( [ 'Enter' ] );
 		// property input automatically focused
-		const statement = ItemPage.statements[ 0 ];
+		let statement = ItemPage.statements[ 0 ];
 		ItemPage.getNthQualifierPropertyInput( statement, 0 ).waitForDisplayed();
 		// property field should be automatically focused
 		browser.keys( propertyId );
@@ -62,7 +60,7 @@ describe( 'item', function () {
 
 		// focus still on reference value input, can save entire statement from there
 		browser.keys( [ 'Enter' ] );
-		ItemPage.valueInputField.waitForExist( { reverse: true } );
+		ItemPage.valueInputField.waitForExist( null, true );
 	} );
 
 	// skip this until further investigation of flakiness T227266

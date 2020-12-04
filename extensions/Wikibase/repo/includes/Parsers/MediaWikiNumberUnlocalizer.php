@@ -11,7 +11,7 @@ use ValueParsers\BasicNumberUnlocalizer;
  */
 class MediaWikiNumberUnlocalizer extends BasicNumberUnlocalizer {
 
-	private const UNLOCALIZER_MAP = [
+	protected static $unlocalizerMap = [
 		"\xe2\x88\x92" => '-', // convert minus (U+2212) to hyphen
 		"\xe2\x93\x96" => '-', // convert "heavy minus" (U+2796) to hyphen
 		"\xe2\x93\x95" => '+', // convert "heavy plus" (U+2795) to plus
@@ -37,7 +37,7 @@ class MediaWikiNumberUnlocalizer extends BasicNumberUnlocalizer {
 		$canonicalizedNumber = $this->language->parseFormattedNumber( $number );
 
 		// convert "pretty" characters not covered by parseFormattedNumber
-		$canonicalizedNumber = strtr( $canonicalizedNumber, self::UNLOCALIZER_MAP );
+		$canonicalizedNumber = strtr( $canonicalizedNumber, self::$unlocalizerMap );
 
 		// strip any remaining whitespace
 		$canonicalizedNumber = preg_replace( '/\s+/u', '', $canonicalizedNumber );

@@ -85,7 +85,7 @@ class AddUnitConversions extends Maintenance {
 	protected $builder;
 
 	/**
-	 * @var bool
+	 * @var boolean
 	 */
 	private $dryRun;
 
@@ -164,10 +164,9 @@ class AddUnitConversions extends Maintenance {
 	 * @param string $format File extension or MIME type of the output format.
 	 */
 	public function initializeWriter( $baseUri, $format ) {
-		$this->rdfVocabulary = $this->createRdfVocabulary(
-			$baseUri,
-			WikibaseRepo::getDataTypeDefinitions()->getRdfTypeUris()
-		);
+		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
+		$this->rdfVocabulary = $this->createRdfVocabulary( $baseUri,
+				$wikibaseRepo->getDataTypeDefinitions()->getRdfTypeUris() );
 		$this->rdfWriter = $this->createRdfWriter( $format );
 
 		$ns = $this->rdfVocabulary->getNamespaces();
@@ -352,6 +351,7 @@ QUERY;
 	private function createRdfVocabulary( $baseUri, $typeUris ) {
 		$entityDataTitle = Title::makeTitle( NS_SPECIAL, 'EntityData' );
 
+		$irrelevantValue = 1000;
 		return new RdfVocabulary(
 			[ '' => $baseUri ],
 			[ '' => $entityDataTitle->getCanonicalURL() . '/' ],

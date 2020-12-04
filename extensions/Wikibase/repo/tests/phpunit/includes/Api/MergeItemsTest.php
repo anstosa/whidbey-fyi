@@ -8,7 +8,6 @@ use FauxRequest;
 use HashSiteStore;
 use Language;
 use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
 use SiteLookup;
 use Status;
 use TestSites;
@@ -30,6 +29,7 @@ use Wikibase\Repo\Api\ResultBuilder;
 use Wikibase\Repo\ChangeOp\ChangeOpFactoryProvider;
 use Wikibase\Repo\Interactors\ItemMergeInteractor;
 use Wikibase\Repo\Interactors\ItemRedirectCreationInteractor;
+use Wikibase\Repo\LabelDescriptionDuplicateDetector;
 use Wikibase\Repo\Store\EntityPermissionChecker;
 use Wikibase\Repo\Store\EntityTitleStoreLookup;
 use Wikibase\Repo\Store\TermsCollisionDetectorFactory;
@@ -51,7 +51,7 @@ use Wikibase\Repo\WikibaseRepo;
  * @author Addshore
  * @author Lucie-Aimée Kaffee
  */
-class MergeItemsTest extends MediaWikiIntegrationTestCase {
+class MergeItemsTest extends \MediaWikiTestCase {
 
 	/**
 	 * @var MockRepository|null
@@ -245,12 +245,19 @@ class MergeItemsTest extends MediaWikiIntegrationTestCase {
 	 * @return TermValidatorFactory
 	 */
 	private function getTermValidatorFactory() {
+		$dupeDetector = $this->getMockBuilder( LabelDescriptionDuplicateDetector::class )
+			->disableOriginalConstructor()
+			->getMock();
+
 		return new TermValidatorFactory(
 			100,
 			[ 'en', 'de', 'fr' ],
 			new ItemIdParser(),
+			$dupeDetector,
 			$this->createMock( TermsCollisionDetectorFactory::class ),
-			$this->createMock( TermLookup::class )
+			$this->createMock( TermLookup::class ),
+			[],
+			0
 		);
 	}
 
@@ -386,7 +393,7 @@ class MergeItemsTest extends MediaWikiIntegrationTestCase {
 		$this->assertArrayHasKey( 'redirected', $result );
 
 		if ( $redirect ) {
-			$this->assertSame( 1, $result['redirected'] );
+			$this->assertEquals( 1, $result['redirected'] );
 		} else {
 			$this->assertSame( 0, $result['redirected'] );
 		}

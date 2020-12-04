@@ -6,7 +6,6 @@ namespace Wikibase\Client\Tests\Integration\Hooks;
 
 use IContextSource;
 use Language;
-use MediaWikiIntegrationTestCase;
 use OutputPage;
 use ParserOutput;
 use RequestContext;
@@ -30,7 +29,7 @@ use Wikibase\Lib\SettingsArray;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class SidebarHookHandlerTest extends MediaWikiIntegrationTestCase {
+class SidebarHookHandlerTest extends \MediaWikiTestCase {
 
 	/**
 	 * @return LabelDescriptionLookup

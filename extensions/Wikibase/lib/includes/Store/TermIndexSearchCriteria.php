@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Lib\Store;
 
 use Wikibase\Lib\TermIndexEntry;
@@ -9,15 +7,14 @@ use Wikimedia\Assert\Assert;
 use Wikimedia\Assert\ParameterAssertionException;
 
 /**
- * Object representing search criteria while performing a search
- * in the term store (formerly known as the term index).
+ * Object representing search criteria while performing a search in the term index.
  * Instances might be incomplete (have null values for some of the fields).
  *
  * @license GPL-2.0-or-later
  */
 class TermIndexSearchCriteria {
 
-	private const FIELD_NAMES = [
+	private $fieldNames = [
 		'termType',
 		'termLanguage',
 		'termText',
@@ -48,7 +45,7 @@ class TermIndexSearchCriteria {
 	 */
 	public function __construct( array $fields = [] ) {
 		Assert::parameter(
-			empty( array_diff( array_keys( $fields ), self::FIELD_NAMES ) ),
+			empty( array_diff( array_keys( $fields ), $this->fieldNames ) ),
 			'$fields',
 			'must only contain the following keys: termType, termLanguage, termText'
 		);
@@ -88,15 +85,24 @@ class TermIndexSearchCriteria {
 		}
 	}
 
-	public function getTermType(): ?string {
+	/**
+	 * @return string|null
+	 */
+	public function getTermType() {
 		return $this->termType;
 	}
 
-	public function getLanguage(): ?string {
+	/**
+	 * @return string|null
+	 */
+	public function getLanguage() {
 		return $this->termLanguage;
 	}
 
-	public function getText(): ?string {
+	/**
+	 * @return string|null
+	 */
+	public function getText() {
 		return $this->termText;
 	}
 

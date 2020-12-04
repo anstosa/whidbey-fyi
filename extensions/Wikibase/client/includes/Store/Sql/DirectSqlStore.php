@@ -4,12 +4,9 @@ namespace Wikibase\Client\Store\Sql;
 
 use HashBagOStuff;
 use MediaWiki\MediaWikiServices;
-use ObjectCache;
 use Wikibase\Client\RecentChanges\RecentChangesFinder;
 use Wikibase\Client\Store\ClientStore;
-use Wikibase\Client\Store\DescriptionLookup;
 use Wikibase\Client\Store\UsageUpdater;
-use Wikibase\Client\Usage\ImplicitDescriptionUsageLookup;
 use Wikibase\Client\Usage\Sql\SqlSubscriptionManager;
 use Wikibase\Client\Usage\Sql\SqlUsageTracker;
 use Wikibase\Client\Usage\SubscriptionManager;
@@ -167,12 +164,6 @@ class DirectSqlStore implements ClientStore {
 	 */
 	private $addEntityUsagesBatchSize;
 
-	/** @var bool */
-	private $enableImplicitDescriptionUsage;
-
-	/** @var bool */
-	private $allowLocalShortDesc;
-
 	/**
 	 * @param EntityChangeFactory $entityChangeFactory
 	 * @param EntityIdParser $entityIdParser
@@ -213,8 +204,6 @@ class DirectSqlStore implements ClientStore {
 		$this->disabledUsageAspects = $settings->getSetting( 'disabledUsageAspects' );
 		$this->entityUsagePerPageLimit = $settings->getSetting( 'entityUsagePerPageLimit' );
 		$this->addEntityUsagesBatchSize = $settings->getSetting( 'addEntityUsagesBatchSize' );
-		$this->enableImplicitDescriptionUsage = $settings->getSetting( 'enableImplicitDescriptionUsage' );
-		$this->allowLocalShortDesc = $settings->getSetting( 'allowLocalShortDesc' );
 	}
 
 	/**
@@ -282,22 +271,6 @@ class DirectSqlStore implements ClientStore {
 	public function getUsageLookup() {
 		if ( $this->usageLookup === null ) {
 			$this->usageLookup = $this->getUsageTracker();
-			if ( $this->enableImplicitDescriptionUsage ) {
-				$services = MediaWikiServices::getInstance();
-				$this->usageLookup = new ImplicitDescriptionUsageLookup(
-					$this->usageLookup,
-					$services->getTitleFactory(),
-					$this->allowLocalShortDesc,
-					new DescriptionLookup(
-						$this->entityIdLookup,
-						$this->wikibaseServices->getTermBuffer(),
-						$services->getPageProps()
-					),
-					$services->getLinkBatchFactory(),
-					$this->siteId,
-					$this->getSiteLinkLookup()
-				);
-			}
 		}
 
 		return $this->usageLookup;
@@ -376,10 +349,9 @@ class DirectSqlStore implements ClientStore {
 		$dispatchingLookup = $this->wikibaseServices->getEntityRevisionLookup();
 
 		// Lower caching layer using persistent cache (e.g. memcached).
-		// TODO: Cleanup the cache, it's not needed as SqlBlobStore itself has a better cache
 		$persistentCachingLookup = new CachingEntityRevisionLookup(
 			new EntityRevisionCache(
-				ObjectCache::getInstance( CACHE_NONE ),
+				wfGetCache( $this->cacheType ),
 				$this->cacheDuration,
 				$cacheKeyPrefix
 			),

@@ -4,8 +4,6 @@ namespace Wikibase\Client\DataAccess\Scribunto;
 
 use InvalidArgumentException;
 use Language;
-use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 use Serializers\Serializer;
 use Wikibase\Client\Serializer\ClientEntitySerializer;
 use Wikibase\Client\Serializer\ClientStatementListSerializer;
@@ -16,8 +14,8 @@ use Wikibase\DataModel\Services\Lookup\EntityLookup;
 use Wikibase\DataModel\Services\Lookup\PropertyDataTypeLookup;
 use Wikibase\DataModel\Statement\StatementListProvider;
 use Wikibase\Lib\ContentLanguages;
+use Wikibase\Lib\LanguageFallbackChain;
 use Wikibase\Lib\Store\RevisionedUnresolvedRedirectException;
-use Wikibase\Lib\TermLanguageFallbackChain;
 
 /**
  * Functionality needed to expose Entities to Lua.
@@ -57,9 +55,9 @@ class EntityAccessor {
 	private $dataTypeLookup;
 
 	/**
-	 * @var TermLanguageFallbackChain
+	 * @var LanguageFallbackChain
 	 */
-	private $termFallbackChain;
+	private $fallbackChain;
 
 	/**
 	 * @var Language
@@ -77,18 +75,13 @@ class EntityAccessor {
 	private $fineGrainedLuaTracking;
 
 	/**
-	 * @var LoggerInterface
-	 */
-	private $logger;
-
-	/**
 	 * @param EntityIdParser $entityIdParser
 	 * @param EntityLookup $entityLookup
 	 * @param UsageAccumulator $usageAccumulator
 	 * @param Serializer $entitySerializer
 	 * @param Serializer $statementSerializer
 	 * @param PropertyDataTypeLookup $dataTypeLookup
-	 * @param TermLanguageFallbackChain $termFallbackChain
+	 * @param LanguageFallbackChain $fallbackChain
 	 * @param Language $language
 	 * @param ContentLanguages $termsLanguages
 	 * @param bool $fineGrainedLuaTracking Whether to track each used aspect
@@ -101,11 +94,10 @@ class EntityAccessor {
 		Serializer $entitySerializer,
 		Serializer $statementSerializer,
 		PropertyDataTypeLookup $dataTypeLookup,
-		TermLanguageFallbackChain $termFallbackChain,
+		LanguageFallbackChain $fallbackChain,
 		Language $language,
 		ContentLanguages $termsLanguages,
-		$fineGrainedLuaTracking,
-		LoggerInterface $logger = null
+		$fineGrainedLuaTracking
 	) {
 		$this->entityIdParser = $entityIdParser;
 		$this->entityLookup = $entityLookup;
@@ -113,11 +105,10 @@ class EntityAccessor {
 		$this->entitySerializer = $entitySerializer;
 		$this->statementSerializer = $statementSerializer;
 		$this->dataTypeLookup = $dataTypeLookup;
-		$this->termFallbackChain = $termFallbackChain;
+		$this->fallbackChain = $fallbackChain;
 		$this->language = $language;
 		$this->termsLanguages = $termsLanguages;
 		$this->fineGrainedLuaTracking = $fineGrainedLuaTracking;
-		$this->logger = $logger ?: new NullLogger();
 	}
 
 	/**
@@ -157,7 +148,10 @@ class EntityAccessor {
 		try {
 			$entityObject = $this->entityLookup->getEntity( $entityId );
 		} catch ( RevisionedUnresolvedRedirectException $ex ) {
-			$this->logPossibleDoubleRedirect( $prefixedEntityId );
+			// We probably hit a double redirect
+			wfLogWarning(
+				'Encountered a UnresolvedRedirectException when trying to load ' . $prefixedEntityId
+			);
 
 			return null;
 		}
@@ -192,7 +186,10 @@ class EntityAccessor {
 		try {
 			return $this->entityLookup->hasEntity( $entityId );
 		} catch ( RevisionedUnresolvedRedirectException $ex ) {
-			$this->logPossibleDoubleRedirect( $prefixedEntityId );
+			// We probably hit a double redirect
+			wfLogWarning(
+				'Encountered a UnresolvedRedirectException when trying to check the existence of ' . $prefixedEntityId
+			);
 
 			return false;
 		}
@@ -218,7 +215,10 @@ class EntityAccessor {
 		try {
 			$entity = $this->entityLookup->getEntity( $entityId );
 		} catch ( RevisionedUnresolvedRedirectException $ex ) {
-			$this->logPossibleDoubleRedirect( $prefixedEntityId );
+			// We probably hit a double redirect
+			wfLogWarning(
+				'Encountered a UnresolvedRedirectException when trying to load ' . $prefixedEntityId
+			);
 
 			return null;
 		}
@@ -246,10 +246,10 @@ class EntityAccessor {
 			$this->dataTypeLookup,
 			array_unique( array_merge(
 				$this->termsLanguages->getLanguages(),
-				$this->termFallbackChain->getFetchLanguageCodes(),
+				$this->fallbackChain->getFetchLanguageCodes(),
 				[ $this->language->getCode() ]
 			) ),
-			[ $this->language->getCode() => $this->termFallbackChain ]
+			[ $this->language->getCode() => $this->fallbackChain ]
 		);
 	}
 
@@ -257,18 +257,6 @@ class EntityAccessor {
 		return new ClientStatementListSerializer(
 			$this->statementSerializer,
 			$this->dataTypeLookup
-		);
-	}
-
-	/**
-	 * @see RevisionedUnresolvedRedirectException
-	 * @param $prefixedEntityId
-	 */
-	private function logPossibleDoubleRedirect( $prefixedEntityId ) {
-		$this->logger->info( 'Unresolved redirect encountered loading {prefixedEntityId}. This is typically cleaned up asynchronously.',
-			[
-				'prefixedEntityId' => $prefixedEntityId
-			]
 		);
 	}
 

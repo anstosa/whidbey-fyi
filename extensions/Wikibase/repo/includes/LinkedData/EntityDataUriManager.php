@@ -24,9 +24,6 @@ class EntityDataUriManager {
 	 */
 	private $supportedExtensions;
 
-	/** @var string[] */
-	private $cachePaths;
-
 	/**
 	 * @var EntityTitleLookup
 	 */
@@ -35,19 +32,15 @@ class EntityDataUriManager {
 	/**
 	 * @param Title                $interfaceTitle
 	 * @param string[]             $supportedExtensions an associative Array mapping canonical format names to file extensions.
-	 * @param string[]             $cachePaths List of additional URL paths for which entity data should be cached,
-	 *                                         with {entity_id} and {revision_id} placeholders.
 	 * @param EntityTitleLookup    $entityTitleLookup
 	 */
 	public function __construct(
 		Title $interfaceTitle,
 		array $supportedExtensions,
-		array $cachePaths,
 		EntityTitleLookup $entityTitleLookup
 	) {
 		$this->interfaceTitle = $interfaceTitle;
 		$this->supportedExtensions = $supportedExtensions;
-		$this->cachePaths = $cachePaths;
 		$this->entityTitleLookup = $entityTitleLookup;
 	}
 
@@ -189,58 +182,18 @@ class EntityDataUriManager {
 	 * the given entity.
 	 *
 	 * @param EntityId $id
-	 * @param int $revision Revision ID for which to build URLs,
-	 * or 0 for latest-revision URLs.
-	 * @return string[] canonical URLs
-	 */
-	public function getCacheableUrls( EntityId $id, int $revision = 0 ): array {
-		if ( $revision <= 0 ) {
-			return [];
-		}
-
-		$idSerialization = $id->getSerialization();
-		return array_map( function( $path ) use ( $idSerialization, $revision ) {
-			global $wgCanonicalServer;
-			return $this->getCacheUrl( $path, $idSerialization, $revision, $wgCanonicalServer );
-		}, $this->cachePaths );
-	}
-
-	/**
-	 * Similar to {@link getCacheableUrls()},
-	 * but returns internal URLs (to be sent to {@link HtmlCacheUpdater}),
-	 * rather than canonical URLs (against which a request URL may be compared).
 	 *
-	 * @param EntityId $id as for getCacheableUrls()
-	 * @param int $revision as for getCacheableUrls()
-	 * @return string[] internal URLs
+	 * @return string[]
 	 */
-	public function getPotentiallyCachedUrls( EntityId $id, int $revision = 0 ): array {
-		if ( $revision <= 0 ) {
-			return [];
+	public function getCacheableUrls( EntityId $id ) {
+		$urls = [];
+
+		foreach ( $this->supportedExtensions as $format => $ext ) {
+			$title = $this->getDocTitle( $id, $format );
+			$urls[] = $title->getInternalURL();
 		}
 
-		$idSerialization = $id->getSerialization();
-		return array_map( function( $path ) use ( $idSerialization, $revision ) {
-			global $wgInternalServer, $wgServer;
-			return $this->getCacheUrl( $path, $idSerialization, $revision, $wgInternalServer ?: $wgServer );
-		}, $this->cachePaths );
-	}
-
-	/**
-	 * Turn a cache path from the config into a full URL.
-	 * @param string $path The path, with {entity_id} and {revision_id} placeholders.
-	 * @param string $entityId The entity ID serialization.
-	 * @param int $revision The revision ID.
-	 * @param string $server Either $wgCanonicalServer or $wgInternalServer,
-	 * depending on what kind of URL you want.
-	 * @return string A full URL that can be compared against request URLs
-	 * or sent to {@link HtmlCacheUpdater}, depending on $server.
-	 */
-	private function getCacheUrl( string $path, string $entityId, int $revision, string $server ) {
-		return $server . strtr( $path, [
-			'{entity_id}' => $entityId,
-			'{revision_id}' => (string)$revision,
-		] );
+		return $urls;
 	}
 
 }

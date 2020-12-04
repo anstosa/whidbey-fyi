@@ -3,7 +3,6 @@
 declare( strict_types = 1 );
 namespace Wikibase\Repo\FederatedProperties;
 
-use Exception;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
 use Wikibase\Repo\WikibaseRepo;
@@ -23,29 +22,6 @@ class ApiServiceFactory {
 	 */
 	private $serverName;
 
-	/**
-	 * @var ApiEntityLookup|null
-	 */
-	private static $apiEntityLookupInstance = null;
-
-	/**
-	 * @var ApiEntityNamespaceInfoLookup|null
-	 */
-	private static $apiEntityNamespaceInfoLookup = null;
-
-	public static function resetClassStatics() {
-		if ( !defined( 'MW_PHPUNIT_TEST' ) ) {
-			throw new Exception( 'Cannot reset ApiServiceFactory class statics outside of tests.' );
-		}
-		self::$apiEntityLookupInstance = null;
-		self::$apiEntityNamespaceInfoLookup = null;
-	}
-
-	/**
-	 * ApiServiceFactory constructor.
-	 * @param string $federatedPropertiesSourceScriptUrl
-	 * @param string $serverName
-	 */
 	public function __construct(
 		string $federatedPropertiesSourceScriptUrl,
 		string $serverName
@@ -70,27 +46,20 @@ class ApiServiceFactory {
 	public function newApiEntitySearchHelper(): ApiEntitySearchHelper {
 		return new ApiEntitySearchHelper(
 			$this->newFederatedPropertiesApiClient(),
-			WikibaseRepo::getDataTypeDefinitions()->getTypeIds()
+			WikibaseRepo::getDefaultInstance()->getDataTypeDefinitions()->getTypeIds()
 		);
 	}
 
-	/**
-	 * Returns the singleton instance of ApiEntityNamespaceInfoLookup
-	 * @return ApiEntityNamespaceInfoLookup
-	 */
-	private function getApiEntityNamespaceInfoLookup(): ApiEntityNamespaceInfoLookup {
-		if ( self::$apiEntityNamespaceInfoLookup === null ) {
-			self::$apiEntityNamespaceInfoLookup = new ApiEntityNamespaceInfoLookup(
-				$this->newFederatedPropertiesApiClient(),
-				WikibaseRepo::getDefaultInstance()->getContentModelMappings()
-			);
-		}
-		return self::$apiEntityNamespaceInfoLookup;
+	private function newApiEntityNamespaceInfoLookup(): ApiEntityNamespaceInfoLookup {
+		return new ApiEntityNamespaceInfoLookup(
+			$this->newFederatedPropertiesApiClient(),
+			WikibaseRepo::getDefaultInstance()->getContentModelMappings()
+		);
 	}
 
 	public function newApiEntityTitleTextLookup(): ApiEntityTitleTextLookup {
 		return new ApiEntityTitleTextLookup(
-			$this->getApiEntityNamespaceInfoLookup()
+			$this->newApiEntityNamespaceInfoLookup()
 		);
 	}
 
@@ -103,29 +72,22 @@ class ApiServiceFactory {
 
 	public function newApiPropertyDataTypeLookup(): ApiPropertyDataTypeLookup {
 		return new ApiPropertyDataTypeLookup(
-			$this->getApiEntityLookup()
+			$this->newApiEntityLookup()
 		);
 	}
 
 	public function newApiPrefetchingTermLookup(): ApiPrefetchingTermLookup {
 		return new ApiPrefetchingTermLookup(
-			$this->getApiEntityLookup()
+			$this->newApiEntityLookup()
 		);
 	}
 
-	/**
-	 * Returns the singleton instance of ApiEntityLookup
-	 * @return ApiEntityLookup
-	 */
-	public function getApiEntityLookup(): ApiEntityLookup {
-		if ( self::$apiEntityLookupInstance === null ) {
-			self::$apiEntityLookupInstance = new ApiEntityLookup( $this->newFederatedPropertiesApiClient() );
-		}
-		return self::$apiEntityLookupInstance;
+	public function newApiEntityLookup(): ApiEntityLookup {
+		return new ApiEntityLookup( $this->newFederatedPropertiesApiClient() );
 	}
 
 	public function newApiEntityExistenceChecker(): ApiEntityExistenceChecker {
-		return new ApiEntityExistenceChecker( $this->getApiEntityLookup() );
+		return new ApiEntityExistenceChecker( $this->newApiEntityLookup() );
 	}
 
 }

@@ -3,7 +3,7 @@
 namespace Wikibase\Client\Tests\Integration\Hooks;
 
 use Language;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use Parser;
 use ParserOutput;
 use Title;
@@ -20,7 +20,7 @@ use Wikimedia\TestingAccessWrapper;
  * @license GPL-2.0-or-later
  * @author Matthew Flaschen < mflaschen@wikimedia.org >
  */
-class MagicWordHookHandlerTest extends MediaWikiIntegrationTestCase {
+class MagicWordHookHandlerTest extends MediaWikiTestCase {
 
 	/**
 	 * @dataProvider provideGetRepoName

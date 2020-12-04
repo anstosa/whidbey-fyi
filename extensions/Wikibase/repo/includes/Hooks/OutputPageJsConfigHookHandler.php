@@ -41,7 +41,7 @@ class OutputPageJsConfigHookHandler implements OutputPageBeforeHTMLHook {
 	private $badgeItems;
 
 	/**
-	 * @var int
+	 * @var integer
 	 */
 	private $stringLimit;
 
@@ -75,7 +75,7 @@ class OutputPageJsConfigHookHandler implements OutputPageBeforeHTMLHook {
 		$this->taintedReferencesEnabled = $taintedReferencesEnabled;
 	}
 
-	public static function factory(): self {
+	public static function newFromGlobalState(): self {
 		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
 		$settings = $wikibaseRepo->getSettings();
 

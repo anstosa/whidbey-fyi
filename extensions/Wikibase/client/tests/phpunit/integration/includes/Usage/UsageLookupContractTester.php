@@ -56,13 +56,9 @@ class UsageLookupContractTester {
 		$u3l = new EntityUsage( $q3, EntityUsage::LABEL_USAGE, 'de' );
 		$u4l = new EntityUsage( $q4, EntityUsage::LABEL_USAGE, 'de' );
 
-		$usages = [
-			$u3i->getIdentityString() => $u3i,
-			$u3l->getIdentityString() => $u3l,
-			$u4l->getIdentityString() => $u4l,
-		];
+		$usages = [ $u3i, $u3l, $u4l ];
 
-		$this->putUsages( 23, array_values( $usages ) );
+		$this->putUsages( 23, $usages );
 
 		Assert::assertSame( [], $this->lookup->getUsagesForPage( 24 ) );
 
@@ -198,7 +194,7 @@ class UsageLookupContractTester {
 			return $usage->getIdentityString();
 		}, $usages );
 
-		asort( $strings );
+		sort( $strings );
 		return $strings;
 	}
 

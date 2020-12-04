@@ -75,7 +75,9 @@ class LanguageAwareRenderer implements StatementGroupRenderer {
 				$this->title );
 
 			$status = $this->getStatusForException( $propertyLabelOrId, $ex );
-		} catch ( EntityLookupException | InvalidArgumentException $ex ) {
+		} catch ( EntityLookupException $ex ) {
+			$status = $this->getStatusForException( $propertyLabelOrId, $ex );
+		} catch ( InvalidArgumentException $ex ) {
 			$status = $this->getStatusForException( $propertyLabelOrId, $ex );
 		}
 

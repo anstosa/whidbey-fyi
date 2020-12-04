@@ -2,15 +2,12 @@
 
 namespace Wikibase\Client\Tests\Integration\Store\Sql;
 
-use MediaWikiIntegrationTestCase;
 use Wikibase\Client\RecentChanges\RecentChangesFinder;
 use Wikibase\Client\Store\Sql\DirectSqlStore;
-use Wikibase\Client\Usage\ImplicitDescriptionUsageLookup;
 use Wikibase\Client\Usage\SubscriptionManager;
 use Wikibase\Client\Usage\UsageLookup;
 use Wikibase\Client\Usage\UsageTracker;
 use Wikibase\Client\WikibaseClient;
-use Wikibase\DataAccess\NullPrefetchingTermLookup;
 use Wikibase\DataAccess\WikibaseServices;
 use Wikibase\DataModel\Entity\ItemIdParser;
 use Wikibase\DataModel\Services\Entity\EntityPrefetcher;
@@ -37,14 +34,14 @@ use Wikibase\Lib\WikibaseSettings;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class DirectSqlStoreTest extends MediaWikiIntegrationTestCase {
+class DirectSqlStoreTest extends \MediaWikiTestCase {
 
 	protected function newStore() {
 		$entityChangeFactory = $this->getMockBuilder( EntityChangeFactory::class )
 			->disableOriginalConstructor()
 			->getMock();
 
-		$wikibaseClient = WikibaseClient::getDefaultInstance( 'reset' );
+		$wikibaseClient = WikibaseClient::getDefaultInstance();
 
 		$wikibaseServices = $this->createMock( WikibaseServices::class );
 
@@ -54,8 +51,6 @@ class DirectSqlStoreTest extends MediaWikiIntegrationTestCase {
 			->willReturn( $this->createMock( EntityRevisionLookup::class ) );
 		$wikibaseServices->method( 'getPropertyInfoLookup' )
 			->willReturn( new MockPropertyInfoLookup() );
-		$wikibaseServices->method( 'getTermBuffer' )
-			->willReturn( new NullPrefetchingTermLookup() );
 
 		return new DirectSqlStore(
 			$entityChangeFactory,
@@ -68,11 +63,6 @@ class DirectSqlStoreTest extends MediaWikiIntegrationTestCase {
 			wfWikiID(),
 			'en'
 		);
-	}
-
-	public static function tearDownAfterClass(): void {
-		// ensure we don’t leave an instance with non-default settings behind
-		WikibaseClient::getDefaultInstance( 'reset' );
 	}
 
 	/**
@@ -110,27 +100,6 @@ class DirectSqlStoreTest extends MediaWikiIntegrationTestCase {
 		$store = $this->newStore();
 
 		$this->assertInstanceOf( SubscriptionManager::class, $store->getSubscriptionManager() );
-	}
-
-	/** @dataProvider provideBooleans */
-	public function testGetUsageLookup( bool $enableImplicitDescriptionUsage ) {
-		$this->mergeMwGlobalArrayValue( 'wgWBClientSettings', [
-			'enableImplicitDescriptionUsage' => $enableImplicitDescriptionUsage,
-		] );
-
-		$store = $this->newStore();
-		$usageLookup = $store->getUsageLookup();
-
-		if ( $enableImplicitDescriptionUsage ) {
-			$this->assertInstanceOf( ImplicitDescriptionUsageLookup::class, $usageLookup );
-		} else {
-			$this->assertNotInstanceOf( ImplicitDescriptionUsageLookup::class, $usageLookup );
-		}
-	}
-
-	public function provideBooleans() {
-		yield [ true ];
-		yield [ false ];
 	}
 
 }

@@ -6,8 +6,11 @@
 		"wikimedia/mediawiki"
 	],
 	"globals": {
+		"module": false,
 		"dataTypes": false,
 		"dataValues": false,
+		"OO": false,
+		"require": false,
 		"util": false,
 		"valueFormatters": false,
 		"valueParsers": false,
@@ -45,8 +48,7 @@
 		"vars-on-top": "off",
 		"mediawiki/class-doc": "off",
 		"no-jquery/no-class-state": "off",
-		"no-jquery/no-global-selector": "off",
-		"no-shadow": "warn"
+		"no-jquery/no-global-selector": "off"
 	},
 	"settings": {
 		"no-jquery": {

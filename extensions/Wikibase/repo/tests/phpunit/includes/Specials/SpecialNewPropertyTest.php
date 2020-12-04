@@ -9,6 +9,7 @@ use Wikibase\DataModel\Entity\PropertyId;
 use Wikibase\Lib\Store\EntityNamespaceLookup;
 use Wikibase\Repo\Specials\SpecialNewProperty;
 use Wikibase\Repo\WikibaseRepo;
+use Wikimedia\Rdbms\IMaintainableDatabase;
 
 /**
  * @covers \Wikibase\Repo\Specials\SpecialNewProperty
@@ -33,6 +34,7 @@ class SpecialNewPropertyTest extends SpecialNewEntityTestCase {
 		parent::setUp();
 		$this->setUserLang( 'qqx' );
 		$tables = [
+			'wb_terms',
 			'wbt_type',
 			'wbt_text',
 			'wbt_text_in_lang',
@@ -41,6 +43,22 @@ class SpecialNewPropertyTest extends SpecialNewEntityTestCase {
 			'wbt_item_terms'
 		];
 		$this->tablesUsed = array_merge( $this->tablesUsed, $tables );
+	}
+
+	protected function getSchemaOverrides( IMaintainableDatabase $db ) {
+		return [
+			'scripts' => [
+				__DIR__ . '/../../../../sql/AddNormalizedTermsTablesDDL.sql',
+			],
+			'create' => [
+				'wbt_item_terms',
+				'wbt_property_terms',
+				'wbt_term_in_lang',
+				'wbt_text_in_lang',
+				'wbt_text',
+				'wbt_type',
+			],
+		];
 	}
 
 	protected function tearDown(): void {
@@ -60,7 +78,6 @@ class SpecialNewPropertyTest extends SpecialNewEntityTestCase {
 			$wikibaseRepo->getSummaryFormatter(),
 			$wikibaseRepo->getEntityTitleLookup(),
 			$wikibaseRepo->newEditEntityFactory(),
-			$wikibaseRepo->getDataTypeFactory(),
 			$wikibaseRepo->getPropertyTermsCollisionDetector()
 		);
 	}
@@ -102,7 +119,28 @@ class SpecialNewPropertyTest extends SpecialNewEntityTestCase {
 		);
 	}
 
-	public function testFailsAndDisplaysAnError_WhenTryToCreateSecondPropertyWithTheSameLabel() {
+	public function propertyTermsMigrationStageProvider() {
+		return [
+			[ MIGRATION_OLD ],
+			[ MIGRATION_WRITE_BOTH ],
+			[ MIGRATION_WRITE_NEW ],
+			[ MIGRATION_NEW ]
+		];
+	}
+
+	/**
+	 * @dataProvider propertyTermsMigrationStageProvider
+	 */
+	public function testFailsAndDisplaysAnError_WhenTryToCreateSecondPropertyWithTheSameLabel(
+		$propertyTermsMigrationStage
+	) {
+		$settings = WikibaseRepo::getDefaultInstance()->getSettings();
+		$oldConfig = $settings->getSetting( 'tmpPropertyTermsMigrationStage' );
+		$settings->setSetting(
+			'tmpPropertyTermsMigrationStage',
+			$propertyTermsMigrationStage
+		);
+
 		$formData = [
 			SpecialNewProperty::FIELD_LANG => 'en',
 			SpecialNewProperty::FIELD_LABEL => 'label',
@@ -115,6 +153,8 @@ class SpecialNewPropertyTest extends SpecialNewEntityTestCase {
 		list( $html ) = $this->executeSpecialPage( '', new \FauxRequest( $formData, true ) );
 
 		$this->assertHtmlContainsErrorMessage( $html, '(wikibase-validator-label-conflict: label, en, ' );
+
+		$settings->setSetting( 'tmpPropertyTermsMigrationStage', $oldConfig );
 	}
 
 	public function provideValidEntityCreationRequests() {

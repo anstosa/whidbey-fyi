@@ -1,9 +1,6 @@
 /**
  * See also: http://webdriver.io/guide/testrunner/configurationfile.html
  */
-
-'use strict';
-
 const fs = require( 'fs' ),
 	saveScreenshot = require( 'wdio-mediawiki' ).saveScreenshot;
 
@@ -83,8 +80,9 @@ exports.config = {
 	 * @param {Object} test Mocha Test object
 	 */
 	afterTest: function ( test ) {
+		var filePath;
 		if ( !test.passed ) {
-			const filePath = saveScreenshot( test.title );
+			filePath = saveScreenshot( test.title );
 			console.log( '\n\tScreenshot: ' + filePath + '\n' );
 		}
 	}

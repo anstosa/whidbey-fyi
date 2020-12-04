@@ -136,17 +136,17 @@ class PropertyView extends EntityView {
 	 */
 	private function getHtmlForDataType( $propertyType ) {
 		$html = $this->templateFactory->render( 'wb-section-heading',
-			$this->textProvider->getEscaped( 'wikibase-propertypage-datatype' ),
+			htmlspecialchars( $this->textProvider->get( 'wikibase-propertypage-datatype' ) ),
 			'datatype',
 			'wikibase-propertypage-datatype'
 		);
 
 		try {
 			$dataType = $this->dataTypeFactory->getType( $propertyType );
-			$dataTypeLabelHtml = $this->textProvider->getEscaped( $dataType->getMessageKey() );
+			$dataTypeLabelHtml = htmlspecialchars( $this->textProvider->get( $dataType->getMessageKey() ) );
 		} catch ( OutOfBoundsException $ex ) {
 			$dataTypeLabelHtml = '<span class="error">' .
-				$this->textProvider->getEscaped( 'wikibase-propertypage-bad-datatype', [ $propertyType ] ) .
+				htmlspecialchars( $this->textProvider->get( 'wikibase-propertypage-bad-datatype', [ $propertyType ] ) ) .
 				'</span>';
 		}
 		$html .= $this->templateFactory->render( 'wikibase-propertyview-datatype', $dataTypeLabelHtml );

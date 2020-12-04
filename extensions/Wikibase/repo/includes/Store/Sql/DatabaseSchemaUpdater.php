@@ -4,7 +4,6 @@ namespace Wikibase\Repo\Store\Sql;
 
 use DatabaseUpdater;
 use HashBagOStuff;
-use MediaWiki\Installer\Hook\LoadExtensionSchemaUpdatesHook;
 use MediaWiki\MediaWikiServices;
 use MWException;
 use Onoi\MessageReporter\ObservableMessageReporter;
@@ -18,6 +17,8 @@ use Wikibase\Lib\Store\Sql\PropertyInfoTable;
 use Wikibase\Lib\Store\Sql\WikiPageEntityDataLoader;
 use Wikibase\Lib\Store\Sql\WikiPageEntityMetaDataLookup;
 use Wikibase\Lib\Store\Sql\WikiPageEntityRevisionLookup;
+use Wikibase\Repo\Maintenance\PopulateTermFullEntityId;
+use Wikibase\Repo\Maintenance\RebuildTermsSearchKey;
 use Wikibase\Repo\RangeTraversable;
 use Wikibase\Repo\Store\ItemTermsRebuilder;
 use Wikibase\Repo\Store\PropertyTermsRebuilder;
@@ -30,7 +31,7 @@ use Wikimedia\Rdbms\IDatabase;
  * @author Daniel Kinzler
  * @author Marius Hoch
  */
-class DatabaseSchemaUpdater implements LoadExtensionSchemaUpdatesHook {
+class DatabaseSchemaUpdater {
 
 	/**
 	 * @var Store
@@ -41,7 +42,7 @@ class DatabaseSchemaUpdater implements LoadExtensionSchemaUpdatesHook {
 		$this->store = $store;
 	}
 
-	public static function factory() {
+	private static function newFromGlobalState() {
 		$store = WikibaseRepo::getDefaultInstance()->getStore();
 
 		return new self( $store );
@@ -52,8 +53,17 @@ class DatabaseSchemaUpdater implements LoadExtensionSchemaUpdatesHook {
 	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/LoadExtensionSchemaUpdates
 	 *
 	 * @param DatabaseUpdater $updater
+	 *
+	 * @return bool
 	 */
-	public function onLoadExtensionSchemaUpdates( $updater ) {
+	public static function onSchemaUpdate( DatabaseUpdater $updater ) {
+		$schemaUpdater = self::newFromGlobalState();
+		$schemaUpdater->doSchemaUpdate( $updater );
+
+		return true;
+	}
+
+	public function doSchemaUpdate( DatabaseUpdater $updater ) {
 		$db = $updater->getDB();
 		$type = $db->getType();
 
@@ -70,26 +80,24 @@ class DatabaseSchemaUpdater implements LoadExtensionSchemaUpdatesHook {
 			$updater->dropExtensionTable( 'wb_items' );
 			$updater->dropExtensionTable( 'wb_aliases' );
 			$updater->dropExtensionTable( 'wb_texts_per_lang' );
-		}
 
-		$updater->addExtensionTable(
-			'wb_id_counters',
-			$this->getScriptPath( 'wb_id_counters', $db->getType() )
-		);
-		$updater->addExtensionTable(
-			'wb_items_per_site',
-			$this->getScriptPath( 'wb_items_per_site', $db->getType() )
-		);
-		// NOTE: this update doesn't work on SQLite, but it's not needed there anyway.
-		if ( $db->getType() !== 'sqlite' ) {
-			// make ips_row_id BIGINT
-			$updater->modifyExtensionField(
+			$updater->addExtensionTable(
 				'wb_items_per_site',
-				'ips_row_id',
-				$this->getUpdateScriptPath( 'MakeRowIDsBig', $db->getType() )
+				$this->getUpdateScriptPath( 'Wikibase', $db->getType() )
 			);
+
+			$this->store->rebuild();
+		} elseif ( !$db->tableExists( 'wb_items_per_site', __METHOD__ ) ) {
+			// Clean installation
+			$updater->addExtensionTable(
+				'wb_items_per_site',
+				$this->getUpdateScriptPath( 'Wikibase', $db->getType() )
+			);
+
+			$this->store->rebuild();
 		}
 
+		$this->updateTermsTable( $updater, $db );
 		$this->updateItemsPerSiteTable( $updater, $db );
 		$this->updateChangesTable( $updater, $db );
 
@@ -101,7 +109,7 @@ class DatabaseSchemaUpdater implements LoadExtensionSchemaUpdatesHook {
 
 		$updater->addExtensionTable(
 			'wbt_text',
-			$this->getScriptPath( 'term_store', $db->getType() )
+			$this->getUpdateScriptPath( 'AddNormalizedTermsTablesDDL', $db->getType() )
 		);
 		if ( !$updater->updateRowExists( __CLASS__ . '::rebuildPropertyTerms' ) ) {
 			$updater->addExtensionUpdate( [
@@ -113,34 +121,6 @@ class DatabaseSchemaUpdater implements LoadExtensionSchemaUpdatesHook {
 				[ __CLASS__, 'rebuildItemTerms' ]
 			] );
 		}
-
-		$updater->dropExtensionTable( 'wb_terms' );
-
-		$this->updateChangesSubscriptionTable( $updater );
-
-		$updater->dropExtensionIndex(
-			'wb_changes',
-			'wb_changes_change_type',
-			$this->getUpdateScriptPath( 'patch-wb_changes-drop-change_type_index', $db->getType() )
-		);
-	}
-
-	private function updateChangesSubscriptionTable( DatabaseUpdater $dbUpdater ): void {
-		$table = 'wb_changes_subscription';
-
-		if ( !$dbUpdater->tableExists( $table ) ) {
-			$db = $dbUpdater->getDB();
-			$script = $this->getScriptPath( 'wb_changes_subscription', $db->getType() );
-			$dbUpdater->addExtensionTable( $table, $script );
-
-			// Register function for populating the table.
-			// Note that this must be done with a static function,
-			// for reasons that do not need explaining at this juncture.
-			$dbUpdater->addExtensionUpdate( [
-				[ __CLASS__, 'fillSubscriptionTable' ],
-				$table
-			] );
-		}
 	}
 
 	/**
@@ -150,7 +130,7 @@ class DatabaseSchemaUpdater implements LoadExtensionSchemaUpdatesHook {
 	private function addChangesTable( DatabaseUpdater $updater, $type ) {
 		$updater->addExtensionTable(
 			'wb_changes',
-			$this->getScriptPath( 'wb_changes', $type )
+			$this->getUpdateScriptPath( 'changes', $type )
 		);
 
 		if ( $type === 'mysql' && !$updater->updateRowExists( 'ChangeChangeObjectId.sql' ) ) {
@@ -165,7 +145,7 @@ class DatabaseSchemaUpdater implements LoadExtensionSchemaUpdatesHook {
 
 		$updater->addExtensionTable(
 			'wb_changes_dispatch',
-			$this->getScriptPath( 'wb_changes_dispatch', $type )
+			$this->getUpdateScriptPath( 'changes_dispatch', $type )
 		);
 	}
 
@@ -179,14 +159,6 @@ class DatabaseSchemaUpdater implements LoadExtensionSchemaUpdatesHook {
 				$this->getUpdateScriptPath( 'MakeIpsSitePageLarger', $db->getType() )
 			);
 		}
-
-		// creates wb_item_per_site.ips_row_id.
-		$updater->addExtensionField(
-			'wb_items_per_site',
-			'ips_row_id',
-			$this->getUpdateScriptPath( 'AddRowIDs', $db->getType() )
-		);
-
 		$updater->dropExtensionIndex(
 			'wb_items_per_site',
 			'wb_ips_site_page',
@@ -211,7 +183,12 @@ class DatabaseSchemaUpdater implements LoadExtensionSchemaUpdatesHook {
 
 		if ( !$updater->tableExists( $table ) ) {
 			$type = $updater->getDB()->getType();
-			$file = $this->getScriptPath( $table, $type );
+			$fileBase = __DIR__ . '/../../../sql/' . $table;
+
+			$file = $fileBase . '.' . $type . '.sql';
+			if ( !file_exists( $file ) ) {
+				$file = $fileBase . '.sql';
+			}
 
 			$updater->addExtensionTable( $table, $file );
 
@@ -392,49 +369,162 @@ class DatabaseSchemaUpdater implements LoadExtensionSchemaUpdatesHook {
 		}
 	}
 
-	private function getUpdateScriptPath( $name, $type ) {
-		return $this->getScriptPath( 'archives/' . $name, $type );
-	}
-
-	private function getScriptPath( $name, $type ) {
-		$types = [
-			$type,
-			'mysql'
+	/**
+	 * Returns the script directory that contains a file with the given name.
+	 *
+	 * @param string $fileName with extension
+	 *
+	 * @throws MWException If the file was not found in any script directory
+	 * @return string The directory that contains the file
+	 */
+	private function getUpdateScriptDir( $fileName ) {
+		$dirs = [
+			__DIR__,
+			__DIR__ . '/../../../sql'
 		];
 
-		foreach ( $types as $type ) {
-			$path = __DIR__ . '/../../../sql/' . $type . '/' . $name . '.sql';
-
-			if ( file_exists( $path ) ) {
-				return $path;
+		foreach ( $dirs as $dir ) {
+			if ( file_exists( "$dir/$fileName" ) ) {
+				return $dir;
 			}
 		}
 
-		throw new MWException( "Could not find schema script '$name'" );
+		throw new MWException( "Update script not found: $fileName" );
 	}
 
 	/**
-	 * Static wrapper for EntityUsageTableBuilder::fillUsageTable
+	 * Returns the appropriate script file for use with the given database type.
+	 * Searches for files with type-specific extensions in the script directories,
+	 * falling back to the plain ".sql" extension if no specific script is found.
 	 *
-	 * @param DatabaseUpdater $dbUpdater
-	 * @param string $table
+	 * @param string $name the script's name, without file extension
+	 * @param string $type the database type, as returned by IDatabase::getType()
+	 *
+	 * @return string The path to the script file
+	 * @throws MWException If the script was not found in any script directory
 	 */
-	public static function fillSubscriptionTable( DatabaseUpdater $dbUpdater, $table ) {
-		$primer = new ChangesSubscriptionTableBuilder(
-			// would be nice to pass in $dbUpdater->getDB().
-			MediaWikiServices::getInstance()->getDBLoadBalancer(),
-			WikibaseRepo::getDefaultInstance()->getEntityIdComposer(),
-			$table,
-			1000
+	private function getUpdateScriptPath( $name, $type ) {
+		$extensions = [
+			'sqlite' => 'sqlite.sql',
+			//'postgres' => 'pg.sql', // PG support is broken as of Dec 2013
+			'mysql' => 'mysql.sql',
+		];
+
+		// Find the base directory by looking for a plain ".sql" file.
+		$dir = $this->getUpdateScriptDir( "$name.sql" );
+
+		if ( isset( $extensions[$type] ) ) {
+			$extension = $extensions[$type];
+			$path = "$dir/$name.$extension";
+
+			// if a type-specific file exists, use it
+			if ( file_exists( "$dir/$name.$extension" ) ) {
+				return $path;
+			}
+		} else {
+			throw new MWException( "Database type $type is not supported by Wikibase!" );
+		}
+
+		// we already know that the generic file exists
+		$path = "$dir/$name.sql";
+		return $path;
+	}
+
+	/**
+	 * Applies updates to the wb_terms table.
+	 *
+	 * @param DatabaseUpdater $updater
+	 * @param IDatabase $db
+	 */
+	private function updateTermsTable( DatabaseUpdater $updater, IDatabase $db ) {
+		// ---- Update from 0.1 or 0.2. ----
+		if ( !$db->fieldExists( 'wb_terms', 'term_search_key', __METHOD__ ) ) {
+			$updater->addExtensionField(
+				'wb_terms',
+				'term_search_key',
+				$this->getUpdateScriptPath( 'AddTermsSearchKey', $db->getType() )
+			);
+
+			$updater->addPostDatabaseUpdateMaintenance( RebuildTermsSearchKey::class );
+		}
+
+		// creates wb_terms.term_row_id
+		// and also wb_item_per_site.ips_row_id.
+		$updater->addExtensionField(
+			'wb_terms',
+			'term_row_id',
+			$this->getUpdateScriptPath( 'AddRowIDs', $db->getType() )
 		);
 
-		$reporter = new ObservableMessageReporter();
-		$reporter->registerReporterCallback( function( $msg ) use ( $dbUpdater ) {
-			$dbUpdater->output( "\t$msg\n" );
-		} );
-		$primer->setProgressReporter( $reporter );
+		// add weight to wb_terms
+		$updater->addExtensionField(
+			'wb_terms',
+			'term_weight',
+			$this->getUpdateScriptPath( 'AddTermsWeight', $db->getType() )
+		);
 
-		$primer->fillSubscriptionTable();
+		// ---- Update from 0.4 ----
+
+		// NOTE: this update doesn't work on SQLite, but it's not needed there anyway.
+		if ( $db->getType() !== 'sqlite' ) {
+			// make term_row_id BIGINT
+			$updater->modifyExtensionField(
+				'wb_terms',
+				'term_row_id',
+				$this->getUpdateScriptPath( 'MakeRowIDsBig', $db->getType() )
+			);
+		}
+
+		// updated indexes
+		$updater->dropExtensionIndex(
+			'wb_terms',
+			'wb_terms_entity_type',
+			$this->getUpdateScriptPath( 'DropUnusedTermIndexes', $db->getType() )
+		);
+
+		// T159851
+		$updater->addExtensionField(
+			'wb_terms',
+			'term_full_entity_id',
+			$this->getUpdateScriptPath( 'AddTermsFullEntityId', $db->getType() )
+		);
+
+		$updater->dropExtensionIndex(
+			'wb_terms',
+			'term_search',
+			$this->getUpdateScriptPath( 'DropNotFullEntityIdTermIndexes', $db->getType() )
+		);
+
+		// T202265
+		$updater->addExtensionIndex(
+			'wb_terms',
+			'tmp1',
+			$this->getUpdateScriptPath( 'AddWbTermsTmp1Index', $db->getType() )
+		);
+
+		// T204836
+		$updater->addExtensionIndex(
+			'wb_terms',
+			'wb_terms_entity_id',
+			$this->getUpdateScriptPath( 'AddWbTermsEntityIdIndex', $db->getType() )
+		);
+
+		// T204837
+		$updater->addExtensionIndex(
+			'wb_terms',
+			'wb_terms_text',
+			$this->getUpdateScriptPath( 'AddWbTermsTextIndex', $db->getType() )
+		);
+
+		// T204838
+		$updater->addExtensionIndex(
+			'wb_terms',
+			'wb_terms_search_key',
+			$this->getUpdateScriptPath( 'AddWbTermsSearchKeyIndex', $db->getType() )
+		);
+
+		$updater->addPostDatabaseUpdateMaintenance( PopulateTermFullEntityId::class );
+		// TODO: drop old column as now longer needed (but only if all rows got the new column populated!)
 	}
 
 }

@@ -76,7 +76,7 @@ class SpecialNewItem extends SpecialNewEntity {
 		$this->termsCollisionDetector = $termsCollisionDetector;
 	}
 
-	public static function factory(): self {
+	public static function newFromGlobalState(): self {
 		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
 
 		$settings = $wikibaseRepo->getSettings();
@@ -280,7 +280,7 @@ class SpecialNewItem extends SpecialNewEntity {
 		}
 
 		if ( $formData[self::FIELD_ALIASES] !== [] ) {
-			$validator = $this->termValidatorFactory->getAliasValidator();
+			$validator = $this->termValidatorFactory->getAliasValidator( $this->getEntityType() );
 			foreach ( $formData[self::FIELD_ALIASES] as $alias ) {
 				$result = $validator->validate( $alias );
 				if ( !$result->isValid() ) {

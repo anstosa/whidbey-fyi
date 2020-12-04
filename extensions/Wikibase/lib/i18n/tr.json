@@ -7,13 +7,13 @@
 			"Incelemeelemani",
 			"McAang",
 			"Meelo",
-			"MuratTheTurkish",
 			"Rapsar",
 			"Sayginer",
 			"Stultiwikia",
 			"Violetanka"
 		]
 	},
+	"wikibase-lib-desc": "Wikibase ve Wikibase İstemci uzantıları için ortak işlevler içerir",
 	"specialpages-group-wikibase": "Wikibase",
 	"wikibase-deletedentity-item": "Silinmiş Öğe",
 	"wikibase-deletedentity-property": "Silinmiş Mülk",
@@ -63,7 +63,7 @@
 	"datatypes-type-tabular-data": "Tablo veri",
 	"datatypes-type-external-id": "Harici tanımlayıcı",
 	"datatypes-type-entity-schema": "Varlık Şeması",
-	"version-wikibase": "Wikibase",
+	"version-wikibase": "Wikibase - Viki veritabanı",
 	"wikibase-time-calendar-gregorian": "Gregoryen",
 	"wikibase-time-calendar-julian": "Jülyen",
 	"wikibase-time-precision-Gannum": "MS $1 milyar yıl",

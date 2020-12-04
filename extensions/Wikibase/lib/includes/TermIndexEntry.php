@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Lib;
 
 use Wikibase\DataModel\Entity\EntityId;
@@ -10,8 +8,7 @@ use Wikimedia\Assert\Assert;
 use Wikimedia\Assert\ParameterAssertionException;
 
 /**
- * Object representing an entry in the term store
- * (formerly known as the term index).
+ * Object representing a term index entry.
  *
  * @license GPL-2.0-or-later
  * @author Jeroen De Dauw < jeroendedauw@gmail.com >
@@ -31,7 +28,7 @@ class TermIndexEntry {
 	const FIELD_LANGUAGE = 'termLanguage';
 	const FIELD_TEXT = 'termText';
 
-	private const FIELD_NAMES = [
+	private static $fieldNames = [
 		self::FIELD_ENTITY,
 		self::FIELD_TYPE,
 		self::FIELD_LANGUAGE,
@@ -82,10 +79,10 @@ class TermIndexEntry {
 
 	private function assertConstructFieldsAreCorrect( array $fields ) {
 		Assert::parameter(
-			count( $fields ) === count( self::FIELD_NAMES ) &&
-			empty( array_diff( self::FIELD_NAMES, array_keys( $fields ) ) ),
+			count( $fields ) === count( self::$fieldNames ) &&
+			empty( array_diff( self::$fieldNames, array_keys( $fields ) ) ),
 			'$fields',
-			'must contain the following keys: ' . implode( ', ', self::FIELD_NAMES )
+			'must contain the following keys: ' . implode( ', ', self::$fieldNames )
 		);
 		Assert::parameter(
 			is_string( $fields[self::FIELD_TYPE] ) &&
@@ -110,23 +107,38 @@ class TermIndexEntry {
 		);
 	}
 
-	public function getTermType(): string {
+	/**
+	 * @return string
+	 */
+	public function getTermType() {
 		return $this->termType;
 	}
 
-	public function getLanguage(): string {
+	/**
+	 * @return string
+	 */
+	public function getLanguage() {
 		return $this->termLanguage;
 	}
 
-	public function getText(): string {
+	/**
+	 * @return string
+	 */
+	public function getText() {
 		return $this->termText;
 	}
 
-	public function getEntityId(): EntityId {
+	/**
+	 * @return EntityId
+	 */
+	public function getEntityId() {
 		return $this->entityId;
 	}
 
-	public function getEntityType(): string {
+	/**
+	 * @return string
+	 */
+	public function getEntityType() {
 		return $this->entityId->getEntityType();
 	}
 
@@ -143,7 +155,7 @@ class TermIndexEntry {
 		$aValues = self::getFieldValuesForCompare( $a );
 		$bValues = self::getFieldValuesForCompare( $b );
 
-		foreach ( self::FIELD_NAMES as $n ) {
+		foreach ( self::$fieldNames as $n ) {
 			if ( $aValues[$n] !== $bValues[$n] ) {
 				return $aValues[$n] <=> $bValues[$n];
 			}
@@ -161,7 +173,10 @@ class TermIndexEntry {
 		];
 	}
 
-	public function getTerm(): Term {
+	/**
+	 * @return Term
+	 */
+	public function getTerm() {
 		return new Term( $this->getLanguage(), $this->getText() );
 	}
 

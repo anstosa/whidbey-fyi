@@ -5,7 +5,7 @@ namespace Wikibase\Repo\Tests\ParserOutput;
 use DataValues\QuantityValue;
 use Language;
 use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use Wikibase\DataModel\Entity\EntityIdValue;
 use Wikibase\DataModel\Entity\EntityRedirect;
 use Wikibase\DataModel\Entity\Item;
@@ -28,7 +28,7 @@ use Wikibase\Repo\WikibaseRepo;
  *
  * @license GPL-2.0-or-later
  */
-class FullEntityParserOutputGeneratorIntegrationTest extends MediaWikiIntegrationTestCase {
+class FullEntityParserOutputGeneratorIntegrationTest extends MediaWikiTestCase {
 
 	use WikibaseTablesUsed;
 

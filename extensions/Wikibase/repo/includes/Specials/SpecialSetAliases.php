@@ -41,7 +41,7 @@ class SpecialSetAliases extends SpecialModifyTerm {
 		);
 	}
 
-	public static function factory(): self {
+	public static function newFromGlobalState(): self {
 		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
 
 		$settings = $wikibaseRepo->getSettings();

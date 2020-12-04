@@ -2,11 +2,9 @@
 	"@metadata": {
 		"authors": [
 			"Amire80",
-			"Awangba Mangang",
-			"꯴꯰꯴"
+			"Awangba Mangang"
 		]
 	},
-	"tooltip-t-wikibase": "ꯗꯥꯇꯥ ꯔꯤꯄꯣꯁꯤꯇꯣꯔꯤ ꯄꯣꯠꯂꯝꯒ ꯁꯝꯅꯔꯕ ꯁꯝꯅꯍꯟꯕ",
 	"wikibase-comment-update": "{{WBREPONAME}} ꯍꯣꯡꯗꯣꯛꯂꯕ ꯄꯣꯠꯂꯝ",
 	"wikibase-dataitem": "{{WBREPONAME}} ꯄꯣꯠꯂꯝ",
 	"wikibase-editlinks": "ꯁꯝꯅꯐꯝꯁꯤꯡ ꯁꯦꯝꯒꯠꯂꯛꯄ",

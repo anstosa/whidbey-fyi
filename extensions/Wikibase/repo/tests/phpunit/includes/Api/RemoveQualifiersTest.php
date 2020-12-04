@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Tests\Api;
 
 use ApiUsageException;
@@ -34,9 +32,9 @@ use Wikimedia\TestingAccessWrapper;
 class RemoveQualifiersTest extends WikibaseApiTestCase {
 
 	/**
-	 * @return Snak[]
+	 * @return Snak
 	 */
-	protected function snakProvider(): iterable {
+	protected function snakProvider() {
 		$snaks = [];
 
 		$snaks[] = new PropertyNoValueSnak( 42 );
@@ -49,7 +47,7 @@ class RemoveQualifiersTest extends WikibaseApiTestCase {
 	/**
 	 * @return Statement[]
 	 */
-	protected function statementProvider(): iterable {
+	protected function statementProvider() {
 		$statements = [];
 
 		$mainSnak = new PropertyNoValueSnak( 42 );
@@ -141,7 +139,7 @@ class RemoveQualifiersTest extends WikibaseApiTestCase {
 		] );
 	}
 
-	protected function makeValidRequest( string $statementGuid, array $hashes ): void {
+	protected function makeValidRequest( $statementGuid, array $hashes ) {
 		$params = [
 			'action' => 'wbremovequalifiers',
 			'claim' => $statementGuid,
@@ -156,7 +154,7 @@ class RemoveQualifiersTest extends WikibaseApiTestCase {
 		$this->makeInvalidRequest( $statementGuid, $hashes, 'no-such-qualifier' );
 	}
 
-	protected function makeInvalidRequest( string $statementGuid, array $hashes, ?string $expectedError ) {
+	protected function makeInvalidRequest( $statementGuid, array $hashes, $expectedError = null ) {
 		$params = [
 			'action' => 'wbremovequalifiers',
 			'claim' => $statementGuid,
@@ -183,7 +181,7 @@ class RemoveQualifiersTest extends WikibaseApiTestCase {
 	/**
 	 * @dataProvider invalidGuidProvider
 	 */
-	public function testInvalidClaimGuid( string $claimGuid, string $hash ) {
+	public function testInvalidClaimGuid( $claimGuid, $hash ) {
 		$params = [
 			'action' => 'wbremovequalifiers',
 			'claim' => $claimGuid,

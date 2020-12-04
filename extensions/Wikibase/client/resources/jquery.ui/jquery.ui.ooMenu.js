@@ -582,6 +582,13 @@
 			 */
 			setCssClass: function ( cssClass ) {
 				this._cssClass = typeof cssClass === 'string' ? cssClass : '';
+			},
+
+			/**
+			 * @param {string} [link]
+			 */
+			setLink: function ( link ) {
+				this._link = link || null;
 			}
 		}
 	);

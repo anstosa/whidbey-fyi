@@ -14,7 +14,7 @@ use DataValues\UnknownValue;
 use Deserializers\Deserializer;
 use LogicException;
 use MediaWiki\Http\HttpRequestFactory;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use ReflectionClass;
 use ReflectionMethod;
 use RequestContext;
@@ -25,6 +25,7 @@ use Wikibase\DataAccess\EntitySourceDefinitions;
 use Wikibase\DataModel\DeserializerFactory;
 use Wikibase\DataModel\Entity\EntityIdParser;
 use Wikibase\DataModel\Entity\EntityIdValue;
+use Wikibase\DataModel\Entity\Int32EntityId;
 use Wikibase\DataModel\Entity\ItemId;
 use Wikibase\DataModel\Entity\PropertyId;
 use Wikibase\DataModel\SerializerFactory;
@@ -64,7 +65,6 @@ use Wikibase\Lib\Store\LanguageFallbackLabelDescriptionLookupFactory;
 use Wikibase\Lib\Store\LinkTargetEntityIdLookup;
 use Wikibase\Lib\Store\PropertyInfoLookup;
 use Wikibase\Lib\Store\PropertyInfoStore;
-use Wikibase\Lib\Store\ThrowingEntityTermStoreWriter;
 use Wikibase\Lib\StringNormalizer;
 use Wikibase\Lib\WikibaseSettings;
 use Wikibase\Repo\Api\ApiHelperFactory;
@@ -78,8 +78,6 @@ use Wikibase\Repo\EditEntity\MediawikiEditEntityFactory;
 use Wikibase\Repo\EntityIdHtmlLinkFormatterFactory;
 use Wikibase\Repo\Interactors\ItemMergeInteractor;
 use Wikibase\Repo\Interactors\ItemRedirectCreationInteractor;
-use Wikibase\Repo\LinkedData\EntityDataFormatProvider;
-use Wikibase\Repo\LinkedData\EntityDataUriManager;
 use Wikibase\Repo\Localizer\ExceptionLocalizer;
 use Wikibase\Repo\Notifications\ChangeNotifier;
 use Wikibase\Repo\ParserOutput\EntityParserOutputGeneratorFactory;
@@ -98,7 +96,6 @@ use Wikibase\Repo\ValueParserFactory;
 use Wikibase\Repo\WikibaseRepo;
 use Wikimedia\Rdbms\ILoadBalancer;
 use Wikimedia\Rdbms\LBFactory;
-use Wikimedia\TestingAccessWrapper;
 
 /**
  * @covers \Wikibase\Repo\WikibaseRepo
@@ -110,22 +107,7 @@ use Wikimedia\TestingAccessWrapper;
  * @author Jeroen De Dauw < jeroendedauw@gmail.com >
  * @author Daniel Kinzler
  */
-class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
-
-	/**
-	 * @var SettingsArray
-	 */
-	private $settings;
-
-	/**
-	 * @var EntityTypeDefinitions
-	 */
-	private $entityTypeDefinitions;
-
-	/**
-	 * @var EntitySourceDefinitions
-	 */
-	private $entitySourceDefinitions;
+class WikibaseRepoTest extends MediaWikiTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -134,10 +116,6 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 		// https://phabricator.wikimedia.org/T243729
 		$this->disallowDBAccess();
 		$this->disallowHttpAccess();
-
-		$this->settings = new SettingsArray( WikibaseRepo::getDefaultInstance()->getSettings()->getArrayCopy() );
-		$this->entityTypeDefinitions = new EntityTypeDefinitions( [] );
-		$this->entitySourceDefinitions = $this->getDefaultEntitySourceDefinitions( 'local' );
 	}
 
 	private function disallowDBAccess() {
@@ -266,12 +244,12 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGetDataTypeFactoryReturnType() {
-		$returnValue = WikibaseRepo::getDataTypeFactory();
+		$returnValue = $this->getWikibaseRepo()->getDataTypeFactory();
 		$this->assertInstanceOf( DataTypeFactory::class, $returnValue );
 	}
 
 	public function testGetValueParserFactoryReturnType() {
-		$returnValue = WikibaseRepo::getValueParserFactory();
+		$returnValue = $this->getWikibaseRepo()->getValueParserFactory();
 		$this->assertInstanceOf( ValueParserFactory::class, $returnValue );
 	}
 
@@ -370,7 +348,7 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGetEntityIdParserReturnType() {
-		$returnValue = WikibaseRepo::getEntityIdParser();
+		$returnValue = $this->getWikibaseRepo()->getEntityIdParser();
 		$this->assertInstanceOf( EntityIdParser::class, $returnValue );
 	}
 
@@ -456,10 +434,16 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGetLocalEntityTypes() {
-		$this->settings->setSetting( 'localEntitySourceName', 'local' );
-		$this->entityTypeDefinitions = $this->getEntityTypeDefinitionsWithSubentities();
-		$this->entitySourceDefinitions = new EntitySourceDefinitions(
-			[
+		$settings = new SettingsArray( WikibaseRepo::getDefaultInstance()->getSettings()->getArrayCopy() );
+		$settings->setSetting( 'localEntitySourceName', 'local' );
+
+		$entityTypeDefinitions = $this->getEntityTypeDefinitions();
+
+		$wikibaseRepo = new WikibaseRepo(
+			$settings,
+			new DataTypeDefinitions( [] ),
+			$entityTypeDefinitions,
+			new EntitySourceDefinitions( [
 				new EntitySource(
 					'local',
 					false,
@@ -473,11 +457,8 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 					'',
 					''
 				)
-			],
-			$this->entityTypeDefinitions
+			], $entityTypeDefinitions )
 		);
-
-		$wikibaseRepo = $this->getWikibaseRepo();
 
 		$localEntityTypes = $wikibaseRepo->getLocalEntityTypes();
 
@@ -489,9 +470,16 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGetLocalEntityNamespaceLookup() {
-		$this->settings->setSetting( 'localEntitySourceName', 'local' );
-		$this->entitySourceDefinitions = new EntitySourceDefinitions(
-			[
+		$settings = new SettingsArray( WikibaseRepo::getDefaultInstance()->getSettings()->getArrayCopy() );
+		$settings->setSetting( 'localEntitySourceName', 'local' );
+
+		$entityTypeDefinitions = $this->getEntityTypeDefinitions();
+
+		$wikibaseRepo = new WikibaseRepo(
+			$settings,
+			new DataTypeDefinitions( [] ),
+			$entityTypeDefinitions,
+			new EntitySourceDefinitions( [
 				new EntitySource(
 					'local',
 					false,
@@ -514,11 +502,8 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 					'',
 					''
 				)
-			],
-			$this->entityTypeDefinitions
+			], $entityTypeDefinitions )
 		);
-
-		$wikibaseRepo = $this->getWikibaseRepo();
 
 		$localEntityTypes = $wikibaseRepo->getLocalEntityTypes();
 
@@ -526,7 +511,7 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 		$this->assertNotContains( 'bar', $localEntityTypes );
 	}
 
-	private function getEntityTypeDefinitionsWithSubentities(): EntityTypeDefinitions {
+	private function getEntityTypeDefinitions() {
 		return new EntityTypeDefinitions(
 			[
 				'lexeme' => [
@@ -543,9 +528,15 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 			$this->markTestSkipped( 'WikibaseClient must be enabled to run this test' );
 		}
 
-		$this->entityTypeDefinitions = $this->getEntityTypeDefinitionsWithSubentities();
-		$this->entitySourceDefinitions = new EntitySourceDefinitions(
-			[
+		$settings = new SettingsArray( WikibaseRepo::getDefaultInstance()->getSettings()->getArrayCopy() );
+
+		$entityTypeDefinitions = $this->getEntityTypeDefinitions();
+
+		$wikibaseRepo = new WikibaseRepo(
+			$settings,
+			new DataTypeDefinitions( [] ),
+			$entityTypeDefinitions,
+			new EntitySourceDefinitions( [
 				new EntitySource(
 					'local',
 					false,
@@ -580,11 +571,8 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 					'lex',
 					'lexwiki'
 				)
-			],
-			$this->entityTypeDefinitions
+			], $entityTypeDefinitions )
 		);
-
-		$wikibaseRepo = $this->getWikibaseRepo();
 
 		$enabled = $wikibaseRepo->getEnabledEntityTypes();
 		$this->assertContains( 'foo', $enabled );
@@ -592,13 +580,6 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 		$this->assertContains( 'baz', $enabled );
 		$this->assertContains( 'lexeme', $enabled );
 		$this->assertContains( 'form', $enabled );
-	}
-
-	private function setEntityTypeDefinitions( EntityTypeDefinitions $entityTypeDefinitions ): void {
-		$this->setService(
-			'WikibaseRepo.EntityTypeDefinitions',
-			$entityTypeDefinitions
-		);
 	}
 
 	public function testGetExceptionLocalizer() {
@@ -677,62 +658,81 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testNewItemHandler_noTransform() {
-		$this->settings->setSetting( 'transformLegacyFormatOnExport', false );
 		$wikibaseRepo = $this->getWikibaseRepo();
+		$wikibaseRepo->getSettings()->setSetting( 'transformLegacyFormatOnExport', false );
 
 		$handler = $wikibaseRepo->newItemHandler();
 		$this->assertNull( $handler->getLegacyExportFormatDetector() );
 	}
 
 	public function testNewPropertyHandler_noTransform() {
-		$this->settings->setSetting( 'transformLegacyFormatOnExport', false );
 		$wikibaseRepo = $this->getWikibaseRepo();
+		$wikibaseRepo->getSettings()->setSetting( 'transformLegacyFormatOnExport', false );
 
 		$handler = $wikibaseRepo->newPropertyHandler();
 		$this->assertNull( $handler->getLegacyExportFormatDetector() );
 	}
 
 	public function testNewItemHandler_withTransform() {
-		$this->settings->setSetting( 'transformLegacyFormatOnExport', true );
 		$wikibaseRepo = $this->getWikibaseRepo();
+		$wikibaseRepo->getSettings()->setSetting( 'transformLegacyFormatOnExport', true );
 
 		$handler = $wikibaseRepo->newItemHandler();
 		$this->assertNotNull( $handler->getLegacyExportFormatDetector() );
 	}
 
 	public function testNewPropertyHandler_withTransform() {
-		$this->settings->setSetting( 'transformLegacyFormatOnExport', true );
 		$wikibaseRepo = $this->getWikibaseRepo();
+		$wikibaseRepo->getSettings()->setSetting( 'transformLegacyFormatOnExport', true );
 
 		$handler = $wikibaseRepo->newPropertyHandler();
 		$this->assertNotNull( $handler->getLegacyExportFormatDetector() );
 	}
 
 	private function getWikibaseRepo() {
-		$this->setEntityTypeDefinitions( $this->entityTypeDefinitions );
 		return new WikibaseRepo(
-			$this->settings,
-			$this->entitySourceDefinitions
+			$this->getTestSettings( WikibaseRepo::getDefaultInstance()->getSettings()->getArrayCopy() ),
+			new DataTypeDefinitions( [] ),
+			new EntityTypeDefinitions( [] ),
+			$this->getEntitySourceDefinitions()
 		);
 	}
 
-	private function getDefaultEntitySourceDefinitions( string $sourceName ) {
+	/**
+	 * @param array[] $entityTypeDefinitions
+	 *
+	 * @return WikibaseRepo
+	 */
+	private function getWikibaseRepoWithCustomEntityTypeDefinitions( $entityTypeDefinitions = [] ) {
+		return new WikibaseRepo(
+			$this->getTestSettings( WikibaseRepo::getDefaultInstance()->getSettings()->getArrayCopy() ),
+			new DataTypeDefinitions( [] ),
+			new EntityTypeDefinitions( $entityTypeDefinitions ),
+			$this->getEntitySourceDefinitions()
+		);
+	}
+
+	private function getTestSettings( $settingsArray ) {
+		$settings = new SettingsArray( $settingsArray );
+		$settings->setSetting( 'localEntitySourceName', 'test' );
+		return $settings;
+	}
+
+	private function getEntitySourceDefinitions( string $sourceName = 'test' ) {
 		return new EntitySourceDefinitions(
-			[
-				new EntitySource(
-					$sourceName,
-					false,
-					[
-						'item' => [ 'namespaceId' => 100, 'slot' => 'main' ],
-						'property' => [ 'namespaceId' => 200, 'slot' => 'main' ],
-					],
-					'',
-					'',
-					'',
-					''
-				)
-			],
-			$this->entityTypeDefinitions
+			[ new EntitySource(
+				$sourceName,
+				false,
+				[
+					'item' => [ 'namespaceId' => 100, 'slot' => 'main' ],
+					'property' => [ 'namespaceId' => 200, 'slot' => 'main' ],
+				],
+				'',
+				'',
+				'',
+				''
+			) ],
+			new EntityTypeDefinitions( [] )
 		);
 	}
 
@@ -779,9 +779,16 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testNewPropertyInfoBuilder() {
-		$this->settings->setSetting( 'formatterUrlProperty', 'P123' );
-		$this->settings->setSetting( 'canonicalUriProperty', 'P321' );
 		$wikibaseRepo = $this->getWikibaseRepo();
+		$wikibaseRepo->getSettings()->setSetting(
+			'formatterUrlProperty',
+			'P123'
+		);
+
+		$wikibaseRepo->getSettings()->setSetting(
+			'canonicalUriProperty',
+			'P321'
+		);
 
 		$builder = $wikibaseRepo->newPropertyInfoBuilder();
 
@@ -803,16 +810,6 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 		$this->assertInstanceOf( EntityIdHtmlLinkFormatterFactory::class, $service );
 	}
 
-	public function testGetEntityDataFormatProvider() {
-		$service = $this->getWikibaseRepo()->getEntityDataFormatProvider();
-		$this->assertInstanceOf( EntityDataFormatProvider::class, $service );
-	}
-
-	public function testGetEntityDataUriManager() {
-		$service = $this->getWikibaseRepo()->getEntityDataUriManager();
-		$this->assertInstanceOf( EntityDataUriManager::class, $service );
-	}
-
 	public function testGetEntityParserOutputGeneratorFactory() {
 		$service = $this->getWikibaseRepo()->getEntityParserOutputGeneratorFactory();
 		$this->assertInstanceOf( EntityParserOutputGeneratorFactory::class, $service );
@@ -824,7 +821,7 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGetDataTypeDefinitions() {
-		$dataTypeDefinitions = WikibaseRepo::getDataTypeDefinitions();
+		$dataTypeDefinitions = $this->getWikibaseRepo()->getDataTypeDefinitions();
 		$this->assertInstanceOf( DataTypeDefinitions::class, $dataTypeDefinitions );
 	}
 
@@ -847,15 +844,14 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 	 * @return DataValueFactory
 	 */
 	private function getDataValueFactory() {
-		$this->entityTypeDefinitions = new EntityTypeDefinitions( [
+		return $this->getWikibaseRepoWithCustomEntityTypeDefinitions( [
 			'item' => [
 				EntityTypeDefinitions::ENTITY_ID_PATTERN => ItemId::PATTERN,
 				EntityTypeDefinitions::ENTITY_ID_BUILDER => function ( $serialization ) {
 					return new ItemId( $serialization );
 				},
 			],
-		] );
-		return $this->getWikibaseRepo()->getDataValueFactory();
+		] )->getDataValueFactory();
 	}
 
 	public function dataValueProvider() {
@@ -920,9 +916,15 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGetEntityTypeToRepositoryMapping() {
-		$this->entityTypeDefinitions = $this->getEntityTypeDefinitionsWithSubentities();
-		$this->entitySourceDefinitions = new EntitySourceDefinitions(
-			[
+		$settings = new SettingsArray( WikibaseRepo::getDefaultInstance()->getSettings()->getArrayCopy() );
+
+		$entityTypeDefinitions = $this->getEntityTypeDefinitions();
+
+		$wikibaseRepo = new WikibaseRepo(
+			$settings,
+			new DataTypeDefinitions( [] ),
+			$entityTypeDefinitions,
+			new EntitySourceDefinitions( [
 				new EntitySource(
 					'local',
 					false,
@@ -946,11 +948,8 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 					'lex',
 					'lexwiki'
 				)
-			],
-			$this->entityTypeDefinitions
+			], $entityTypeDefinitions )
 		);
-
-		$wikibaseRepo = $this->getWikibaseRepo();
 
 		$this->assertEquals(
 			[
@@ -964,33 +963,40 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGetConceptBaseUris() {
-		$this->entitySourceDefinitions = new EntitySourceDefinitions( [
-			new EntitySource(
-				'local',
-				false,
-				[
-					'foo' => [ 'namespaceId' => 200, 'slot' => 'main' ],
-					'bar' => [ 'namespaceId' => 220, 'slot' => 'main' ],
-				],
-				'http://local.wiki/entity/',
-				'',
-				'',
-				''
-			),
-			new EntitySource(
-				'bazwiki',
-				'bazdb',
-				[
-					'baz' => [ 'namespaceId' => 250, 'slot' => 'main' ],
-				],
-				'http://baz.wiki/entity/',
-				'baz',
-				'baz',
-				'bazwiki'
-			)
-		], $this->entityTypeDefinitions );
+		$settings = new SettingsArray( WikibaseRepo::getDefaultInstance()->getSettings()->getArrayCopy() );
 
-		$wikibaseRepo = $this->getWikibaseRepo();
+		$entityTypeDefinitions = $this->getEntityTypeDefinitions();
+
+		$wikibaseRepo = new WikibaseRepo(
+			$settings,
+			new DataTypeDefinitions( [] ),
+			$entityTypeDefinitions,
+			new EntitySourceDefinitions( [
+				new EntitySource(
+					'local',
+					false,
+					[
+						'foo' => [ 'namespaceId' => 200, 'slot' => 'main' ],
+						'bar' => [ 'namespaceId' => 220, 'slot' => 'main' ],
+					],
+					'http://local.wiki/entity/',
+					'',
+					'',
+					''
+				),
+				new EntitySource(
+					'bazwiki',
+					'bazdb',
+					[
+						'baz' => [ 'namespaceId' => 250, 'slot' => 'main' ],
+					],
+					'http://baz.wiki/entity/',
+					'baz',
+					'baz',
+					'bazwiki'
+				)
+			], $entityTypeDefinitions )
+		);
 
 		$this->assertEquals(
 			[ 'local' => 'http://local.wiki/entity/', 'bazwiki' => 'http://baz.wiki/entity/' ],
@@ -1020,8 +1026,8 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 	public function testNewFederatedPropertiesServiceFactoryDoesntFatal() {
 		// Make sure (as good as we can) that all functions can be called without
 		// exceptions/ fatals and nothing accesses the database or does http requests.
-		$this->settings->setSetting( 'federatedPropertiesEnabled', true );
-		$wbRepo = $this->getWikibaseRepo();
+		$settings = $this->getSettingsCopyWithSettingSet( 'federatedPropertiesEnabled', true );
+		$wbRepo = $this->getWikibaseRepoWithCustomSettings( $settings );
 
 		$wbRepo->newFederatedPropertiesServiceFactory();
 		$this->addToAssertionCount( 1 );
@@ -1043,8 +1049,8 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 	public function testParameterLessFunctionCallsForFederatedPropertiesThrowExceptionWhenDisabled( $methodName ) {
 		// Make sure (as good as we can) that all functions can be called without
 		// exceptions/ fatals and nothing accesses the database or does http requests.
-		$this->settings->setSetting( 'federatedPropertiesEnabled', false );
-		$wbRepo = $this->getWikibaseRepo();
+		$settings = $this->getSettingsCopyWithSettingSet( 'federatedPropertiesEnabled', false );
+		$wbRepo = $this->getWikibaseRepoWithCustomSettings( $settings );
 
 		$reflectionClass = new ReflectionClass( $wbRepo );
 
@@ -1058,60 +1064,141 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 		}
 	}
 
-	public function testGetPropertyTermStoreWriter_withLocalProperties() {
-		$repo = $this->getWikibaseRepo();
-		$writer = $repo->getPropertyTermStoreWriter();
-		$this->assertNotInstanceOf( ThrowingEntityTermStoreWriter::class, $writer );
-	}
-
-	public function testGetPropertyTermStoreWriter_withoutLocalProperties() {
-		$this->settings->setSetting( 'localEntitySourceName', 'test' );
-		$this->entitySourceDefinitions = new EntitySourceDefinitions(
-			[
-				new EntitySource(
-					'test',
-					false,
-					[ 'item' => [ 'namespaceId' => 100, 'slot' => 'main' ] ],
-					'',
-					'',
-					'',
-					''
-				),
-			],
-			$this->entityTypeDefinitions
+	private function getWikibaseRepoWithCustomSettings( SettingsArray $settings ) {
+		return new WikibaseRepo(
+			$settings,
+			new DataTypeDefinitions( [] ),
+			new EntityTypeDefinitions( [] ),
+			$this->getEntitySourceDefinitions( 'local' )
 		);
-
-		$repo = $this->getWikibaseRepo();
-		$writer = $repo->getPropertyTermStoreWriter();
-		$this->assertInstanceOf( ThrowingEntityTermStoreWriter::class, $writer );
 	}
 
-	public function testGetItemTermStoreWriter_withLocalItems() {
-		$repo = $this->getWikibaseRepo();
-		$writer = $repo->getItemTermStoreWriter();
-		$this->assertNotInstanceOf( ThrowingEntityTermStoreWriter::class, $writer );
+	private function getSettingsCopyWithSettingSet( $settingName, $settingValue ) {
+		$settings = new SettingsArray( WikibaseRepo::getDefaultInstance()->getSettings()->getArrayCopy() );
+		$settings->setSetting( $settingName, $settingValue );
+		return $settings;
 	}
 
-	public function testGetItemTermStoreWriter_withoutLocalItems() {
-		$this->settings->setSetting( 'localEntitySourceName', 'test' );
-		$this->entitySourceDefinitions = new EntitySourceDefinitions(
+	public function provideTestGetPropertyTermStoreWriters() {
+		yield [ $this->getSettingsCopyWithSettingSet( 'tmpPropertyTermsMigrationStage', MIGRATION_OLD ), 1, 0 ];
+		yield [ $this->getSettingsCopyWithSettingSet( 'tmpPropertyTermsMigrationStage', MIGRATION_WRITE_BOTH ), 1, 1 ];
+		yield [ $this->getSettingsCopyWithSettingSet( 'tmpPropertyTermsMigrationStage', MIGRATION_WRITE_NEW ), 1, 1 ];
+		yield [ $this->getSettingsCopyWithSettingSet( 'tmpPropertyTermsMigrationStage', MIGRATION_NEW ), 0, 1 ];
+	}
+
+	/**
+	 * @dataProvider provideTestGetPropertyTermStoreWriters
+	 */
+	public function testGetPropertyTermStoreWriters( $settings, $oldCount, $newCount ) {
+		$repo = $this->getWikibaseRepoWithCustomSettings( $settings );
+
+		$writers = $repo->getPropertyTermStoreWriters();
+
+		$this->assertCount( $oldCount + $newCount, $writers );
+		$this->assertEquals( $oldCount, array_key_exists( 'old', $writers ) );
+		$this->assertEquals( $newCount, array_key_exists( 'new', $writers ) );
+	}
+
+	public function provideTestGetItemTermStoreWriters() {
+		yield 'Everything Old' => [ $this->getSettingsCopyWithSettingSet( 'tmpItemTermsMigrationStages', [ 'max' => MIGRATION_OLD ] ), 1, 0 ];
+		yield 'Everything New' => [ $this->getSettingsCopyWithSettingSet( 'tmpItemTermsMigrationStages', [ 'max' => MIGRATION_NEW ] ), 0, 1 ];
+		yield 'New and Old 1' => [
+			$this->getSettingsCopyWithSettingSet( 'tmpItemTermsMigrationStages', [
+				'100' => MIGRATION_NEW,
+				'max' => MIGRATION_OLD,
+			] ),
+			1,
+			1,
+		];
+		yield 'New and Old 2' => [
+			$this->getSettingsCopyWithSettingSet( 'tmpItemTermsMigrationStages', [
+				'100' => MIGRATION_NEW,
+				'max' => MIGRATION_WRITE_BOTH,
+			] ),
+			1,
+			1,
+		];
+		yield 'New and Old 3' => [
+			$this->getSettingsCopyWithSettingSet( 'tmpItemTermsMigrationStages', [
+				'100' => MIGRATION_NEW,
+				'max' => MIGRATION_WRITE_NEW,
+			] ),
+			1,
+			1,
+		];
+		yield 'New and Old 4' => [
+			$this->getSettingsCopyWithSettingSet( 'tmpItemTermsMigrationStages', [
+				'100' => MIGRATION_WRITE_BOTH,
+				'max' => MIGRATION_WRITE_NEW,
+			] ),
+			1,
+			1,
+		];
+	}
+
+	/**
+	 * This test doesnt check the per item configuration and due to the wrapped services doing that would be a bit evil.
+	 * This only tests that we get the correct resulting writer objects.
+	 * For testing of the other logic see testGetItemTermStoreArrayForWriters
+	 *
+	 * @dataProvider provideTestGetItemTermStoreWriters
+	 */
+	public function testGetItemTermStoreWriters( $settings, $oldCount, $newCount ) {
+			$repo = $this->getWikibaseRepoWithCustomSettings( $settings );
+
+			$writers = $repo->getItemTermStoreWriters();
+
+			$this->assertCount( $oldCount + $newCount, $writers );
+			$this->assertEquals( $oldCount, array_key_exists( 'old', $writers ) );
+			$this->assertEquals( $newCount, array_key_exists( 'new', $writers ) );
+	}
+
+	public function provideTestGetItemTermStoreArrayForWriters() {
+		yield 'Everything Old' => [
+			[ 'max' => MIGRATION_OLD ],
+			[ 'old' => [ Int32EntityId::MAX => 'old' ], 'new' => [] ]
+		];
+		yield 'Everything New' => [
+			[ 'max' => MIGRATION_NEW ],
+			[ 'old' => [], 'new' => [ Int32EntityId::MAX => 'new' ] ]
+		];
+		yield 'Two stages' => [
 			[
-				new EntitySource(
-					'test',
-					false,
-					[ 'property' => [ 'namespaceId' => 200, 'slot' => 'main' ] ],
-					'',
-					'',
-					'',
-					''
-				),
+			'100' => MIGRATION_NEW,
+			'max' => MIGRATION_OLD,
 			],
-			$this->entityTypeDefinitions
-		);
+			[ 'old' => [ Int32EntityId::MAX => 'old' ], 'new' => [ '100' => 'new' ] ]
+		];
+		yield 'Four stages' => [
+			[
+			'100' => MIGRATION_NEW,
+			'1000' => MIGRATION_WRITE_NEW,
+			'10000' => MIGRATION_WRITE_BOTH,
+			'max' => MIGRATION_OLD,
+			],
+			[
+				'old' => [ '1000' => 'old', '10000' => 'old', Int32EntityId::MAX => 'old' ],
+				'new' => [ '100' => 'new', '1000' => 'new', '10000' => 'new' ]
+			]
+		];
+	}
 
-		$repo = $this->getWikibaseRepo();
-		$writer = $repo->getItemTermStoreWriter();
-		$this->assertInstanceOf( ThrowingEntityTermStoreWriter::class, $writer );
+	/**
+	 * This test doesnt check the per item configuration and due to the wrapped services doing that would be a bit evil.
+	 * This only tests that we get the correct resulting writer objects.
+	 * For testing of the other logic see testGetItemTermStoreArrayForWriters
+	 *
+	 * @group Addshore
+	 *
+	 * @dataProvider provideTestGetItemTermStoreArrayForWriters
+	 */
+	public function testGetItemTermStoreArrayForWriters( $stages, $expected ) {
+		$currentSettings = new SettingsArray( WikibaseRepo::getDefaultInstance()->getSettings()->getArrayCopy() );
+		$repo = $this->getWikibaseRepoWithCustomSettings( $currentSettings );
+
+		$array = $repo->getItemTermStoreArrayForWriters( $stages, 'old', 'new' );
+
+		$this->assertEquals( $expected, $array );
 	}
 
 	public function entitySourceBasedFederationProvider() {
@@ -1125,18 +1212,25 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 	 * @dataProvider entitySourceBasedFederationProvider
 	 */
 	public function testWikibaseServicesParameterLessFunctionCalls( $entitySourceBasedFederation ) {
-		$this->settings->setSetting(
+		$settings = new SettingsArray( WikibaseRepo::getDefaultInstance()->getSettings()->getArrayCopy() );
+		$settings->setSetting(
 			'repositories',
 			[ '' => [
 				'database' => 'dummy',
 				'base-uri' => null,
 				'prefix-mapping' => [ '' => '' ],
-				'entity-namespaces' => $this->settings->getSetting( 'entityNamespaces' ),
+				'entity-namespaces' => $settings->getSetting( 'entityNamespaces' ),
 			] ]
 		);
-		$this->settings->setSetting( 'useEntitySourceBasedFederation', $entitySourceBasedFederation );
+		$settings->setSetting( 'useEntitySourceBasedFederation', $entitySourceBasedFederation );
 
-		$wikibaseRepo = $this->getWikibaseRepo();
+		$entityTypeDefinitions = $this->getEntityTypeDefinitions();
+		$wikibaseRepo = new WikibaseRepo(
+			$settings,
+			new DataTypeDefinitions( [] ),
+			$entityTypeDefinitions,
+			$this->getEntitySourceDefinitions()
+		);
 
 		// Make sure (as good as we can) that all functions can be called without
 		// exceptions/ fatals and nothing accesses the database or does http requests.
@@ -1167,113 +1261,6 @@ class WikibaseRepoTest extends MediaWikiIntegrationTestCase {
 		return [
 			'newFederatedPropertiesServiceFactory'
 		];
-	}
-
-	public function testGetEntitySourceDefinitionsFromSettingsParsesSettings() {
-		$settingsArray = [
-			'federatedPropertiesEnabled' => false,
-			'federatedPropertiesSourceScriptUrl' => 'https://www.wikidata.org/w/',
-			'localEntitySourceName' => 'local',
-			'entitySources' =>
-				[
-					'local' => [
-						'entityNamespaces' => [ 'item' => 100, 'property' => 200 ],
-						'repoDatabase' => false,
-						'baseUri' => 'http://example.com/entity/',
-						'rdfNodeNamespacePrefix' => 'wd',
-						'rdfPredicateNamespacePrefix' => 'wdt',
-						'interwikiPrefix' => 'localwiki'
-					]
-				]
-
-		];
-		$settings = new SettingsArray( $settingsArray );
-		$wrapper = TestingAccessWrapper::newFromClass( WikibaseRepo::class );
-		$sourceDefinitions = $wrapper->getEntitySourceDefinitionsFromSettings( $settings, $this->entityTypeDefinitions );
-
-		if ( $sourceDefinitions instanceof EntitySourceDefinitions ) {
-
-			$itemSource = $sourceDefinitions->getSourceForEntityType( 'item' );
-
-			$this->assertSame( 'local', $itemSource->getSourceName() );
-			$this->assertSame( 'http://example.com/entity/', $itemSource->getConceptBaseUri() );
-			$this->assertSame( 'wdt', $itemSource->getRdfPredicateNamespacePrefix() );
-			$this->assertSame( 'wd', $itemSource->getRdfNodeNamespacePrefix() );
-			$this->assertSame( 'localwiki', $itemSource->getInterwikiPrefix() );
-			$this->assertSame( [ 'item' => 100, 'property' => 200 ], $itemSource->getEntityNamespaceIds() );
-			$this->assertSame( [ 'item' => 'main', 'property' => 'main' ], $itemSource->getEntitySlotNames() );
-			$this->assertSame( [ 'item', 'property' ], $itemSource->getEntityTypes() );
-		}
-	}
-
-	public function testGetEntitySourceDefinitionsFromSettingsInitializesFederatedPropertiesDefaults() {
-		$settingsArray = [
-			'federatedPropertiesEnabled' => true,
-			'federatedPropertiesSourceScriptUrl' => 'https://www.wikidata.org/w/',
-			'localEntitySourceName' => 'local',
-			'entityNamespaces' => [ 'item' => 120, 'property' => 122 ],
-			'changesDatabase' => false,
-			'conceptBaseUri' => 'http://localhost/entity/',
-			'foreignRepositories' => []
-		];
-		$settings = new SettingsArray( $settingsArray );
-		$wrapper = TestingAccessWrapper::newFromClass( WikibaseRepo::class );
-		$sourceDefinitions = $wrapper->getEntitySourceDefinitionsFromSettings( $settings, $this->entityTypeDefinitions );
-
-		if ( $sourceDefinitions instanceof EntitySourceDefinitions ) {
-
-			$itemSource = $sourceDefinitions->getSourceForEntityType( 'item' );
-
-			$this->assertSame( 'local', $itemSource->getSourceName() );
-			$this->assertSame( 'http://localhost/entity/', $itemSource->getConceptBaseUri() );
-			$this->assertSame( '', $itemSource->getRdfPredicateNamespacePrefix() );
-			$this->assertSame( 'wd', $itemSource->getRdfNodeNamespacePrefix() );
-			$this->assertSame( '', $itemSource->getInterwikiPrefix() );
-			$this->assertSame( [ 'item' => 120 ], $itemSource->getEntityNamespaceIds() );
-			$this->assertSame( [ 'item' => 'main' ], $itemSource->getEntitySlotNames() );
-			$this->assertSame( [ 'item' ], $itemSource->getEntityTypes() );
-
-			$propertySource = $sourceDefinitions->getSourceForEntityType( 'property' );
-
-			$this->assertSame( 'fedprops', $propertySource->getSourceName() );
-			$this->assertSame( 'http://www.wikidata.org/entity/', $propertySource->getConceptBaseUri() );
-			$this->assertSame( 'fpwd', $propertySource->getRdfPredicateNamespacePrefix() );
-			$this->assertSame( 'fpwd', $propertySource->getRdfNodeNamespacePrefix() );
-			$this->assertSame( 'wikidata', $propertySource->getInterwikiPrefix() );
-			$this->assertSame( [ 'property' => 122 ], $propertySource->getEntityNamespaceIds() ); // uses wikidata default not config
-			$this->assertSame( [ 'property' => 'main' ], $propertySource->getEntitySlotNames() );
-			$this->assertSame( [ 'property' ], $propertySource->getEntityTypes() );
-		}
-	}
-
-	public function testGetEntitySourceDefinitionsFromSettingsDefaultsToLegacyParser() {
-		$settingsArray = [
-			'federatedPropertiesEnabled' => false,
-			'federatedPropertiesSourceScriptUrl' => 'https://www.wikidata.org/w/',
-			'localEntitySourceName' => 'local',
-			'entityNamespaces' => [ 'item' => 120, 'property' => 122 ],
-			'changesDatabase' => false,
-			'conceptBaseUri' => 'http://localhost/entity/',
-			'foreignRepositories' => []
-		];
-
-		$settings = new SettingsArray( $settingsArray );
-		$wrapper = TestingAccessWrapper::newFromClass( WikibaseRepo::class );
-		$sourceDefinitions = $wrapper->getEntitySourceDefinitionsFromSettings( $settings, $this->entityTypeDefinitions );
-
-		if ( $sourceDefinitions instanceof EntitySourceDefinitions ) {
-
-			$itemSource = $sourceDefinitions->getSourceForEntityType( 'item' );
-
-			$this->assertSame( 'local', $itemSource->getSourceName() );
-			$this->assertSame( 'http://localhost/entity/', $itemSource->getConceptBaseUri() );
-			$this->assertSame( '', $itemSource->getRdfPredicateNamespacePrefix() );
-			$this->assertSame( 'wd', $itemSource->getRdfNodeNamespacePrefix() );
-			$this->assertSame( '', $itemSource->getInterwikiPrefix() );
-			$this->assertSame( [ 'item' => 120, 'property' => 122 ], $itemSource->getEntityNamespaceIds() );
-			$this->assertSame( [ 'item' => 'main', 'property' => 'main' ], $itemSource->getEntitySlotNames() );
-			$this->assertSame( [ 'item', 'property' ], $itemSource->getEntityTypes() );
-		}
 	}
 
 }

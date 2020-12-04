@@ -2,7 +2,6 @@
 
 namespace Wikibase\Repo\Tests\LinkedData;
 
-use MediaWikiIntegrationTestCase;
 use Title;
 use Wikibase\DataModel\Entity\EntityId;
 use Wikibase\DataModel\Entity\ItemId;
@@ -21,7 +20,7 @@ use Wikibase\Repo\LinkedData\EntityDataUriManager;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class EntityDataUriManagerTest extends MediaWikiIntegrationTestCase {
+class EntityDataUriManagerTest extends \MediaWikiTestCase {
 
 	protected function makeUriManager() {
 		$titleLookup = $this->createMock( EntityTitleLookup::class );
@@ -41,7 +40,6 @@ class EntityDataUriManagerTest extends MediaWikiIntegrationTestCase {
 		$uriManager = new EntityDataUriManager(
 			$title,
 			$extensions,
-			[ '/data/{entity_id}/{revision_id}' ],
 			$titleLookup
 		);
 
@@ -172,29 +170,28 @@ class EntityDataUriManagerTest extends MediaWikiIntegrationTestCase {
 		$this->assertRegExp( $expectedExp, $actual );
 	}
 
-	public function testCacheableOrPotentiallyCachedUrls_withoutRevisionId() {
-		$uriManager = $this->makeUriManager();
+	public function provideGetCacheableUrls() {
+		$title = Title::newFromText( "Special:EntityDataUriManagerTest" );
+		$base = $title->getInternalURL();
 
-		$this->assertEmpty( $uriManager->getCacheableUrls( new ItemId( 'Q1' ) ) );
-		$this->assertEmpty( $uriManager->getPotentiallyCachedUrls( new ItemId( 'Q1' ) ) );
+		return [
+			[ 'Q12', [
+				"$base/Q12.txt",
+				"$base/Q12.rdf",
+			] ],
+		];
 	}
 
-	public function testCacheableOrPotentiallyCachedUrls_withRevisionId() {
-		$this->setMwGlobals( [
-			'wgCanonicalServer' => 'http://canonical.test',
-			'wgInternalServer' => 'http://internal.test',
-		] );
+	/**
+	 * @dataProvider provideGetCacheableUrls
+	 */
+	public function testGetCacheableUrls( $id, $expected ) {
+		$id = new ItemId( $id );
+
 		$uriManager = $this->makeUriManager();
 
-		$cacheableUrls = $uriManager->getCacheableUrls( new ItemId( 'Q1' ), 2 );
-		$potentiallyCachedUrls = $uriManager->getPotentiallyCachedUrls( new ItemId( 'Q1' ), 2 );
-
-		$this->assertSame( [
-			'http://canonical.test/data/Q1/2',
-		], $cacheableUrls );
-		$this->assertSame( [
-			'http://internal.test/data/Q1/2',
-		], $potentiallyCachedUrls );
+		$actual = $uriManager->getCacheableUrls( $id );
+		$this->assertEquals( $expected, $actual );
 	}
 
 }

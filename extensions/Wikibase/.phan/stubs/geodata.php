@@ -47,12 +47,6 @@ class CoordinatesOutput {
 	 */
 	public static function getFromParserOutput( \ParserOutput $parserOutput ) {
 	}
-
-	/**
-	 * @param \ParserOutput $parserOutput
-	 */
-	public function setToParserOutput( \ParserOutput $parserOutput ) {
-	}
 }
 
 class GeoData {

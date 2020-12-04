@@ -8,8 +8,10 @@ use ApiResult;
 use DerivativeContext;
 use DerivativeRequest;
 use MWException;
+use PageProps;
 use RequestContext;
 use Serializers\Serializer;
+use SiteList;
 use SiteLookup;
 use Wikibase\DataModel\Entity\EntityId;
 use Wikibase\DataModel\Entity\EntityRedirect;
@@ -17,9 +19,9 @@ use Wikibase\DataModel\SerializerFactory;
 use Wikibase\DataModel\Services\Lookup\EntityLookup;
 use Wikibase\DataModel\Services\Lookup\PropertyDataTypeLookup;
 use Wikibase\Lib\Store\EntityRevision;
+use Wikibase\Lib\Store\EntityTitleLookup;
 use Wikibase\Lib\Store\RedirectRevision;
 use Wikibase\Repo\Api\ResultBuilder;
-use Wikibase\Repo\Content\EntityContentFactory;
 use Wikibase\Repo\Rdf\EntityRdfBuilderFactory;
 use Wikibase\Repo\Rdf\HashDedupeBag;
 use Wikibase\Repo\Rdf\RdfBuilder;
@@ -49,8 +51,10 @@ class EntityDataSerializationService {
 	 */
 	private $entityLookup = null;
 
-	/** @var EntityContentFactory */
-	private $entityContentFactory;
+	/**
+	 * @var EntityTitleLookup
+	 */
+	private $entityTitleLookup;
 
 	/**
 	 * @var SerializerFactory
@@ -66,6 +70,11 @@ class EntityDataSerializationService {
 	 * @var PropertyDataTypeLookup
 	 */
 	private $propertyLookup;
+
+	/**
+	 * @var SiteList
+	 */
+	private $sites;
 
 	/**
 	 * @var EntityDataFormatProvider
@@ -97,28 +106,37 @@ class EntityDataSerializationService {
 	 */
 	private $entityRdfBuilderFactory;
 
+	/**
+	 * @var bool Whether to serialize empty containers (e.g. descriptions) as {} instead of []
+	 */
+	private $serializeEmptyListsAsObjects;
+
 	public function __construct(
 		EntityLookup $entityLookup,
-		EntityContentFactory $entityContentFactory,
+		EntityTitleLookup $entityTitleLookup,
 		PropertyDataTypeLookup $propertyLookup,
 		ValueSnakRdfBuilderFactory $valueSnakRdfBuilderFactory,
 		EntityRdfBuilderFactory $entityRdfBuilderFactory,
+		SiteList $sites,
 		EntityDataFormatProvider $entityDataFormatProvider,
 		SerializerFactory $serializerFactory,
 		Serializer $entitySerializer,
 		SiteLookup $siteLookup,
-		RdfVocabulary $rdfVocabulary
+		RdfVocabulary $rdfVocabulary,
+		$serializeEmptyListsAsObjects = true
 	) {
 		$this->entityLookup = $entityLookup;
-		$this->entityContentFactory = $entityContentFactory;
+		$this->entityTitleLookup = $entityTitleLookup;
 		$this->propertyLookup = $propertyLookup;
 		$this->valueSnakRdfBuilderFactory = $valueSnakRdfBuilderFactory;
 		$this->entityRdfBuilderFactory = $entityRdfBuilderFactory;
+		$this->sites = $sites;
 		$this->entityDataFormatProvider = $entityDataFormatProvider;
 		$this->serializerFactory = $serializerFactory;
 		$this->entitySerializer = $entitySerializer;
 		$this->siteLookup = $siteLookup;
 		$this->rdfVocabulary = $rdfVocabulary;
+		$this->serializeEmptyListsAsObjects = $serializeEmptyListsAsObjects;
 
 		$this->rdfWriterFactory = new RdfWriterFactory();
 	}
@@ -213,7 +231,7 @@ class EntityDataSerializationService {
 				$entityRevision->getTimestamp()
 			);
 
-			$rdfBuilder->addEntityPageProps( $entityRevision->getEntity() );
+			$rdfBuilder->addEntityPageProps( $entityRevision->getEntity()->getId() );
 
 			$rdfBuilder->addEntity( $entityRevision->getEntity() );
 			$rdfBuilder->resolveMentionedEntities( $this->entityLookup );
@@ -352,6 +370,7 @@ class EntityDataSerializationService {
 		$rdfWriter = $this->rdfWriterFactory->getWriter( $format );
 
 		$rdfBuilder = new RdfBuilder(
+			$this->sites,
 			$this->rdfVocabulary,
 			$this->valueSnakRdfBuilderFactory,
 			$this->propertyLookup,
@@ -359,8 +378,10 @@ class EntityDataSerializationService {
 			$this->getFlavor( $flavorName ),
 			$rdfWriter,
 			new HashDedupeBag(),
-			$this->entityContentFactory
+			$this->entityTitleLookup
 		);
+
+		$rdfBuilder->setPageProps( PageProps::getInstance() );
 
 		return $rdfBuilder;
 	}
@@ -387,12 +408,14 @@ class EntityDataSerializationService {
 
 		$resultBuilder = new ResultBuilder(
 			$res,
-			$this->entityContentFactory,
+			$this->entityTitleLookup,
 			$this->serializerFactory,
 			$this->entitySerializer,
 			$this->siteLookup,
 			$this->propertyLookup,
-			true // include metadata for the API result printer
+			// add metadata if this is true, to let ApiResult know it's an associative array, so
+			// that the json serializer will output {} instead of [] in case of empty containers
+			$this->serializeEmptyListsAsObjects
 		);
 		$resultBuilder->addEntityRevision( null, $entityRevision );
 

@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\ParserOutput\PlaceholderExpander;
 
 use IContextSource;
@@ -15,14 +13,18 @@ use Wikibase\Lib\LanguageFallbackChainFactory;
  */
 class TermboxRequestInspector {
 
-	/** @var LanguageFallbackChainFactory */
 	private $languageFallbackChainFactory;
 
 	public function __construct( LanguageFallbackChainFactory $languageFallbackChainFactory ) {
 		$this->languageFallbackChainFactory = $languageFallbackChainFactory;
 	}
 
-	public function isDefaultRequest( IContextSource $context ): bool {
+	/**
+	 * @param IContextSource $context
+	 *
+	 * @return bool
+	 */
+	public function isDefaultRequest( IContextSource $context ) {
 		return $this->languageFallbackChainFactory->newFromContext( $context )->getFallbackChain()
 			=== $this->languageFallbackChainFactory->newFromLanguage( $context->getLanguage() )->getFallbackChain();
 	}

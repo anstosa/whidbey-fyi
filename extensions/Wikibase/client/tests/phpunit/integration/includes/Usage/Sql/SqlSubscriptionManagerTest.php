@@ -3,7 +3,6 @@
 namespace Wikibase\Client\Tests\Integration\Usage\Sql;
 
 use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
 use Wikibase\Client\Usage\Sql\SqlSubscriptionManager;
 use Wikibase\DataModel\Entity\ItemId;
 use Wikibase\DataModel\Entity\PropertyId;
@@ -21,7 +20,7 @@ use Wikimedia\Rdbms\SessionConsistentConnectionManager;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class SqlSubscriptionManagerTest extends MediaWikiIntegrationTestCase {
+class SqlSubscriptionManagerTest extends \MediaWikiTestCase {
 
 	protected function setUp(): void {
 		if ( !WikibaseSettings::isRepoEnabled() ) {

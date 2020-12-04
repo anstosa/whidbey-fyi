@@ -23,13 +23,10 @@ class EntitySourceDefinitions {
 	 */
 	private $entityTypeToSourceMapping = null;
 
-	/** @var null|string[] */
 	private $sourceToConceptBaseUriMap = null;
 
-	/** @var null|string[] */
 	private $sourceToRdfNodeNamespacePrefixMap = null;
 
-	/** @var null|string[] */
 	private $sourceToRdfPredicateNamespacePrefixMap = null;
 
 	/**

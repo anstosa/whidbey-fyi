@@ -11,11 +11,8 @@ use Wikibase\DataModel\Entity\EntityDocument;
  */
 class StatsdSaveTimeRecordingEditEntity implements EditEntity {
 
-	/** @var EditEntity */
 	private $inner;
-	/** @var StatsdDataFactoryInterface */
 	private $stats;
-	/** @var string */
 	private $timingPrefix;
 
 	/**
@@ -26,7 +23,7 @@ class StatsdSaveTimeRecordingEditEntity implements EditEntity {
 	public function __construct(
 		EditEntity $editEntity,
 		StatsdDataFactoryInterface $stats,
-		string $timingPrefix
+		$timingPrefix
 	) {
 		$this->inner = $editEntity;
 		$this->stats = $stats;

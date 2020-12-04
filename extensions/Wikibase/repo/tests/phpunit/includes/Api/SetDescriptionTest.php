@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Tests\Api;
 
 use ApiUsageException;
@@ -102,7 +100,7 @@ class SetDescriptionTest extends ModifyTermTestCase {
 			$userWithAllPermissions
 		);
 
-		$this->assertSame( 1, $result['success'] );
+		$this->assertEquals( 1, $result['success'] );
 	}
 
 	public function testUserCannotSetDescriptionWhenTheyLackPermission() {
@@ -126,12 +124,10 @@ class SetDescriptionTest extends ModifyTermTestCase {
 			'code' => 'permissiondenied'
 		];
 
-		MediaWikiServices::getInstance()->getPermissionManager()->invalidateUsersRightsCache(
-			$userWithAllPermissions
-		);
-		MediaWikiServices::getInstance()->getPermissionManager()->invalidateUsersRightsCache(
-			$userWithInsufficientPermissions
-		);
+		//TODO: later this can be replaced with PermissionManager::invalidateUsersRightsCache()
+		//	but for now we just reset the service one more time to avoid merge issues with
+		//	https://gerrit.wikimedia.org/r/c/mediawiki/core/+/502484
+		MediaWikiServices::getInstance()->resetServiceForTesting( 'PermissionManager' );
 
 		$this->doTestQueryExceptions(
 			$this->getSetDescriptionRequestParams( $newItem->getId() ),
@@ -154,7 +150,7 @@ class SetDescriptionTest extends ModifyTermTestCase {
 			$userWithAllPermissions
 		);
 
-		$this->assertSame( 1, $result['success'] );
+		$this->assertEquals( 1, $result['success'] );
 		$this->assertSame( 'some description', $result['entity']['descriptions']['en']['value'] );
 	}
 

@@ -12,7 +12,6 @@ use Wikibase\Lib\Store\EntityExistenceChecker;
  */
 class ApiEntityExistenceChecker implements EntityExistenceChecker {
 
-	/** @var ApiEntityLookup */
 	private $apiEntityLookup;
 
 	public function __construct( ApiEntityLookup $apiEntityLookup ) {

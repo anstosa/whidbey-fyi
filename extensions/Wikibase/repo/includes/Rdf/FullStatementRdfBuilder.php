@@ -230,7 +230,7 @@ class FullStatementRdfBuilder implements EntityRdfBuilder {
 			->a( RdfVocabulary::NS_ONTOLOGY, 'Statement' );
 
 		$rank = $statement->getRank();
-		if ( isset( RdfVocabulary::RANK_MAP[$rank] ) ) {
+		if ( isset( RdfVocabulary::$rankMap[$rank] ) ) {
 			if ( $isBest ) {
 				$this->statementWriter->a( RdfVocabulary::NS_ONTOLOGY, RdfVocabulary::WIKIBASE_RANK_BEST );
 			}
@@ -238,7 +238,7 @@ class FullStatementRdfBuilder implements EntityRdfBuilder {
 				$this->vocabulary->statementNamespaceNames[$entityRepository][RdfVocabulary::NS_STATEMENT],
 				$statementLName
 			)
-				->say( RdfVocabulary::NS_ONTOLOGY, 'rank' )->is( RdfVocabulary::NS_ONTOLOGY, RdfVocabulary::RANK_MAP[$rank] );
+				->say( RdfVocabulary::NS_ONTOLOGY, 'rank' )->is( RdfVocabulary::NS_ONTOLOGY, RdfVocabulary::$rankMap[$rank] );
 		} else {
 			wfLogWarning( "Unknown rank $rank encountered for $entityId:{$statement->getGuid()}" );
 		}

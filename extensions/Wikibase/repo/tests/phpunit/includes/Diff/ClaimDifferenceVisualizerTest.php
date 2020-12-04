@@ -7,7 +7,7 @@ use Diff\DiffOp\Diff\Diff;
 use Diff\DiffOp\DiffOpAdd;
 use Diff\DiffOp\DiffOpChange;
 use Diff\DiffOp\DiffOpRemove;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use Wikibase\DataModel\Entity\PropertyId;
 use Wikibase\DataModel\Reference;
 use Wikibase\DataModel\ReferenceList;
@@ -28,7 +28,7 @@ use Wikibase\Repo\Diff\DifferencesSnakVisualizer;
  * @license GPL-2.0-or-later
  * @author Addshore
  */
-class ClaimDifferenceVisualizerTest extends MediaWikiIntegrationTestCase {
+class ClaimDifferenceVisualizerTest extends MediaWikiTestCase {
 
 	/**
 	 * @return DifferencesSnakVisualizer

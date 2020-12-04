@@ -1,4 +1,4 @@
-import { EntityState } from '@/store/entity/EntityState';
+import { EntityState } from '@/store/entity';
 import EntityRevision from '@/datamodel/EntityRevision';
 import newMockableEntityRevision from '../newMockableEntityRevision';
 import newEntityState from './newEntityState';

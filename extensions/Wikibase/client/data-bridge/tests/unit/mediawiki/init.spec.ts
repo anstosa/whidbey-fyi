@@ -119,7 +119,6 @@ describe( 'init', () => {
 		expect( MwInitTracker ).toHaveBeenCalledWith(
 			mockPrefixingEventTracker,
 			window.performance,
-			window.document,
 		);
 		expect( mockMwInitTracker.recordTimeToLinkListenersAttached ).toHaveBeenCalled();
 

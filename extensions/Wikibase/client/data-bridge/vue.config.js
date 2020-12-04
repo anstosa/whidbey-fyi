@@ -17,7 +17,6 @@ function externals() {
 }
 
 module.exports = {
-	productionSourceMap: false,
 	configureWebpack: () => ( {
 		output: {
 			filename: `${filePrefix}[name]${process.env.VUE_CLI_MODERN_BUILD ? '.modern' : ''}.js`,
@@ -36,7 +35,7 @@ module.exports = {
 			minimize: !DEV_MODE,
 			minimizer: [ new TerserPlugin( {
 				include: /\.js$/,
-				sourceMap: false,
+				sourceMap: true,
 				extractComments: false,
 			} ) ],
 		},

@@ -17,13 +17,11 @@ use Wikibase\DataModel\Services\EntityId\EntityIdComposer;
 use Wikibase\InternalSerialization\DeserializerFactory as InternalDeserializerFactory;
 use Wikibase\Lib\Interactors\MatchingTermsSearchInteractorFactory;
 use Wikibase\Lib\Interactors\TermSearchInteractorFactory;
+use Wikibase\Lib\Store\BufferingTermIndexTermLookup;
 use Wikibase\Lib\Store\EntityContentDataCodec;
-use Wikibase\Lib\Store\EntityNamespaceLookup;
 use Wikibase\Lib\Store\EntityRevision;
-use Wikibase\Lib\Store\EntityRevisionLookup;
 use Wikibase\Lib\Store\EntityStoreWatcher;
 use Wikibase\Lib\Store\MatchingTermsLookup;
-use Wikibase\Lib\Store\PropertyInfoLookup;
 use Wikibase\Lib\Store\Sql\EntityIdLocalPartPageTableEntityQuery;
 use Wikibase\Lib\Store\Sql\PrefetchingWikiPageEntityMetaDataAccessor;
 use Wikibase\Lib\Store\Sql\PropertyInfoTable;
@@ -31,6 +29,8 @@ use Wikibase\Lib\Store\Sql\Terms\DatabaseMatchingTermsLookup;
 use Wikibase\Lib\Store\Sql\Terms\DatabaseTermInLangIdsResolver;
 use Wikibase\Lib\Store\Sql\Terms\DatabaseTypeIdsStore;
 use Wikibase\Lib\Store\Sql\Terms\PrefetchingItemTermLookup;
+use Wikibase\Lib\Store\Sql\Terms\TermStoreDelegatingMatchingTermsLookup;
+use Wikibase\Lib\Store\Sql\TermSqlIndex;
 use Wikibase\Lib\Store\Sql\TypeDispatchingWikiPageEntityMetaDataAccessor;
 use Wikibase\Lib\Store\Sql\WikiPageEntityDataLoader;
 use Wikibase\Lib\Store\Sql\WikiPageEntityMetaDataAccessor;
@@ -61,10 +61,8 @@ class SingleEntitySourceServices implements EntityStoreWatcher {
 	 */
 	private $entityIdParser;
 
-	/** @var EntityIdComposer */
 	private $entityIdComposer;
 
-	/** @var Deserializer */
 	private $dataValueDeserializer;
 
 	/**
@@ -76,11 +74,7 @@ class SingleEntitySourceServices implements EntityStoreWatcher {
 	 * @var EntitySource
 	 */
 	private $entitySource;
-
-	/** @var callable[] */
 	private $deserializerFactoryCallbacks;
-
-	/** @var callable[] */
 	private $entityMetaDataAccessorCallbacks;
 
 	/**
@@ -88,16 +82,14 @@ class SingleEntitySourceServices implements EntityStoreWatcher {
 	 */
 	private $prefetchingTermLookupCallbacks;
 
-	/** @var NameTableStore */
 	private $slotRoleStore;
-
-	/** @var EntityRevisionLookup|null */
 	private $entityRevisionLookup = null;
 
-	/** @var TermSearchInteractorFactory|null */
 	private $termSearchInteractorFactory = null;
 
-	/** @var PrefetchingTermLookup|null */
+	private $termIndex = null;
+	private $termIndexPrefetchingTermLookup = null;
+
 	private $prefetchingTermLookup = null;
 
 	/**
@@ -105,14 +97,9 @@ class SingleEntitySourceServices implements EntityStoreWatcher {
 	 */
 	private $entityMetaDataAccessor = null;
 
-	/** @var PropertyInfoLookup|null */
 	private $propertyInfoLookup = null;
 
-	/** @var callable[] */
 	private $entityRevisionLookupFactoryCallbacks;
-
-	/** @var EntityNamespaceLookup|null */
-	private $entityNamespaceLookup;
 
 	public function __construct(
 		GenericServices $genericServices,
@@ -183,17 +170,16 @@ class SingleEntitySourceServices implements EntityStoreWatcher {
 	}
 
 	/**
-	 * @return EntityNamespaceLookup The EntityNamespaceLookup object for this EntitySource
+	 * @deprecated This should not be used, and was introduced only to fix an UBN on master.
+	 * This is currently used to create a TermStoresDelegatingPrefetchingItemTermLookup,
+	 * when that service construction should actually be moved to within this class.
+	 * The TermStoresDelegatingPrefetchingItemTermLookup service will be going away once we remove
+	 * all wb_terms migration related code, and thus we will remove this method after that point.
+	 *
+	 * @return DataAccessSettings
 	 */
-	public function getEntityNamespaceLookup() : EntityNamespaceLookup {
-		if ( $this->entityNamespaceLookup === null ) {
-			$this->entityNamespaceLookup = new EntityNamespaceLookup(
-				$this->entitySource->getEntityNamespaceIds(),
-				$this->entitySource->getEntitySlotNames()
-			);
-		}
-
-		return $this->entityNamespaceLookup;
+	public function getDataAccessSettings() : DataAccessSettings {
+		return $this->dataAccessSettings;
 	}
 
 	/**
@@ -289,7 +275,9 @@ class SingleEntitySourceServices implements EntityStoreWatcher {
 
 	private function getEntityMetaDataAccessor() {
 		if ( $this->entityMetaDataAccessor === null ) {
-			$entityNamespaceLookup = $this->getEntityNamespaceLookup();
+			// TODO: Having this lookup in GenericServices seems shady, this class should
+			// probably create/provide one for itself (all data needed in in the entity source)
+			$entityNamespaceLookup = $this->genericServices->getEntityNamespaceLookup();
 			$repositoryName = '';
 			$databaseName = $this->entitySource->getDatabaseName();
 			$this->entityMetaDataAccessor = new PrefetchingWikiPageEntityMetaDataAccessor(
@@ -316,8 +304,14 @@ class SingleEntitySourceServices implements EntityStoreWatcher {
 
 	public function getTermSearchInteractorFactory(): TermSearchInteractorFactory {
 		if ( $this->termSearchInteractorFactory === null ) {
-			$this->termSearchInteractorFactory = new MatchingTermsSearchInteractorFactory(
+			$delegatingMatchingTermsLookup = new TermStoreDelegatingMatchingTermsLookup(
+				$this->getTermIndex(),
 				$this->getMatchingTermsLookup(),
+				$this->dataAccessSettings->itemSearchMigrationStage(),
+				$this->dataAccessSettings->propertySearchMigrationStage()
+			);
+			$this->termSearchInteractorFactory = new MatchingTermsSearchInteractorFactory(
+				$delegatingMatchingTermsLookup,
 				$this->genericServices->getLanguageFallbackChainFactory(),
 				$this->getPrefetchingTermLookup()
 			);
@@ -344,6 +338,37 @@ class SingleEntitySourceServices implements EntityStoreWatcher {
 			$this->entityIdComposer,
 			$logger
 		);
+	}
+
+	private function getTermIndex() {
+		if ( $this->termIndex === null ) {
+			$this->termIndex = new TermSqlIndex(
+				$this->genericServices->getStringNormalizer(),
+				$this->entityIdParser,
+				$this->entitySource
+			);
+
+			$this->termIndex->setUseSearchFields( $this->dataAccessSettings->useSearchFields() );
+			$this->termIndex->setForceWriteSearchFields( $this->dataAccessSettings->forceWriteSearchFields() );
+
+		}
+
+		return $this->termIndex;
+	}
+
+	/**
+	 * @deprecated This will be removed once wb_terms related code has been removed from Wikibase
+	 * @return BufferingTermIndexTermLookup
+	 */
+	public function getTermIndexPrefetchingTermLookup() : PrefetchingTermLookup {
+		if ( $this->termIndexPrefetchingTermLookup === null ) {
+
+			$this->termIndexPrefetchingTermLookup = new BufferingTermIndexTermLookup(
+				$this->getTermIndex(), // TODO: customize buffer sizes
+				1000
+			);
+		}
+		return $this->termIndexPrefetchingTermLookup;
 	}
 
 	public function getPrefetchingTermLookup() {

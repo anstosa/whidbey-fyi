@@ -7,8 +7,8 @@ namespace Wikibase\Client\Tests\Integration\Hooks;
 use HashSiteStore;
 use Language;
 use MediaWiki\HookContainer\HookContainer;
-use MediaWikiIntegrationTestCase;
 use MediaWikiSite;
+use MediaWikiTestCase;
 use ParserOutput;
 use Psr\Log\NullLogger;
 use Site;
@@ -23,6 +23,7 @@ use Wikibase\Client\NamespaceChecker;
 use Wikibase\Client\ParserOutput\ClientParserOutputDataUpdater;
 use Wikibase\Client\Usage\EntityUsage;
 use Wikibase\Client\Usage\EntityUsageFactory;
+use Wikibase\Client\WikibaseClient;
 use Wikibase\DataModel\Entity\BasicEntityIdParser;
 use Wikibase\DataModel\Entity\Item;
 use Wikibase\DataModel\Entity\ItemId;
@@ -50,7 +51,7 @@ use Wikibase\Lib\Tests\MockRepository;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class ParserOutputUpdateHookHandlerTest extends MediaWikiIntegrationTestCase {
+class ParserOutputUpdateHookHandlerTest extends MediaWikiTestCase {
 
 	/**
 	 * @param string $globalId
@@ -241,6 +242,18 @@ class ParserOutputUpdateHookHandlerTest extends MediaWikiIntegrationTestCase {
 		}
 
 		return $parserOutput;
+	}
+
+	public function testNewFromGlobalState() {
+		$settings = WikibaseClient::getDefaultInstance()->getSettings();
+
+		$oldSiteGroupValue = $settings->getSetting( 'siteGroup' );
+		$settings->setSetting( 'siteGroup', 'NYAN' );
+
+		$handler = ParserOutputUpdateHookHandler::newFromGlobalState();
+		$this->assertInstanceOf( ParserOutputUpdateHookHandler::class, $handler );
+
+		$settings->setSetting( 'siteGroup', $oldSiteGroupValue );
 	}
 
 	public function parserAfterParseProvider() {

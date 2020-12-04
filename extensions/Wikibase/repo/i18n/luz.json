@@ -2,16 +2,15 @@
 	"@metadata": {
 		"authors": [
 			"Ladsgroup",
-			"Sahh",
 			"علی ساکی لرستانی"
 		]
 	},
 	"wikibase-edit": "ئیصلاح",
-	"wikibase-add": "اْزاف کاٛردٱن",
+	"wikibase-add": "ئیضاف کیردأن",
 	"wikibase-label-empty": "برچسبی تعریف نۉابیدھ",
 	"wikibase-description-empty": "شرحی تعریف نۉابیدھ",
 	"wikibase-statementsection-statements": "بأیانیە",
-	"wikibase-sitelinks-special": "سایتٱل دٱ",
+	"wikibase-sitelinks-special": "سایتل دیە",
 	"wikibase-statementview-rank-normal": "رتبه عادی",
 	"wikibase-statementview-references-counter": "$1 {{PLURAL:$1|سأرچیشمە|سأرچیشمل}}"
 }

@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Tests\Api;
 
 use ApiUsageException;
@@ -14,9 +12,8 @@ use ApiUsageException;
  */
 abstract class ModifyTermTestCase extends WikibaseApiTestCase {
 
-	/** @var string */
 	protected static $testAction;
-	/** @var bool */
+	protected static $testId;
 	private static $hasSetup;
 
 	protected function setUp(): void {

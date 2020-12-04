@@ -1,12 +1,9 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Api;
 
 use ApiBase;
 use ApiUsageException;
-use ArrayAccess;
 use InvalidArgumentException;
 use LogicException;
 use MediaWiki\Permissions\PermissionManager;
@@ -33,9 +30,6 @@ use Wikibase\Repo\SummaryFormatter;
  * @author Daniel Kinzler
  */
 class EntitySavingHelper extends EntityLoadingHelper {
-
-	public const ASSIGN_FRESH_ID = 'assignFreshId';
-	public const NO_FRESH_ID = 'noFreshId';
 
 	/**
 	 * @var SummaryFormatter
@@ -106,27 +100,39 @@ class EntitySavingHelper extends EntityLoadingHelper {
 		$this->defaultRetrievalMode = LookupConstants::LATEST_FROM_MASTER;
 	}
 
-	public function getBaseRevisionId(): int {
+	/**
+	 * @return int
+	 */
+	public function getBaseRevisionId() {
 		return $this->baseRevisionId;
 	}
 
-	public function getSaveFlags(): int {
+	/**
+	 * @return int
+	 */
+	public function getSaveFlags() {
 		return $this->entitySavingFlags;
 	}
 
-	public function getEntityFactory(): ?EntityFactory {
+	/**
+	 * @return EntityFactory|null
+	 */
+	public function getEntityFactory() {
 		return $this->entityFactory;
 	}
 
-	public function setEntityFactory( EntityFactory $entityFactory ): void {
+	public function setEntityFactory( EntityFactory $entityFactory ) {
 		$this->entityFactory = $entityFactory;
 	}
 
-	public function getEntityStore(): ?EntityStore {
+	/**
+	 * @return EntityStore|null
+	 */
+	public function getEntityStore() {
 		return $this->entityStore;
 	}
 
-	public function setEntityStore( EntityStore $entityStore ): void {
+	public function setEntityStore( EntityStore $entityStore ) {
 		$this->entityStore = $entityStore;
 	}
 
@@ -134,21 +140,10 @@ class EntitySavingHelper extends EntityLoadingHelper {
 	 * @param EntityId|null $entityId ID of the entity to load. If not given, the ID is taken
 	 *        from the request parameters. If $entityId is given, the 'baserevid' parameter must
 	 *        belong to it.
-	 * @param string $assignFreshId Whether to allow assigning entity ids to new entities.
-	 *        Either of the ASSIGN_FRESH_ID/NO_FRESH_ID constants.
-	 *        NOTE: We usually need to assign an ID early, for things like the ClaimIdGenerator.
-	 *
-	 * @throws ApiUsageException
 	 *
 	 * @return EntityDocument
 	 */
-	public function loadEntity( ?EntityId $entityId = null, $assignFreshId = self::ASSIGN_FRESH_ID ): EntityDocument {
-		if ( !in_array( $assignFreshId, [ self::ASSIGN_FRESH_ID, self::NO_FRESH_ID ] ) ) {
-			throw new InvalidArgumentException(
-				'$assignFreshId must be either of the EntitySavingHelper::ASSIGN_FRESH_ID/NO_FRESH_ID constants.'
-			);
-		}
-
+	public function loadEntity( EntityId $entityId = null ) {
 		$params = $this->apiModule->extractRequestParams();
 
 		if ( !$entityId ) {
@@ -208,7 +203,7 @@ class EntitySavingHelper extends EntityLoadingHelper {
 				);
 			}
 
-			$entity = $this->createEntity( $new, $entityId, $assignFreshId );
+			$entity = $this->createEntity( $new, $entityId );
 
 			$this->entitySavingFlags = EDIT_NEW;
 			$this->baseRevisionId = 0;
@@ -224,7 +219,10 @@ class EntitySavingHelper extends EntityLoadingHelper {
 		return $entity;
 	}
 
-	private function isEntityCreationSupported(): bool {
+	/**
+	 * @return bool
+	 */
+	private function isEntityCreationSupported() {
 		return $this->entityStore !== null && $this->entityFactory !== null;
 	}
 
@@ -234,15 +232,13 @@ class EntitySavingHelper extends EntityLoadingHelper {
 	 * @param string|null $entityType The type of entity to create. Optional if an ID is given.
 	 * @param EntityId|null $customId Optionally assigns a specific ID instead of generating a new
 	 *  one.
-	 * @param string $assignFreshId Either of the ASSIGN_FRESH_ID/NO_FRESH_ID constants
-	 *               NOTE: We usually need to assign an ID early, for things like the ClaimIdGenerator.
 	 *
 	 * @throws InvalidArgumentException when entity type and ID are given but do not match.
 	 * @throws ApiUsageException
 	 * @throws LogicException
 	 * @return EntityDocument
 	 */
-	private function createEntity( $entityType, EntityId $customId = null, $assignFreshId = self::ASSIGN_FRESH_ID ): EntityDocument {
+	private function createEntity( $entityType, EntityId $customId = null ) {
 		if ( $customId ) {
 			$entityType = $customId->getEntityType();
 		} elseif ( !$entityType ) {
@@ -276,8 +272,9 @@ class EntitySavingHelper extends EntityLoadingHelper {
 			}
 
 			$entity->setId( $customId );
-		} elseif ( $assignFreshId === self::ASSIGN_FRESH_ID ) {
+		} else {
 			try {
+				// NOTE: We need to assign an ID early, for things like the ClaimIdGenerator.
 				$this->entityStore->assignFreshId( $entity );
 			} catch ( StorageException $e ) {
 				$this->errorReporter->dieError(
@@ -317,7 +314,7 @@ class EntitySavingHelper extends EntityLoadingHelper {
 	 * @return Status the status of the save operation, as returned by EditEntityHandler::attemptSave()
 	 * @see  EditEntityHandler::attemptSave()
 	 */
-	public function attemptSaveEntity( EntityDocument $entity, $summary, int $flags = 0 ): Status {
+	public function attemptSaveEntity( EntityDocument $entity, $summary, $flags = 0 ) {
 		if ( !$this->apiModule->isWriteMode() ) {
 			// sanity/safety check
 			throw new LogicException(
@@ -402,16 +399,16 @@ class EntitySavingHelper extends EntityLoadingHelper {
 	 *
 	 * @param Status $status The status to report
 	 */
-	private function handleSaveStatus( Status $status ): void {
+	private function handleSaveStatus( Status $status ) {
 		$value = $status->getValue();
 		$errorCode = null;
 
-		if ( $this->isArrayLike( $value ) && isset( $value['errorCode'] ) ) {
+		if ( is_array( $value ) && isset( $value['errorCode'] ) ) {
 			$errorCode = $value['errorCode'];
 		} else {
 			$editError = 0;
 
-			if ( $this->isArrayLike( $value ) && isset( $value['errorFlags'] ) ) {
+			if ( is_array( $value ) && isset( $value['errorFlags'] ) ) {
 				$editError = $value['errorFlags'];
 			}
 
@@ -429,13 +426,6 @@ class EntitySavingHelper extends EntityLoadingHelper {
 	}
 
 	/**
-	 * Checks whether accessing array keys is safe, with e.g. @see DeprecatablePropertyArray
-	 */
-	private function isArrayLike( $value ): bool {
-		return is_array( $value ) || $value instanceof ArrayAccess;
-	}
-
-	/**
 	 * Include messages from a Status object in the API call's output.
 	 *
 	 * An ApiErrorHandler is used to report the status, if necessary.
@@ -446,7 +436,7 @@ class EntitySavingHelper extends EntityLoadingHelper {
 	 *
 	 * @throws ApiUsageException If $status->isOK() returns false.
 	 */
-	private function handleStatus( Status $status, $errorCode ): void {
+	private function handleStatus( Status $status, $errorCode ) {
 		if ( $status->isGood() ) {
 			return;
 		} elseif ( $status->isOK() ) {

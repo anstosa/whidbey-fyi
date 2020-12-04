@@ -50,9 +50,6 @@ class CallbackFactory {
 		PropertyDataTypeLookup $dataTypeLookup
 	) {
 		return function ( $array ) use ( $dataTypeLookup ) {
-			if ( !is_array( $array ) ) {
-				return $array;
-			}
 			foreach ( $array as $propertyIdGroupKey => &$snakGroup ) {
 				try {
 					$dataType = $dataTypeLookup->getDataTypeIdForProperty( new PropertyId( $propertyIdGroupKey ) );

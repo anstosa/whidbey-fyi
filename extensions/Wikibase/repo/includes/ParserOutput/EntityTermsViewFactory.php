@@ -7,10 +7,10 @@ use MediaWiki\MediaWikiServices;
 use Wikibase\DataModel\Entity\EntityDocument;
 use Wikibase\DataModel\Services\Lookup\EntityRetrievingTermLookup;
 use Wikibase\DataModel\Services\Lookup\InMemoryEntityLookup;
+use Wikibase\Lib\LanguageFallbackChain;
 use Wikibase\Lib\LanguageFallbackChainFactory;
 use Wikibase\Lib\LanguageNameLookup;
 use Wikibase\Lib\Store\LanguageFallbackLabelDescriptionLookup;
-use Wikibase\Lib\TermLanguageFallbackChain;
 use Wikibase\Repo\MediaWikiLanguageDirectionalityLookup;
 use Wikibase\Repo\MediaWikiLocalizedTextProvider;
 use Wikibase\Repo\View\RepoSpecialPageLinker;
@@ -29,7 +29,7 @@ class EntityTermsViewFactory {
 	/**
 	 * @param EntityDocument $entity
 	 * @param Language $language
-	 * @param TermLanguageFallbackChain $termFallbackChain
+	 * @param LanguageFallbackChain $fallbackChain
 	 * @param bool $useTermbox
 	 *
 	 * @return CacheableEntityTermsView
@@ -37,18 +37,18 @@ class EntityTermsViewFactory {
 	public function newEntityTermsView(
 		EntityDocument $entity,
 		Language $language,
-		TermLanguageFallbackChain $termFallbackChain,
+		LanguageFallbackChain $fallbackChain,
 		$useTermbox = false
 	) {
 		// FIXME: Hack introduced for T230937 - preventing trying to use remote termbox when entity hasn't been saved
 		return $useTermbox && $entity->getId() ? $this->newTermboxView( $language )
-			: $this->newPlaceHolderEmittingEntityTermsView( $entity, $language, $termFallbackChain );
+			: $this->newPlaceHolderEmittingEntityTermsView( $entity, $language, $fallbackChain );
 	}
 
 	private function newPlaceHolderEmittingEntityTermsView(
 		EntityDocument $entity,
 		Language $language,
-		TermLanguageFallbackChain $termFallbackChain
+		LanguageFallbackChain $fallbackChain
 	) {
 		$textProvider = new MediaWikiLocalizedTextProvider( $language );
 		$templateFactory = TemplateFactory::getDefaultInstance();
@@ -66,7 +66,7 @@ class EntityTermsViewFactory {
 			),
 			new LanguageFallbackLabelDescriptionLookup(
 				new EntityRetrievingTermLookup( $entityLookup ),
-				$termFallbackChain
+				$fallbackChain
 			),
 			$templateFactory,
 			new ToolbarEditSectionGenerator(

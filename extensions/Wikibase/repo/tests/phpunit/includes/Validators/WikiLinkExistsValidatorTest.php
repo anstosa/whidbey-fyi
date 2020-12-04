@@ -5,7 +5,6 @@ namespace Wikibase\Repo\Tests\Validators;
 use Article;
 use DataValues\StringValue;
 use InvalidArgumentException;
-use MediaWikiIntegrationTestCase;
 use Title;
 use Wikibase\Repo\Validators\WikiLinkExistsValidator;
 use WikitextContent;
@@ -18,7 +17,7 @@ use WikitextContent;
  *
  * @license GPL-2.0-or-later
  */
-class WikiLinkExistsValidatorTest extends MediaWikiIntegrationTestCase {
+class WikiLinkExistsValidatorTest extends \MediaWikiIntegrationTestCase {
 	const EXISTING_PAGE = "Foo";
 	const NONEXISTENT_PAGE = "Foo.NOT-FOUND";
 

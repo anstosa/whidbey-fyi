@@ -158,7 +158,7 @@ class ItemMergeInteractor {
 		$this->validateEntities( $fromItem, $toItem );
 
 		// strip any bad values from $ignoreConflicts
-		$ignoreConflicts = array_intersect( $ignoreConflicts, ChangeOpsMerge::CONFLICT_TYPES );
+		$ignoreConflicts = array_intersect( $ignoreConflicts, ChangeOpsMerge::$conflictTypes );
 
 		try {
 			$changeOps = $this->mergeFactory->newMergeOps(
@@ -219,7 +219,9 @@ class ItemMergeInteractor {
 			}
 
 			return $revision->getEntity();
-		} catch ( StorageException | RevisionedUnresolvedRedirectException $ex ) {
+		} catch ( StorageException $ex ) {
+			throw new ItemMergeException( $ex->getMessage(), 'cant-load-entity-content', $ex );
+		} catch ( RevisionedUnresolvedRedirectException $ex ) {
 			throw new ItemMergeException( $ex->getMessage(), 'cant-load-entity-content', $ex );
 		}
 	}

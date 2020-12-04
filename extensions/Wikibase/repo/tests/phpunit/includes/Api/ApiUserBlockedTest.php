@@ -66,7 +66,7 @@ class ApiUserBlockedTest extends WikibaseApiTestCase {
 				'new' => 'item',
 				'data' => json_encode( [] ),
 			],
-			[ 'wikibase-api-permissiondenied', 'apierror-blocked' ],
+			[ 'wikibase-api-failed-save', 'apierror-blocked', 'permissionserrors' ],
 		];
 
 		yield [

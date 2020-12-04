@@ -3,7 +3,6 @@
 namespace Wikibase\Repo\Tests;
 
 use Wikibase\Repo\PidLock;
-use Wikimedia\AtEase\AtEase;
 
 /**
  * @covers \Wikibase\Repo\PidLock
@@ -29,9 +28,9 @@ class PidLockTest extends \PHPUnit\Framework\TestCase {
 
 		// Make sure that the given file has actually been removed.
 		// unlink gives a warning if you use it a file that doesn't exist, suppress that
-		AtEase::suppressWarnings();
+		\Wikimedia\suppressWarnings();
 		$this->assertFalse( $pidLock->removeLock() );
-		AtEase::restoreWarnings();
+		\Wikimedia\restoreWarnings();
 	}
 
 	public function wikiIdProvider() {

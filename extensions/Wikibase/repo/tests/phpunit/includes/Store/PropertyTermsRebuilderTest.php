@@ -4,7 +4,7 @@ namespace Wikibase\Repo\Tests\Store;
 
 use LogicException;
 use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use Onoi\MessageReporter\SpyMessageReporter;
 use Wikibase\DataModel\Entity\Property;
 use Wikibase\DataModel\Entity\PropertyId;
@@ -27,7 +27,7 @@ use Wikibase\Repo\Store\PropertyTermsRebuilder;
  *
  * @license GPL-2.0-or-later
  */
-class PropertyTermsRebuilderTest extends MediaWikiIntegrationTestCase {
+class PropertyTermsRebuilderTest extends MediaWikiTestCase {
 
 	/**
 	 * @var PropertyTermStoreWriter

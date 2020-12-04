@@ -9,6 +9,7 @@ use WebRequest;
 use Wikibase\Lib\ContentLanguages;
 use Wikibase\Lib\Interactors\TermSearchResult;
 use Wikibase\Lib\LanguageNameLookup;
+use Wikibase\Lib\MediaWikiContentLanguages;
 use Wikibase\Repo\Api\EntitySearchHelper;
 use Wikibase\Repo\Api\TypeDispatchingEntitySearchHelper;
 use Wikibase\Repo\ItemDisambiguation;
@@ -70,7 +71,7 @@ class SpecialItemDisambiguation extends SpecialWikibasePage {
 		$this->limit = $limit;
 	}
 
-	public static function factory(): self {
+	public static function newFromGlobalState(): self {
 		global $wgLang;
 
 		$languageCode = $wgLang->getCode();
@@ -82,7 +83,7 @@ class SpecialItemDisambiguation extends SpecialWikibasePage {
 			$languageCode
 		);
 		return new self(
-			$wikibaseRepo->getTermsLanguages(),
+			new MediaWikiContentLanguages(),
 			$languageNameLookup,
 			$itemDisambiguation,
 			new TypeDispatchingEntitySearchHelper(

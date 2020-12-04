@@ -102,7 +102,7 @@ class ItemChangeOpDeserializerTest extends \PHPUnit\Framework\TestCase {
 			),
 			$wikibaseRepo->getExternalFormatStatementDeserializer(),
 			$this->newSiteLinkTargetProvider(),
-			WikibaseRepo::getEntityIdParser(),
+			$wikibaseRepo->getEntityIdParser(),
 			$wikibaseRepo->getStringNormalizer(),
 			[ self::SITELINK_GROUP ]
 		) );

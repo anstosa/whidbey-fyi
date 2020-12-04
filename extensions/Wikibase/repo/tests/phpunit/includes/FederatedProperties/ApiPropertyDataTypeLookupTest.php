@@ -3,13 +3,13 @@
 declare( strict_types = 1 );
 namespace Wikibase\Repo\Tests\FederatedProperties;
 
+use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Wikibase\DataModel\Entity\PropertyId;
 use Wikibase\DataModel\Services\Lookup\PropertyDataTypeLookupException;
 use Wikibase\Repo\FederatedProperties\ApiEntityLookup;
 use Wikibase\Repo\FederatedProperties\ApiPropertyDataTypeLookup;
 use Wikibase\Repo\FederatedProperties\GenericActionApiClient;
-use Wikibase\Repo\Tests\HttpResponseMockerTrait;
 
 /**
  * @covers \Wikibase\Repo\FederatedProperties\ApiPropertyDataTypeLookup
@@ -19,8 +19,6 @@ use Wikibase\Repo\Tests\HttpResponseMockerTrait;
  * @license GPL-2.0-or-later
  */
 class ApiPropertyDataTypeLookupTest extends TestCase {
-
-	use HttpResponseMockerTrait;
 
 	public function testGetDataTypeIdForProperty() {
 		$propertyId = new PropertyId( 'P666' );
@@ -55,7 +53,7 @@ class ApiPropertyDataTypeLookupTest extends TestCase {
 		$client = $this->createMock( GenericActionApiClient::class );
 		$client->expects( $this->any() )
 			->method( 'get' )
-			->willReturn( $this->newMockResponse( file_get_contents( $responseDataFile ), 200 ) );
+			->willReturn( new Response( 200, [], file_get_contents( $responseDataFile ) ) );
 		return $client;
 	}
 

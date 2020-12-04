@@ -17,6 +17,7 @@ use Wikibase\DataModel\Services\Lookup\EntityRedirectLookupException;
 use Wikibase\Lib\Store\BadRevisionException;
 use Wikibase\Lib\Store\EntityRevision;
 use Wikibase\Lib\Store\EntityRevisionLookup;
+use Wikibase\Lib\Store\EntityTitleLookup;
 use Wikibase\Lib\Store\RedirectRevision;
 use Wikibase\Lib\Store\RevisionedUnresolvedRedirectException;
 use Wikibase\Lib\Store\StorageException;
@@ -68,6 +69,11 @@ class EntityDataRequestHandler {
 	private $entityRedirectLookup;
 
 	/**
+	 * @var EntityTitleLookup
+	 */
+	private $entityTitleLookup;
+
+	/**
 	 * @var EntityDataFormatProvider
 	 */
 	private $entityDataFormatProvider;
@@ -110,6 +116,7 @@ class EntityDataRequestHandler {
 	/**
 	 * @param EntityDataUriManager $uriManager
 	 * @param HtmlCacheUpdater $htmlCacheUpdater
+	 * @param EntityTitleLookup $entityTitleLookup
 	 * @param EntityIdParser $entityIdParser
 	 * @param EntityRevisionLookup $entityRevisionLookup
 	 * @param EntityRedirectLookup $entityRedirectLookup
@@ -125,6 +132,7 @@ class EntityDataRequestHandler {
 	public function __construct(
 		EntityDataUriManager $uriManager,
 		HtmlCacheUpdater $htmlCacheUpdater,
+		EntityTitleLookup $entityTitleLookup,
 		EntityIdParser $entityIdParser,
 		EntityRevisionLookup $entityRevisionLookup,
 		EntityRedirectLookup $entityRedirectLookup,
@@ -139,6 +147,7 @@ class EntityDataRequestHandler {
 	) {
 		$this->uriManager = $uriManager;
 		$this->htmlCacheUpdater = $htmlCacheUpdater;
+		$this->entityTitleLookup = $entityTitleLookup;
 		$this->entityIdParser = $entityIdParser;
 		$this->entityRevisionLookup = $entityRevisionLookup;
 		$this->entityRedirectLookup = $entityRedirectLookup;
@@ -226,7 +235,7 @@ class EntityDataRequestHandler {
 
 		//XXX: allow for logged in users only?
 		if ( $request->getText( 'action' ) === 'purge' ) {
-			$this->purgeWebCache( $entityId, $revision );
+			$this->purgeWebCache( $entityId );
 			//XXX: Now what? Proceed to show the data?
 		}
 
@@ -299,14 +308,11 @@ class EntityDataRequestHandler {
 	 * Purges the entity data identified by the doc parameter from any HTTP caches.
 	 * Does nothing if $wgUseCdn is not set.
 	 *
-	 * @param EntityId $id The entity ID for which to purge all data.
-	 * @param int $revision The revision ID (0 for current/unspecified)
+	 * @param EntityId $id       The entity
 	 */
-	public function purgeWebCache( EntityId $id, int $revision ) {
-		$urls = $this->uriManager->getPotentiallyCachedUrls( $id, $revision );
-		if ( $urls !== [] ) {
-			$this->htmlCacheUpdater->purgeUrls( $urls );
-		}
+	public function purgeWebCache( EntityId $id ) {
+		$urls = $this->uriManager->getCacheableUrls( $id );
+		$this->htmlCacheUpdater->purgeUrls( $urls );
 	}
 
 	/**
@@ -524,8 +530,6 @@ class EntityDataRequestHandler {
 		$output->disable();
 		$this->outputData(
 			$request,
-			$id,
-			$revision,
 			$output->getRequest()->response(),
 			$data,
 			$contentType,
@@ -537,27 +541,19 @@ class EntityDataRequestHandler {
 	 * Output the entity data and set the appropriate HTTP response headers.
 	 *
 	 * @param WebRequest  $request
-	 * @param EntityId    $requestId       the original entity ID of the request
-	 * @param int         $requestRevision the original revision ID of the request (0 for latest)
 	 * @param WebResponse $response
 	 * @param string      $data        the data to output
 	 * @param string      $contentType the data's mime type
 	 * @param string      $lastModified
 	 */
-	public function outputData(
-		WebRequest $request,
-		EntityId $requestId,
-		int $requestRevision,
-		WebResponse $response,
-		string $data,
-		string $contentType,
-		string $lastModified
-	) {
+	public function outputData( WebRequest $request, WebResponse $response, $data, $contentType, $lastModified ) {
 		// NOTE: similar code as in RawAction::onView, keep in sync.
 
+		//FIXME: do not cache if revision was requested explicitly!
 		$maxAge = $request->getInt( 'maxage', $this->maxAge );
 		$sMaxAge = $request->getInt( 'smaxage', $this->maxAge );
 
+		// XXX: do we want public caching even for data from old revisions?
 		$maxAge  = max( self::MINIMUM_MAX_AGE, min( self::MAXIMUM_MAX_AGE, $maxAge ) );
 		$sMaxAge = max( self::MINIMUM_MAX_AGE, min( self::MAXIMUM_MAX_AGE, $sMaxAge ) );
 
@@ -572,12 +568,9 @@ class EntityDataRequestHandler {
 			$response->header( "X-Frame-Options: $this->frameOptionsHeader" );
 		}
 
-		$cacheableUrls = $this->uriManager->getCacheableUrls( $requestId, $requestRevision );
-		if ( in_array( $request->getFullRequestURL(), $cacheableUrls ) ) {
-			$response->header( 'Cache-Control: public, s-maxage=' . $sMaxAge . ', max-age=' . $maxAge );
-		} else {
-			$response->header( 'Cache-Control: private, no-cache, s-maxage=0' );
-		}
+		// allow the client to cache this
+		$mode = 'public';
+		$response->header( 'Cache-Control: ' . $mode . ', s-maxage=' . $sMaxAge . ', max-age=' . $maxAge );
 
 		ob_clean(); // remove anything that might already be in the output buffer.
 

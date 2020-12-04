@@ -2,7 +2,6 @@
 
 namespace Wikibase\Tests;
 
-use MediaWikiIntegrationTestCase;
 use MWNamespace;
 use Wikibase\Lib\SettingsArray;
 use Wikibase\Lib\WikibaseSettings;
@@ -14,7 +13,7 @@ use Wikibase\Lib\WikibaseSettings;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class ClientDefaultsTest extends MediaWikiIntegrationTestCase {
+class ClientDefaultsTest extends \MediaWikiTestCase {
 
 	public function settingsProvider() {
 		$cases = [

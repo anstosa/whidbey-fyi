@@ -19,7 +19,6 @@ use Wikibase\Lib\Store\EntityRevision;
 use Wikibase\Lib\Store\EntityRevisionLookup;
 use Wikibase\Lib\UserLanguageLookup;
 use Wikibase\Repo\Hooks\Helpers\OutputPageEditability;
-use Wikibase\Repo\Hooks\Helpers\OutputPageEntityViewChecker;
 use Wikibase\Repo\Hooks\Helpers\UserPreferredContentLanguagesLookup;
 use Wikibase\Repo\Hooks\OutputPageBeforeHTMLHookHandler;
 use Wikibase\Repo\Hooks\OutputPageEntityIdReader;
@@ -60,11 +59,6 @@ class OutputPageBeforeHTMLHookHandlerTest extends MediaWikiIntegrationTestCase {
 	 */
 	private $isExternallyRendered;
 
-	/**
-	 * @var MockObject|OutputPageEntityViewChecker
-	 */
-	private $entityViewChecker;
-
 	protected function setUp(): void {
 		parent::setUp();
 		$this->itemId = new ItemId( 'Q1' );
@@ -82,11 +76,13 @@ class OutputPageBeforeHTMLHookHandlerTest extends MediaWikiIntegrationTestCase {
 		$this->preferredLanguageLookup = $this->createMock( UserPreferredContentLanguagesLookup::class );
 		$this->preferredLanguageLookup->method( 'getLanguages' )
 			->willReturn( [ [ $this->uiLanguageCode, 'de', 'es', 'ru' ] ] );
+	}
 
-		$this->entityViewChecker = $this->createMock( OutputPageEntityViewChecker::class );
-		$this->entityViewChecker->expects( $this->any() )
-			->method( 'hasEntityView' )
-			->willReturn( true );
+	public function testNewFromGlobalState_returnsSelf() {
+		$this->assertInstanceOf(
+			OutputPageBeforeHTMLHookHandler::class,
+			OutputPageBeforeHTMLHookHandler::newFromGlobalState()
+		);
 	}
 
 	/**
@@ -118,8 +114,7 @@ class OutputPageBeforeHTMLHookHandlerTest extends MediaWikiIntegrationTestCase {
 			'',
 			$this->editability,
 			$this->isExternallyRendered,
-			$this->preferredLanguageLookup,
-			$this->entityViewChecker
+			$this->preferredLanguageLookup
 		);
 	}
 
@@ -151,7 +146,7 @@ class OutputPageBeforeHTMLHookHandlerTest extends MediaWikiIntegrationTestCase {
 		);
 		$out->setArticleFlag( true );
 
-		$outputPageBeforeHTMLHookHandler->onOutputPageBeforeHTML( $out, $html );
+		$outputPageBeforeHTMLHookHandler->doOutputPageBeforeHTML( $out, $html );
 
 		// Verify the wbUserSpecifiedLanguages JS variable
 		$jsConfigVars = $out->getJsConfigVars();
@@ -160,7 +155,7 @@ class OutputPageBeforeHTMLHookHandlerTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame( [ 'es', 'ru' ], $wbUserSpecifiedLanguages );
 	}
 
-	public function testOutputPageBeforeHTMLHookHandlerShouldNotWorkOnNonEntityViewPages() {
+	public function testOutputPageBeforeHTMLHookHandlerShouldNotWorkOnNonArticles() {
 		$out = $this->newOutputPage();
 		$this->userLanguageLookup->expects( $this->never() )
 			->method( 'getUserSpecifiedLanguages' );
@@ -168,12 +163,10 @@ class OutputPageBeforeHTMLHookHandlerTest extends MediaWikiIntegrationTestCase {
 			->method( 'getAllUserLanguages' );
 
 		$html = '';
-		$this->entityViewChecker = $this->createMock( OutputPageEntityViewChecker::class );
-		$this->entityViewChecker->expects( $this->once() )
-			->method( 'hasEntityView' )
-			->willReturn( false );
+		$out->setTitle( Title::makeTitle( 0, 'OutputPageBeforeHTMLHookHandlerTest' ) );
+		$out->setArticleFlag( false );
 
-		$this->getHookHandler()->onOutputPageBeforeHTML( $out, $html );
+		$this->getHookHandler()->doOutputPageBeforeHTML( $out, $html );
 
 		// Verify the wbUserSpecifiedLanguages JS variable
 		$jsConfigVars = $out->getJsConfigVars();
@@ -192,7 +185,7 @@ class OutputPageBeforeHTMLHookHandlerTest extends MediaWikiIntegrationTestCase {
 		$out->setArticleFlag( true );
 
 		$html = '$1';
-		$this->getHookHandler()->onOutputPageBeforeHTML( $out, $html );
+		$this->getHookHandler()->doOutputPageBeforeHTML( $out, $html );
 		$this->assertSame( '', $html );
 	}
 
@@ -216,7 +209,7 @@ class OutputPageBeforeHTMLHookHandlerTest extends MediaWikiIntegrationTestCase {
 		$out->setArticleFlag( true );
 
 		$html = $placeholder;
-		$this->getHookHandler()->onOutputPageBeforeHTML( $out, $html );
+		$this->getHookHandler()->doOutputPageBeforeHTML( $out, $html );
 
 		$this->assertSame( $expectedHtml, $html );
 	}
@@ -265,7 +258,7 @@ class OutputPageBeforeHTMLHookHandlerTest extends MediaWikiIntegrationTestCase {
 		$out = $this->newOutputPage();
 		$this->userLanguageLookup = $this->newUserLanguageLookup();
 
-		$this->getHookHandler()->onOutputPageBeforeHTML( $out, $html );
+		$this->getHookHandler()->doOutputPageBeforeHTML( $out, $html );
 
 		$this->assertEquals( "$editLink1 $contentBetweenEditLinks $editLink2", $html );
 	}
@@ -277,7 +270,7 @@ class OutputPageBeforeHTMLHookHandlerTest extends MediaWikiIntegrationTestCase {
 		$this->userLanguageLookup = $this->newUserLanguageLookup();
 		$this->editability = $this->mockEditabilityDismissive();
 
-		$this->getHookHandler()->onOutputPageBeforeHTML( $out, $html );
+		$this->getHookHandler()->doOutputPageBeforeHTML( $out, $html );
 
 		$this->assertSame( $contentBetweenEditLinks, $html );
 	}

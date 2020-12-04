@@ -7,7 +7,7 @@ use Wikibase\DataModel\Services\Lookup\LabelDescriptionLookupException;
 use Wikibase\DataModel\Services\Lookup\TermLookup;
 use Wikibase\DataModel\Services\Lookup\TermLookupException;
 use Wikibase\DataModel\Term\TermFallback;
-use Wikibase\Lib\TermLanguageFallbackChain;
+use Wikibase\Lib\LanguageFallbackChain;
 
 /**
  * @license GPL-2.0-or-later
@@ -22,20 +22,20 @@ class LanguageFallbackLabelDescriptionLookup implements FallbackLabelDescription
 	private $termLookup;
 
 	/**
-	 * @var TermLanguageFallbackChain
+	 * @var LanguageFallbackChain
 	 */
-	private $termLanguageFallbackChain;
+	private $languageFallbackChain;
 
 	/**
 	 * @param TermLookup $termLookup
-	 * @param TermLanguageFallbackChain $termLanguageFallbackChain
+	 * @param LanguageFallbackChain $languageFallbackChain
 	 */
 	public function __construct(
 		TermLookup $termLookup,
-		TermLanguageFallbackChain $termLanguageFallbackChain
+		LanguageFallbackChain $languageFallbackChain
 	) {
 		$this->termLookup = $termLookup;
-		$this->termLanguageFallbackChain = $termLanguageFallbackChain;
+		$this->languageFallbackChain = $languageFallbackChain;
 	}
 
 	/**
@@ -45,7 +45,7 @@ class LanguageFallbackLabelDescriptionLookup implements FallbackLabelDescription
 	 * @return TermFallback|null
 	 */
 	public function getLabel( EntityId $entityId ) {
-		$fetchLanguages = $this->termLanguageFallbackChain->getFetchLanguageCodes();
+		$fetchLanguages = $this->languageFallbackChain->getFetchLanguageCodes();
 
 		try {
 			$labels = $this->termLookup->getLabels( $entityId, $fetchLanguages );
@@ -63,7 +63,7 @@ class LanguageFallbackLabelDescriptionLookup implements FallbackLabelDescription
 	 * @return TermFallback|null
 	 */
 	public function getDescription( EntityId $entityId ) {
-		$fetchLanguages = $this->termLanguageFallbackChain->getFetchLanguageCodes();
+		$fetchLanguages = $this->languageFallbackChain->getFetchLanguageCodes();
 
 		try {
 			$descriptions = $this->termLookup->getDescriptions( $entityId, $fetchLanguages );
@@ -81,7 +81,7 @@ class LanguageFallbackLabelDescriptionLookup implements FallbackLabelDescription
 	 * @return TermFallback|null
 	 */
 	private function getTermFallback( array $terms, array $fetchLanguages ) {
-		$extractedData = $this->termLanguageFallbackChain->extractPreferredValue( $terms );
+		$extractedData = $this->languageFallbackChain->extractPreferredValue( $terms );
 
 		if ( $extractedData === null ) {
 			return null;

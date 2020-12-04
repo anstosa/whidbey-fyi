@@ -1,11 +1,10 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Client\Hooks;
 
 use Content;
 use JobQueueGroup;
+use LogEntry;
 use MediaWiki\Hook\PageMoveCompleteHook;
 use MediaWiki\Linker\LinkTarget;
 use MediaWiki\Logger\LoggerFactory;
@@ -17,7 +16,6 @@ use Psr\Log\LoggerInterface;
 use Title;
 use User;
 use Wikibase\Client\NamespaceChecker;
-use Wikibase\Client\UpdateRepo\UpdateRepo;
 use Wikibase\Client\UpdateRepo\UpdateRepoOnDelete;
 use Wikibase\Client\UpdateRepo\UpdateRepoOnMove;
 use Wikibase\Client\WikibaseClient;
@@ -72,7 +70,7 @@ class UpdateRepoHookHandler implements PageMoveCompleteHook, ArticleDeleteComple
 	/**
 	 * @return self|null
 	 */
-	public static function factory() {
+	public static function newFromGlobalState() {
 		$wikibaseClient = WikibaseClient::getDefaultInstance();
 		$settings = $wikibaseClient->getSettings();
 
@@ -138,74 +136,6 @@ class UpdateRepoHookHandler implements PageMoveCompleteHook, ArticleDeleteComple
 		return $this->namespaceChecker->isWikibaseEnabled( $namespace );
 	}
 
-	private function makeDelete(
-		UserIdentity $user,
-		LinkTarget $title
-	): UpdateRepoOnDelete {
-		return new UpdateRepoOnDelete(
-			$this->repoDatabase,
-			$this->siteLinkLookup,
-			$this->logger,
-			$user,
-			$this->siteGlobalID,
-			Title::newFromLinkTarget( $title )
-		);
-	}
-
-	private function makeMove(
-		UserIdentity $user,
-		LinkTarget $old,
-		Linktarget $new
-	): UpdateRepoOnMove {
-		return new UpdateRepoOnMove(
-			$this->repoDatabase,
-			$this->siteLinkLookup,
-			$this->logger,
-			$user,
-			$this->siteGlobalID,
-			Title::newFromLinkTarget( $old ),
-			Title::newFromLinkTarget( $new )
-		);
-	}
-
-	/**
-	 * Push the $updateRepo to the job queue if applicable,
-	 * and if successful, set the $titleProperty on the $title.
-	 * Hook handlers later look at this property in an attempt to determine
-	 * whether the update was successfully applied/enqueued or not.
-	 */
-	private function applyUpdateRepo(
-		UpdateRepo $updateRepo,
-		LinkTarget $title,
-		string $titleProperty
-	): void {
-		if ( !$updateRepo->isApplicable() ) {
-			return;
-		}
-
-		try {
-			$updateRepo->injectJob( $this->jobQueueGroup );
-
-			// To be able to find out about this in the ArticleDeleteAfter
-			// or SpecialMovepageAfterMove hook (but see T268135)
-			$title->$titleProperty = true;
-		} catch ( MWException $e ) {
-			// This is not a reason to let an exception bubble up, we just
-			// show a message to the user that the Wikibase item needs to be
-			// manually updated.
-			wfLogWarning( $e->getMessage() );
-
-			$this->logger->debug(
-				'{method}: Failed to inject job: "{msg}"!',
-				[
-					'method' => __METHOD__,
-					'msg' => $e->getMessage()
-				]
-			);
-
-		}
-	}
-
 	/**
 	 * After a page has been deleted also update the item on the repo.
 	 * This only works if there's a user account with the same name on the repo.
@@ -234,13 +164,40 @@ class UpdateRepoHookHandler implements PageMoveCompleteHook, ArticleDeleteComple
 			return true;
 		}
 
-		$updateRepo = $this->makeDelete( $user, $wikiPage->getTitle() );
-
-		$this->applyUpdateRepo(
-			$updateRepo,
-			$wikiPage->getTitle(),
-			'wikibasePushedDeleteToRepo'
+		$updateRepo = new UpdateRepoOnDelete(
+			$this->repoDatabase,
+			$this->siteLinkLookup,
+			$this->logger,
+			$user,
+			$this->siteGlobalID,
+			$wikiPage->getTitle()
 		);
+
+		if ( !$updateRepo->isApplicable() ) {
+			return true;
+		}
+
+		try {
+			$updateRepo->injectJob( $this->jobQueueGroup );
+
+			// To be able to find out about this in the ArticleDeleteAfter hook
+			// @phan-suppress-next-line PhanUndeclaredProperty Dynamic property
+			$wikiPage->getTitle()->wikibasePushedDeleteToRepo = true;
+		} catch ( MWException $e ) {
+			// This is not a reason to let an exception bubble up, we just
+			// show a message to the user that the Wikibase item needs to be
+			// manually updated.
+			wfLogWarning( $e->getMessage() );
+
+			$this->logger->debug(
+				'{method}: Failed to inject job: "{msg}"!',
+				[
+					'method' => __METHOD__,
+					'msg' => $e->getMessage()
+				]
+			);
+
+		}
 
 		return true;
 	}
@@ -270,28 +227,52 @@ class UpdateRepoHookHandler implements PageMoveCompleteHook, ArticleDeleteComple
 		$reason,
 		$revisionRecord
 	) {
+		if ( !$this->isWikibaseEnabled( $newLinkTarget->getNamespace() ) ) {
+			return true;
+		}
+
 		if ( $this->propagateChangesToRepo !== true ) {
 			return true;
 		}
 
-		if ( $this->isWikibaseEnabled( $newLinkTarget->getNamespace() ) ) {
-			$updateRepo = $this->makeMove( $userIdentity, $oldLinkTarget, $newLinkTarget );
-		} else {
-			// page moved to excluded/unsupported namespace, don’t link to $newLinkTarget
-			if ( $redirid ) {
-				// $oldLinkTarget is now a redirect, keep the link to it
-				return true;
-			} else {
-				// redirect suppressed, remove the sitelink (T261275)
-				$updateRepo = $this->makeDelete( $userIdentity, $oldLinkTarget );
-			}
+		$old = Title::newFromLinkTarget( $oldLinkTarget );
+		$nt = Title::newFromLinkTarget( $newLinkTarget );
+		$user = User::newFromIdentity( $userIdentity );
+
+		$updateRepo = new UpdateRepoOnMove(
+			$this->repoDatabase,
+			$this->siteLinkLookup,
+			$this->logger,
+			$user,
+			$this->siteGlobalID,
+			$old,
+			$nt
+		);
+
+		if ( !$updateRepo->isApplicable() ) {
+			return true;
 		}
 
-		$this->applyUpdateRepo(
-			$updateRepo,
-			$newLinkTarget,
-			'wikibasePushedMoveToRepo'
-		);
+		try {
+			$updateRepo->injectJob( $this->jobQueueGroup );
+
+			// To be able to find out about this in the SpecialMovepageAfterMove hook
+			// @phan-suppress-next-line PhanUndeclaredProperty Dynamic property
+			$nt->wikibasePushedMoveToRepo = true;
+		} catch ( MWException $e ) {
+			// This is not a reason to let an exception bubble up, we just
+			// show a message to the user that the Wikibase item needs to be
+			// manually updated.
+			wfLogWarning( $e->getMessage() );
+
+			$this->logger->debug(
+				'{method}: Failed to inject job: "{msg}"!',
+				[
+					'method' => __METHOD__,
+					'msg' => $e->getMessage()
+				]
+			);
+		}
 
 		return true;
 	}

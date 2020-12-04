@@ -3,7 +3,7 @@
 namespace Wikibase\Lib\Tests\Store\Sql\Terms;
 
 use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use Wikibase\DataModel\Entity\PropertyId;
 use Wikibase\DataModel\Term\AliasGroup;
 use Wikibase\DataModel\Term\AliasGroupList;
@@ -28,7 +28,7 @@ use Wikibase\Lib\WikibaseSettings;
  *
  * @license GPL-2.0-or-later
  */
-class PrefetchingPropertyTermLookupTest extends MediaWikiIntegrationTestCase {
+class PrefetchingPropertyTermLookupTest extends MediaWikiTestCase {
 
 	/** @var PrefetchingPropertyTermLookup */
 	private $lookup;
@@ -149,16 +149,8 @@ class PrefetchingPropertyTermLookupTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testPrefetchTerms_SameTermsTwice() {
-		$this->lookup->prefetchTerms(
-			[ $this->p1 ],
-			[ TermTypes::TYPE_LABEL, TermTypes::TYPE_DESCRIPTION, TermTypes::TYPE_ALIAS ],
-			[ 'en' ]
-		);
-		$this->lookup->prefetchTerms(
-			[ $this->p1 ],
-			[ TermTypes::TYPE_LABEL, TermTypes::TYPE_DESCRIPTION, TermTypes::TYPE_ALIAS ],
-			[ 'en' ]
-		);
+		$this->lookup->prefetchTerms( [ $this->p1 ], [ TermTypes::TYPE_LABEL, TermTypes::TYPE_DESCRIPTION, TermTypes::TYPE_ALIAS ], [ 'en' ] );
+		$this->lookup->prefetchTerms( [ $this->p1 ], [ TermTypes::TYPE_LABEL, TermTypes::TYPE_DESCRIPTION, TermTypes::TYPE_ALIAS ], [ 'en' ] );
 		$this->assertTrue( true ); // no error
 	}
 

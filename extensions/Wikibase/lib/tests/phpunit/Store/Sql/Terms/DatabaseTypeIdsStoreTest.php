@@ -3,7 +3,7 @@
 namespace Wikibase\Lib\Tests\Store\Sql\Terms;
 
 use HashBagOStuff;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use WANObjectCache;
 use Wikibase\Lib\Store\Sql\Terms\DatabaseTypeIdsStore;
 use Wikibase\Lib\WikibaseSettings;
@@ -18,7 +18,7 @@ use Wikimedia\Rdbms\ILoadBalancer;
  *
  * @license GPL-2.0-or-later
  */
-class DatabaseTypeIdsStoreTest extends MediaWikiIntegrationTestCase {
+class DatabaseTypeIdsStoreTest extends MediaWikiTestCase {
 
 	/** @var DatabaseTypeIdsStore */
 	private $typeIdsStore;

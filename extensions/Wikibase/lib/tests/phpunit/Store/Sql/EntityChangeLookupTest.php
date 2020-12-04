@@ -3,7 +3,6 @@
 namespace Wikibase\Lib\Tests\Store\Sql;
 
 use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
 use Wikibase\DataModel\Entity\BasicEntityIdParser;
 use Wikibase\DataModel\Entity\ItemIdParser;
 use Wikibase\DataModel\Services\Diff\EntityDiffer;
@@ -23,7 +22,7 @@ use Wikibase\Lib\WikibaseSettings;
  * @license GPL-2.0-or-later
  * @author Marius Hoch
  */
-class EntityChangeLookupTest extends MediaWikiIntegrationTestCase {
+class EntityChangeLookupTest extends \MediaWikiTestCase {
 
 	private function newEntityChangeLookup( $wiki ) {
 		return new EntityChangeLookup(

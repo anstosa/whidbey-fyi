@@ -3,7 +3,6 @@
 namespace Wikibase\Client\Tests\Integration\Store\Sql;
 
 use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
 use Title;
 use Wikibase\Client\Store\Sql\PagePropsEntityIdLookup;
 use Wikibase\DataModel\Entity\EntityId;
@@ -22,7 +21,7 @@ use Wikimedia\Rdbms\IDatabase;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class PagePropsEntityIdLookupTest extends MediaWikiIntegrationTestCase {
+class PagePropsEntityIdLookupTest extends \MediaWikiTestCase {
 
 	protected function setUp(): void {
 		$this->tablesUsed[] = 'page_props';

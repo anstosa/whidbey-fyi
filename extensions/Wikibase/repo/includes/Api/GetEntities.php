@@ -1,12 +1,10 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Api;
 
 use ApiBase;
 use ApiMain;
-use IBufferingStatsdDataFactory;
+use MediaWiki\MediaWikiServices;
 use Wikibase\DataModel\Entity\EntityId;
 use Wikibase\DataModel\Entity\EntityIdParser;
 use Wikibase\DataModel\Entity\EntityIdParsingException;
@@ -26,8 +24,6 @@ use Wikibase\Repo\WikibaseRepo;
  * @license GPL-2.0-or-later
  */
 class GetEntities extends ApiBase {
-
-	use FederatedPropertyApiValidatorTrait;
 
 	/**
 	 * @var StringNormalizer
@@ -57,7 +53,7 @@ class GetEntities extends ApiBase {
 	/**
 	 * @var ApiErrorReporter
 	 */
-	protected $errorReporter;
+	private $errorReporter;
 
 	/**
 	 * @var ResultBuilder
@@ -74,9 +70,6 @@ class GetEntities extends ApiBase {
 	 */
 	private $idParser;
 
-	/** @var IBufferingStatsdDataFactory */
-	private $stats;
-
 	/**
 	 * @param ApiMain $mainModule
 	 * @param string $moduleName
@@ -89,14 +82,12 @@ class GetEntities extends ApiBase {
 	 * @param ResultBuilder $resultBuilder
 	 * @param EntityRevisionLookup $entityRevisionLookup
 	 * @param EntityIdParser $idParser
-	 * @param IBufferingStatsdDataFactory $stats
-	 * @param bool $federatedPropertiesEnabled
 	 *
 	 * @see ApiBase::__construct
 	 */
 	public function __construct(
 		ApiMain $mainModule,
-		string $moduleName,
+		$moduleName,
 		StringNormalizer $stringNormalizer,
 		LanguageFallbackChainFactory $languageFallbackChainFactory,
 		SiteLinkTargetProvider $siteLinkTargetProvider,
@@ -105,9 +96,7 @@ class GetEntities extends ApiBase {
 		ApiErrorReporter $errorReporter,
 		ResultBuilder $resultBuilder,
 		EntityRevisionLookup $entityRevisionLookup,
-		EntityIdParser $idParser,
-		IBufferingStatsdDataFactory $stats,
-		bool $federatedPropertiesEnabled
+		EntityIdParser $idParser
 	) {
 		parent::__construct( $mainModule, $moduleName );
 
@@ -120,46 +109,12 @@ class GetEntities extends ApiBase {
 		$this->resultBuilder = $resultBuilder;
 		$this->entityRevisionLookup = $entityRevisionLookup;
 		$this->idParser = $idParser;
-		$this->stats = $stats;
-		$this->federatedPropertiesEnabled = $federatedPropertiesEnabled;
-	}
-
-	public static function factory(
-		ApiMain $apiMain,
-		string $moduleName,
-		IBufferingStatsdDataFactory $stats,
-		EntityIdParser $entityIdParser
-	): self {
-		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
-		$settings = $wikibaseRepo->getSettings();
-		$apiHelperFactory = $wikibaseRepo->getApiHelperFactory( $apiMain->getContext() );
-
-		$siteLinkTargetProvider = new SiteLinkTargetProvider(
-			$wikibaseRepo->getSiteLookup(),
-			$settings->getSetting( 'specialSiteLinkGroups' )
-		);
-
-		return new self(
-			$apiMain,
-			$moduleName,
-			$wikibaseRepo->getStringNormalizer(),
-			$wikibaseRepo->getLanguageFallbackChainFactory(),
-			$siteLinkTargetProvider,
-			$wikibaseRepo->getStore()->getEntityPrefetcher(),
-			$settings->getSetting( 'siteLinkGroups' ),
-			$apiHelperFactory->getErrorReporter( $apiMain ),
-			$apiHelperFactory->getResultBuilder( $apiMain ),
-			$wikibaseRepo->getEntityRevisionLookup(),
-			$entityIdParser,
-			$stats,
-			$wikibaseRepo->inFederatedPropertyMode()
-		);
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public function execute(): void {
+	public function execute() {
 		$this->getMain()->setCacheMode( 'public' );
 
 		$params = $this->extractRequestParams();
@@ -174,11 +129,9 @@ class GetEntities extends ApiBase {
 		$resolveRedirects = $params['redirects'] === 'yes';
 
 		$entityIds = $this->getEntityIdsFromParams( $params );
-		foreach ( $entityIds as $entityId ) {
-			$this->validateAlteringEntityById( $entityId );
-		}
 
-		$this->stats->updateCount( 'wikibase.repo.api.getentities.entities', count( $entityIds ) );
+		$stats = MediaWikiServices::getInstance()->getStatsdDataFactory();
+		$stats->updateCount( 'wikibase.repo.api.getentities.entities', count( $entityIds ) );
 
 		$entityRevisions = $this->getEntityRevisionsFromEntityIds( $entityIds, $resolveRedirects );
 
@@ -196,7 +149,7 @@ class GetEntities extends ApiBase {
 	 *
 	 * @return EntityId[]
 	 */
-	private function getEntityIdsFromParams( array $params ): array {
+	private function getEntityIdsFromParams( array $params ) {
 		$fromIds = $this->getEntityIdsFromIdParam( $params );
 		$fromSiteTitleCombinations = $this->getEntityIdsFromSiteTitleParams( $params );
 		$ids = array_merge( $fromIds, $fromSiteTitleCombinations );
@@ -208,7 +161,7 @@ class GetEntities extends ApiBase {
 	 *
 	 * @return EntityId[]
 	 */
-	private function getEntityIdsFromIdParam( array $params ): array {
+	private function getEntityIdsFromIdParam( array $params ) {
 		if ( !isset( $params['ids'] ) ) {
 			return [];
 		}
@@ -233,7 +186,7 @@ class GetEntities extends ApiBase {
 	 * @param array $params
 	 * @return EntityId[]
 	 */
-	private function getEntityIdsFromSiteTitleParams( array $params ): array {
+	private function getEntityIdsFromSiteTitleParams( array $params ) {
 		$ids = [];
 		if ( !empty( $params['sites'] ) && !empty( $params['titles'] ) ) {
 			$entityByTitleHelper = $this->getItemByTitleHelper();
@@ -249,7 +202,10 @@ class GetEntities extends ApiBase {
 		return $ids;
 	}
 
-	private function getItemByTitleHelper(): EntityByTitleHelper {
+	/**
+	 * @return EntityByTitleHelper
+	 */
+	private function getItemByTitleHelper() {
 		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
 		$siteLinkStore = $wikibaseRepo->getStore()->getEntityByLinkedTitleLookup();
 		return new EntityByTitleHelper(
@@ -264,7 +220,7 @@ class GetEntities extends ApiBase {
 	/**
 	 * @param array[] $missingItems Array of arrays, Each internal array has a key 'site' and 'title'
 	 */
-	private function addMissingItemsToResult( array $missingItems ): void {
+	private function addMissingItemsToResult( array $missingItems ) {
 		foreach ( $missingItems as $missingItem ) {
 			$this->resultBuilder->addMissingEntity( null, $missingItem );
 		}
@@ -277,7 +233,7 @@ class GetEntities extends ApiBase {
 	 *
 	 * @return array
 	 */
-	private function getPropsFromParams( array $params ): array {
+	private function getPropsFromParams( array $params ) {
 		if ( in_array( 'sitelinks/urls', $params['props'] ) ) {
 			$params['props'][] = 'sitelinks';
 		}
@@ -291,7 +247,7 @@ class GetEntities extends ApiBase {
 	 *
 	 * @return EntityRevision[]
 	 */
-	private function getEntityRevisionsFromEntityIds( array $entityIds, bool $resolveRedirects = false ): array {
+	private function getEntityRevisionsFromEntityIds( array $entityIds, $resolveRedirects = false ) {
 		$revisionArray = [];
 
 		$this->entityPrefetcher->prefetch( $entityIds );
@@ -306,7 +262,13 @@ class GetEntities extends ApiBase {
 		return $revisionArray;
 	}
 
-	private function getEntityRevision( EntityId $entityId, bool $resolveRedirects = false ): ?EntityRevision {
+	/**
+	 * @param EntityId $entityId
+	 * @param bool $resolveRedirects
+	 *
+	 * @return null|EntityRevision
+	 */
+	private function getEntityRevision( EntityId $entityId, $resolveRedirects = false ) {
 		$entityRevision = null;
 
 		try {
@@ -334,10 +296,10 @@ class GetEntities extends ApiBase {
 	 * @param array $params
 	 */
 	private function handleEntity(
-		?string $sourceEntityId,
+		$sourceEntityId,
 		EntityRevision $entityRevision = null,
 		array $params = []
-	): void {
+	) {
 		if ( $entityRevision === null ) {
 			$this->resultBuilder->addMissingEntity( $sourceEntityId, [ 'id' => $sourceEntityId ] );
 		} else {
@@ -358,9 +320,9 @@ class GetEntities extends ApiBase {
 	 *
 	 * @return array
 	 *     0 => string[] languageCodes that the user wants returned
-	 *     1 => TermLanguageFallbackChain[] Keys are requested lang codes
+	 *     1 => LanguageFallbackChain[] Keys are requested lang codes
 	 */
-	private function getLanguageCodesAndFallback( array $params ): array {
+	private function getLanguageCodesAndFallback( array $params ) {
 		$languageCodes = ( is_array( $params['languages'] ) ? $params['languages'] : [] );
 		$fallbackChains = [];
 
@@ -378,7 +340,7 @@ class GetEntities extends ApiBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getAllowedParams(): array {
+	protected function getAllowedParams() {
 		$sites = $this->siteLinkTargetProvider->getSiteList( $this->siteLinkGroups );
 
 		return array_merge( parent::getAllowedParams(), [
@@ -429,7 +391,7 @@ class GetEntities extends ApiBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getExamplesMessages(): array {
+	protected function getExamplesMessages() {
 		return [
 			"action=wbgetentities&ids=Q42"
 			=> "apihelp-wbgetentities-example-1",

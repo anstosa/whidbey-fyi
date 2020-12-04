@@ -8,12 +8,11 @@ use Language;
 use ValueFormatters\BasicNumberLocalizer;
 use Wikibase\DataModel\Services\EntityId\EntityIdFormatter;
 use Wikibase\DataModel\Services\Statement\Grouper\NullStatementGrouper;
-use Wikibase\Lib\ContentLanguages;
 use Wikibase\Lib\DataTypeFactory;
 use Wikibase\Lib\Formatters\SnakFormatter;
+use Wikibase\Lib\LanguageFallbackChain;
 use Wikibase\Lib\LanguageNameLookup;
 use Wikibase\Lib\Store\PropertyOrderProvider;
-use Wikibase\Lib\TermLanguageFallbackChain;
 use Wikibase\View\CacheableEntityTermsView;
 use Wikibase\View\EditSectionGenerator;
 use Wikibase\View\EntityIdFormatterFactory;
@@ -111,7 +110,7 @@ class ViewFactoryTest extends \PHPUnit\Framework\TestCase {
 		$factory = $this->newViewFactory();
 		$itemView = $factory->newItemView(
 			Language::factory( 'en' ),
-			new TermLanguageFallbackChain( [], $this->createStub( ContentLanguages::class ) ),
+			new LanguageFallbackChain( [] ),
 			$this->createMock( CacheableEntityTermsView::class )
 		);
 
@@ -122,7 +121,7 @@ class ViewFactoryTest extends \PHPUnit\Framework\TestCase {
 		$factory = $this->newViewFactory();
 		$propertyView = $factory->newPropertyView(
 			Language::factory( 'en' ),
-			new TermLanguageFallbackChain( [], $this->createStub( ContentLanguages::class ) ),
+			new LanguageFallbackChain( [] ),
 			$this->createMock( CacheableEntityTermsView::class )
 		);
 
@@ -132,7 +131,7 @@ class ViewFactoryTest extends \PHPUnit\Framework\TestCase {
 	public function testNewStatementSectionsView() {
 		$statementSectionsView = $this->newViewFactory()->newStatementSectionsView(
 			'de',
-			new TermLanguageFallbackChain( [], $this->createStub( ContentLanguages::class ) ),
+			new LanguageFallbackChain( [] ),
 			$this->createMock( EditSectionGenerator::class )
 		);
 

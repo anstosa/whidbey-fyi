@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Lib\Formatters;
 
 use Html;
@@ -15,13 +13,12 @@ use Wikibase\DataModel\Services\EntityId\EntityIdFormatter;
  */
 class NonExistingEntityIdHtmlFormatter implements EntityIdFormatter {
 
-	/** @var string */
 	private $deletedEntityMessagePrefix;
 
 	/**
 	 * @param string $deletedEntityMessagePrefix E.g. 'wikibase-deletedentity-'
 	 */
-	public function __construct( string $deletedEntityMessagePrefix ) {
+	public function __construct( $deletedEntityMessagePrefix ) {
 		$this->deletedEntityMessagePrefix = $deletedEntityMessagePrefix;
 	}
 
@@ -32,15 +29,7 @@ class NonExistingEntityIdHtmlFormatter implements EntityIdFormatter {
 	 *
 	 * @return string HTML
 	 */
-	public function formatEntityId( EntityId $entityId ): string {
-		return $entityId->getSerialization() . $this->getUndefinedInfoMessage( $entityId );
-	}
-
-	/**
-	 * @param EntityId $entityId
-	 * @return string
-	 */
-	protected function getUndefinedInfoMessage( EntityId $entityId ): string {
+	public function formatEntityId( EntityId $entityId ) {
 		$attributes = [ 'class' => 'wb-entity-undefinedinfo' ];
 
 		$message = wfMessage( 'parentheses',
@@ -50,7 +39,7 @@ class NonExistingEntityIdHtmlFormatter implements EntityIdFormatter {
 		$undefinedInfo = Html::element( 'span', $attributes, $message );
 
 		$separator = wfMessage( 'word-separator' )->escaped();
-
-		return $separator . $undefinedInfo;
+		return $entityId->getSerialization() . $separator . $undefinedInfo;
 	}
+
 }

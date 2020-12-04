@@ -3,7 +3,6 @@
 namespace Wikibase\Repo\Tests\Store\Sql;
 
 use DataValues\StringValue;
-use MediaWikiIntegrationTestCase;
 use Wikibase\DataAccess\EntitySource;
 use Wikibase\DataModel\Entity\Property;
 use Wikibase\DataModel\Entity\PropertyId;
@@ -28,7 +27,7 @@ use Wikibase\Repo\WikibaseRepo;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class PropertyInfoTableBuilderTest extends MediaWikiIntegrationTestCase {
+class PropertyInfoTableBuilderTest extends \MediaWikiTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();

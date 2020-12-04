@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Diff;
 
 use Diff\Differ\Differ;
@@ -19,7 +17,6 @@ use Wikibase\DataModel\Statement\Statement;
  */
 class ClaimDiffer {
 
-	/** @var Differ */
 	private $listDiffer;
 
 	public function __construct( Differ $listDiffer ) {
@@ -34,10 +31,7 @@ class ClaimDiffer {
 	 *
 	 * @return ClaimDifference
 	 */
-	public function diffClaims(
-		?Statement $oldStatement,
-		?Statement $newStatement
-	): ClaimDifference {
+	public function diffClaims( Statement $oldStatement = null, Statement $newStatement = null ) {
 		if ( $oldStatement === $newStatement ) {
 			return new ClaimDifference();
 		}
@@ -50,10 +44,16 @@ class ClaimDiffer {
 		);
 	}
 
+	/**
+	 * @param Statement|null $oldStatement
+	 * @param Statement|null $newStatement
+	 *
+	 * @return DiffOpChange|null
+	 */
 	private function diffMainSnaks(
-		?Statement $oldStatement,
-		?Statement $newStatement
-	): ?DiffOpChange {
+		Statement $oldStatement = null,
+		Statement $newStatement = null
+	) {
 		$oldSnak = $oldStatement === null ? null : $oldStatement->getMainSnak();
 		$newSnak = $newStatement === null ? null : $newStatement->getMainSnak();
 
@@ -64,10 +64,16 @@ class ClaimDiffer {
 		return new DiffOpChange( $oldSnak, $newSnak );
 	}
 
+	/**
+	 * @param Statement|null $oldStatement
+	 * @param Statement|null $newStatement
+	 *
+	 * @return Diff
+	 */
 	private function diffQualifiers(
-		?Statement $oldStatement,
-		?Statement $newStatement
-	): ?Diff {
+		Statement $oldStatement = null,
+		Statement $newStatement = null
+	) {
 		if ( $oldStatement !== null
 			&& $newStatement !== null
 			&& $oldStatement->getQualifiers()->equals( $newStatement->getQualifiers() )
@@ -89,10 +95,13 @@ class ClaimDiffer {
 		return new Diff( $this->listDiffer->doDiff( $oldQualifiers, $newQualifiers ), false );
 	}
 
-	private function diffRanks(
-		?Statement $oldStatement,
-		?Statement $newStatement
-	): ?DiffOpChange {
+	/**
+	 * @param Statement|null $oldStatement
+	 * @param Statement|null $newStatement
+	 *
+	 * @return DiffOpChange|null
+	 */
+	private function diffRanks( Statement $oldStatement = null, Statement $newStatement = null ) {
 		$oldRank = $oldStatement === null ? null : $oldStatement->getRank();
 		$newRank = $newStatement === null ? null : $newStatement->getRank();
 
@@ -103,10 +112,16 @@ class ClaimDiffer {
 		return new DiffOpChange( $oldRank, $newRank );
 	}
 
+	/**
+	 * @param Statement|null $oldStatement
+	 * @param Statement|null $newStatement
+	 *
+	 * @return Diff
+	 */
 	private function diffReferences(
-		?Statement $oldStatement,
-		?Statement $newStatement
-	): ?Diff {
+		Statement $oldStatement = null,
+		Statement $newStatement = null
+	) {
 		if ( $oldStatement !== null
 			&& $newStatement !== null
 			&& $oldStatement->getReferences()->equals( $newStatement->getReferences() )

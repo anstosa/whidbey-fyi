@@ -10,7 +10,7 @@ use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Revision\RevisionStore;
 use MediaWiki\Revision\SlotRecord;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use RawMessage;
 use ReflectionClass;
 use Serializers\Serializer;
@@ -28,7 +28,6 @@ use Wikibase\DataModel\Entity\ItemId;
 use Wikibase\DataModel\Entity\Property;
 use Wikibase\DataModel\Entity\PropertyId;
 use Wikibase\DataModel\Services\EntityId\EntityIdComposer;
-use Wikibase\DataModel\Services\Lookup\TermLookupException;
 use Wikibase\Lib\EntityTypeDefinitions;
 use Wikibase\Lib\Store\EntityRevisionLookup;
 use Wikibase\Lib\Store\EntityStoreWatcher;
@@ -46,6 +45,7 @@ use Wikibase\Repo\Content\PropertyContent;
 use Wikibase\Repo\Store\IdGenerator;
 use Wikibase\Repo\Store\Sql\SqlIdGenerator;
 use Wikibase\Repo\Store\Sql\WikiPageEntityStore;
+use Wikibase\Repo\Store\Store;
 use Wikibase\Repo\WikibaseRepo;
 use Wikimedia\TestingAccessWrapper;
 
@@ -58,7 +58,7 @@ use Wikimedia\TestingAccessWrapper;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class WikiPageEntityStoreTest extends MediaWikiIntegrationTestCase {
+class WikiPageEntityStoreTest extends MediaWikiTestCase {
 
 	const FAKE_NS_ID = 654;
 
@@ -110,7 +110,9 @@ class WikiPageEntityStoreTest extends MediaWikiIntegrationTestCase {
 	 * @return array [ EntityStore, EntityLookup ]
 	 */
 	protected function createStoreAndLookup() {
+		// make sure the term index is empty to avoid conflicts.
 		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
+		$wikibaseRepo->getStore()->getTermIndex()->clear();
 
 		//NOTE: we want to test integration of WikiPageEntityRevisionLookup and WikiPageEntityStore here!
 		$contentCodec = $wikibaseRepo->getEntityContentDataCodec();
@@ -229,9 +231,7 @@ class WikiPageEntityStoreTest extends MediaWikiIntegrationTestCase {
 
 		// update entity
 		$empty->setId( $entityId );
-		$termLang = 'en';
-		$termText = 'UPDATED';
-		$empty->getFingerprint()->setLabel( $termLang, $termText );
+		$empty->getFingerprint()->setLabel( 'en', 'UPDATED' );
 
 		$r2 = $store->saveEntity( $empty, 'update one', $user, EDIT_UPDATE, false, [ 'mw-replace' ] );
 		$this->assertNotEquals( $r1->getRevisionId(), $r2->getRevisionId(), 'expected new revision id' );
@@ -245,9 +245,9 @@ class WikiPageEntityStoreTest extends MediaWikiIntegrationTestCase {
 		$r2tags = ChangeTags::getTags( $this->db, null, $r2->getRevisionId() );
 		$this->assertSame( [], array_diff( [ 'mw-replace' ], $r2tags ) );
 
-		// check that the term storage got updated (via a DataUpdate).
-		$termLookup = WikibaseRepo::getDefaultInstance()->getTermLookup();
-		$this->assertSame( $termText, $termLookup->getLabel( $entityId, $termLang ) );
+		// check that the term index got updated (via a DataUpdate).
+		$termIndex = WikibaseRepo::getDefaultInstance()->getStore()->getLegacyEntityTermStoreReader();
+		$this->assertNotEmpty( $termIndex->getTermsOfEntity( $entityId ), 'getTermsOfEntity()' );
 	}
 
 	public function testSaveEntity_invalidContent() {
@@ -433,8 +433,7 @@ class WikiPageEntityStoreTest extends MediaWikiIntegrationTestCase {
 
 		// create one
 		$one = new Item();
-		$termLang = 'en';
-		$one->setLabel( $termLang, 'one' );
+		$one->setLabel( 'en', 'one' );
 
 		$r1 = $store->saveEntity( $one, 'create one', $user, EDIT_NEW );
 		$oneId = $r1->getEntity()->getId();
@@ -463,9 +462,9 @@ class WikiPageEntityStoreTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertRedirectPerPage( $q33, $oneId );
 
-		// check that the term storage got updated (via a DataUpdate).
-		$termLookup = WikibaseRepo::getDefaultInstance()->getTermLookup();
-		$this->assertNull( $termLookup->getLabel( $oneId, $termLang ) );
+		// check that the term index got updated (via a DataUpdate).
+		$termIndex = WikibaseRepo::getDefaultInstance()->getStore()->getLegacyEntityTermStoreReader();
+		$this->assertSame( [], $termIndex->getTermsOfEntity( $oneId ), 'getTermsOfEntity' );
 
 		// TODO: check notifications in wb_changes table!
 
@@ -600,33 +599,6 @@ class WikiPageEntityStoreTest extends MediaWikiIntegrationTestCase {
 
 		$store->updateWatchlist( $user, $itemId, false );
 		$this->assertFalse( $store->isWatching( $user, $itemId ) );
-	}
-
-	public function testUpdateWatchlist_withoutWatchlistRights() {
-		/** @var WikiPageEntityStore $store */
-		list( $store, ) = $this->createStoreAndLookup();
-
-		$user = User::newFromName( "WikiPageEntityStoreTestUser2" );
-
-		if ( $user->getId() === 0 ) {
-			$user->addToDatabase();
-		}
-
-		$item = new Item();
-		$store->saveEntity( $item, 'testing', $user, EDIT_NEW );
-
-		$itemId = $item->getId();
-
-		MediaWikiServices::getInstance()->getPermissionManager()
-			->overrideUserRightsForTesting( $user, [ /* no viewmywatchlist, no editmywatchlist */ ] );
-
-		$store->updateWatchlist( $user, $itemId, true );
-		$this->assertTrue( $store->isWatching( $user, $itemId ),
-			"should allow watching even without editmywatchlist right" );
-
-		$store->updateWatchlist( $user, $itemId, false );
-		$this->assertTrue( $store->isWatching( $user, $itemId ),
-			"should not allow unwatching without editmywatchlist right" );
 	}
 
 	protected function newEntity() {
@@ -922,16 +894,11 @@ class WikiPageEntityStoreTest extends MediaWikiIntegrationTestCase {
 		$this->assertNonexistentRevision( $latestRevisionIdResult );
 		$this->assertNull( $lookup->getEntityRevision( $entityId ), 'getEntityRevision' );
 
-		// TODO: check notifications in wb_changes table!
+		// check that the term index got updated (via a DataUpdate).
+		$termIndex = WikibaseRepo::getDefaultInstance()->getStore()->getLegacyEntityTermStoreReader();
+		$this->assertSame( [], $termIndex->getTermsOfEntity( $entityId ), 'getTermsOfEntity' );
 
-		// check that the term storage got updated (via a DataUpdate).
-		$termLookup = WikibaseRepo::getDefaultInstance()->getTermLookup();
-		try {
-			$label = $termLookup->getLabel( $entityId, 'en' );
-			$this->assertNull( $label );
-		} catch ( TermLookupException $e ) {
-			// Expected
-		}
+		// TODO: check notifications in wb_changes table!
 	}
 
 	public function provideCanCreateWithCustomId() {
@@ -976,12 +943,7 @@ class WikiPageEntityStoreTest extends MediaWikiIntegrationTestCase {
 		$store = $this->createStoreForItemsOnly();
 		$this->expectException( InvalidArgumentException::class );
 
-		$store->saveEntity(
-			new Property( new PropertyId( 'P123' ), null, 'string' ),
-			'testing',
-			$this->getTestUser()->getUser(),
-			EDIT_NEW
-		);
+		$store->saveEntity( new Property( new PropertyId( 'P123' ), null, 'string' ), 'testing', $this->getTestUser()->getUser(), EDIT_NEW );
 	}
 
 	public function testDeleteEntityFails_GivenEntityIdFromOtherSource() {
@@ -1027,7 +989,9 @@ class WikiPageEntityStoreTest extends MediaWikiIntegrationTestCase {
 	}
 
 	private function createStoreForItemsOnly() {
+		// make sure the term index is empty to avoid conflicts.
 		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
+		$wikibaseRepo->getStore()->getTermIndex()->clear();
 
 		$itemSource = new EntitySource(
 			'local',
@@ -1067,7 +1031,9 @@ class WikiPageEntityStoreTest extends MediaWikiIntegrationTestCase {
 	}
 
 	private function createStoreForCustomEntitySource() {
+		// make sure the term index is empty to avoid conflicts.
 		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
+		$wikibaseRepo->getStore()->getTermIndex()->clear();
 
 		$customSource = new EntitySource(
 			'custom',

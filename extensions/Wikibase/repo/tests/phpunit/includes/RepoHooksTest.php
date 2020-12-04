@@ -7,7 +7,7 @@ use ConfigFactory;
 use DerivativeContext;
 use ImportStringSource;
 use MediaWiki\Linker\LinkTarget;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use MWException;
 use OutputPage;
 use ParserOptions;
@@ -16,7 +16,6 @@ use RequestContext;
 use SkinTemplate;
 use Title;
 use TitleValue;
-use User;
 use Wikibase\Lib\SettingsArray;
 use Wikibase\Repo\Content\EntityHandler;
 use Wikibase\Repo\Content\ItemContent;
@@ -24,7 +23,6 @@ use Wikibase\Repo\ParserOutput\TermboxView;
 use Wikibase\Repo\RepoHooks;
 use Wikibase\Repo\WikibaseRepo;
 use WikiImporter;
-use Wikimedia\AtEase\AtEase;
 
 /**
  * @covers \Wikibase\Repo\RepoHooks
@@ -37,9 +35,9 @@ use Wikimedia\AtEase\AtEase;
  * @author Daniel Kinzler
  * @author Thiemo Kreuz
  */
-class RepoHooksTest extends MediaWikiIntegrationTestCase {
+class RepoHooksTest extends MediaWikiTestCase {
 
-	private const FAKE_NS_ID = 4557;
+	/* private */ const FAKE_NS_ID = 4557;
 
 	private $saveAllowImport = false;
 
@@ -68,40 +66,31 @@ class RepoHooksTest extends MediaWikiIntegrationTestCase {
 		$wikibaseMobileNewTermboxStyles = [ 'wikibase.termbox.styles' ];
 		$wikibaseMobile = [ 'wikibase.mobile' ];
 
-		$entityNamespaces = WikibaseRepo::getDefaultInstance()
-			->getEntityNamespaceLookup()
-			->getEntityNamespaces();
-		$itemNamespace = $entityNamespaces['item'];
-
-		yield 'mobile entity page' => [
-			'expectedModules' => $wikibaseMobile,
-			'expectedModuleStyles' => [],
-			'namespace' => $itemNamespace,
-			'useNewTermbox' => false,
-		];
-		yield 'mobile non-entity page' => [
-			'expectedModules' => [],
-			'expectedModuleStyles' => [],
-			'namespace' => NS_TALK,
-			'useNewTermbox' => false,
-		];
-		yield 'termbox entity page' => [
-			'expectedModules' => $wikibaseMobileNewTermbox,
-			'expectedModuleStyles' => $wikibaseMobileNewTermboxStyles,
-			'namespace' => $itemNamespace,
-			'useNewTermbox' => true,
-		];
-		yield 'termbox non-entity page' => [
-			'expectedModules' => [],
-			'expectedModuleStyles' => [],
-			'namespace' => NS_TALK,
-			'useNewTermbox' => true,
-		];
-		yield 'non-termbox entity page' => [
-			'expectedModules' => $wikibaseMobile,
-			'expectedModuleStyles' => [],
-			'namespace' => self::FAKE_NS_ID,
-			'useNewTermbox' => true,
+		return [
+			'mobile entity page' => [
+				$wikibaseMobile,
+				[],
+				true,
+				false
+			],
+			'mobile non-entity page' => [
+				[],
+				[],
+				false,
+				false
+			],
+			'termbox entity page' => [
+				$wikibaseMobileNewTermbox,
+				$wikibaseMobileNewTermboxStyles,
+				true,
+				true
+			],
+			'termbox non-entity page' => [
+				[],
+				[],
+				false,
+				true
+			]
 		];
 	}
 
@@ -111,10 +100,14 @@ class RepoHooksTest extends MediaWikiIntegrationTestCase {
 	public function testOnBeforePageDisplayMobile(
 		array $expectedModules,
 		array $expectedModuleStyles,
-		int $namespace,
-		bool $useNewTermbox
+		$isEntityNamespace,
+		$useNewTermbox
 	) {
-		global $wgWBRepoSettings;
+		if ( $isEntityNamespace ) {
+			$namespace = array_values( WikibaseRepo::getDefaultInstance()->getLocalEntityNamespaces() )[0];
+		} else {
+			$namespace = NS_TALK;
+		}
 
 		$title = $this->createMock( Title::class );
 		$title->expects( $this->once() )
@@ -125,16 +118,9 @@ class RepoHooksTest extends MediaWikiIntegrationTestCase {
 		$context->setTitle( $title );
 
 		$outputPage = new OutputPage( $context );
+
 		$skin = $this->createMock( SkinTemplate::class );
-
-		// we can’t use $this->getSettings()->setSetting() for entityNamespaces,
-		// those are only read when the WikibaseRepo singleton is created
-		$settings = $wgWBRepoSettings;
-		$settings['entityNamespaces']['fakeEntityType'] = self::FAKE_NS_ID;
-		$settings['termboxEnabled'] = $useNewTermbox;
-		$this->setMwGlobals( 'wgWBRepoSettings', $settings );
-		WikibaseRepo::resetClassStatics();
-
+		$this->getSettings()->setSetting( 'termboxEnabled', $useNewTermbox );
 		RepoHooks::onBeforePageDisplayMobile(
 			$outputPage,
 			$skin
@@ -293,9 +279,9 @@ XML
 	 */
 	public function testImportHandleRevisionXMLTag_hook( $xml, $allowImport, $expectedException = null ) {
 		// WikiImporter tried to register this protocol every time, so unregister first to avoid errors.
-		AtEase::suppressWarnings();
+		\Wikimedia\suppressWarnings();
 		stream_wrapper_unregister( 'uploadsource' );
-		AtEase::restoreWarnings();
+		\Wikimedia\restoreWarnings();
 
 		$this->getSettings()->setSetting( 'allowEntityImport', $allowImport );
 
@@ -562,16 +548,6 @@ XML
 		unset( $settings['entityNamespaces'] );
 
 		return $settings;
-	}
-
-	public function testOnGetPreferences() {
-		$preferences = [];
-		$user = $this->createMock( User::class );
-		RepoHooks::onGetPreferences( $user, $preferences );
-
-		$this->assertArrayHasKey( 'wb-acknowledgedcopyrightversion', $preferences );
-		$this->assertArrayHasKey( 'wikibase-entitytermsview-showEntitytermslistview', $preferences );
-		$this->assertArrayHasKey( 'wb-dismissleavingsitenotice', $preferences );
 	}
 
 }

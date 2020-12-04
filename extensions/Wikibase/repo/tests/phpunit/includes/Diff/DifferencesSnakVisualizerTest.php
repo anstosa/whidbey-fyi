@@ -4,7 +4,7 @@ namespace Wikibase\Repo\Tests\Diff;
 
 use DataValues\StringValue;
 use InvalidArgumentException;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use Wikibase\DataModel\Entity\PropertyId;
 use Wikibase\DataModel\Services\EntityId\EntityIdFormatter;
 use Wikibase\DataModel\Snak\PropertyNoValueSnak;
@@ -22,7 +22,7 @@ use Wikibase\Repo\Diff\DifferencesSnakVisualizer;
  * @license GPL-2.0-or-later
  * @author Adrian Heine <adrian.heine@wikimedia.de>
  */
-class DifferencesSnakVisualizerTest extends MediaWikiIntegrationTestCase {
+class DifferencesSnakVisualizerTest extends MediaWikiTestCase {
 
 	/**
 	 * @param string $returnValue

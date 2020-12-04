@@ -3,13 +3,12 @@
 namespace Wikibase\Lib\Tests;
 
 use Language;
-use MediaWiki\Languages\LanguageFallback;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use MWException;
 use RequestContext;
 use User;
+use Wikibase\Lib\LanguageFallbackChain;
 use Wikibase\Lib\LanguageFallbackChainFactory;
-use Wikibase\Lib\TermLanguageFallbackChain;
 
 /**
  * @covers \Wikibase\Lib\LanguageFallbackChainFactory
@@ -19,7 +18,7 @@ use Wikibase\Lib\TermLanguageFallbackChain;
  * @license GPL-2.0-or-later
  * @author Liangent < liangent@gmail.com >
  */
-class LanguageFallbackChainFactoryTest extends MediaWikiIntegrationTestCase {
+class LanguageFallbackChainFactoryTest extends MediaWikiTestCase {
 
 	/**
 	 * @param array $expectedItems
@@ -50,12 +49,12 @@ class LanguageFallbackChainFactoryTest extends MediaWikiIntegrationTestCase {
 	}
 
 	private function getLanguageFallbackChainFactory() {
-		$languageFallback = $this->createMock( LanguageFallback::class );
-		$languageFallback->method( 'getAll' )
-			->willReturnCallback( function( $code ) {
-				return $this->getLanguageFallbacksForCallback( $code );
-			} );
-		return new LanguageFallbackChainFactory( null, null, $languageFallback );
+		$factory = new LanguageFallbackChainFactory();
+		$factory->setGetLanguageFallbacksFor( function( $code ) {
+			return $this->getLanguageFallbacksForCallback( $code );
+		} );
+
+		return $factory;
 	}
 
 	/**
@@ -90,8 +89,8 @@ class LanguageFallbackChainFactoryTest extends MediaWikiIntegrationTestCase {
 			case 'kk':
 				return [ 'kk-cyrl', 'en' ];
 			default:
-				// Language::getFallbacksFor returns [ 'en' ] if $code is unknown and conforms to /^[a-z0-9-]{2,}$/
-				return preg_match( '/^[a-z0-9-]{2,}$/', $code ) ? [ 'en' ] : [];
+				// Language::getFallbacksFor returns [ 'en' ] if $code is unknown
+				return [ 'en' ];
 		}
 	}
 
@@ -360,11 +359,6 @@ class LanguageFallbackChainFactoryTest extends MediaWikiIntegrationTestCase {
 					[ 'kk', 'kk-cn' ],
 				]
 			],
-			[
-				'languageCode' => '⧼Lang⧽',
-				'mode' => LanguageFallbackChainFactory::FALLBACK_ALL,
-				'expected' => [ 'en' ]
-			],
 		];
 	}
 
@@ -387,13 +381,13 @@ class LanguageFallbackChainFactoryTest extends MediaWikiIntegrationTestCase {
 	public function testNewFromContext() {
 		$factory = $this->getLanguageFallbackChainFactory();
 		$languageFallbackChain = $factory->newFromContext( RequestContext::getMain() );
-		$this->assertTrue( $languageFallbackChain instanceof TermLanguageFallbackChain );
+		$this->assertTrue( $languageFallbackChain instanceof LanguageFallbackChain );
 	}
 
 	public function testNewFromContextAndLanguageCode() {
 		$factory = $this->getLanguageFallbackChainFactory();
 		$languageFallbackChain = $factory->newFromContextAndLanguageCode( RequestContext::getMain(), 'en' );
-		$this->assertTrue( $languageFallbackChain instanceof TermLanguageFallbackChain );
+		$this->assertTrue( $languageFallbackChain instanceof LanguageFallbackChain );
 	}
 
 	/**

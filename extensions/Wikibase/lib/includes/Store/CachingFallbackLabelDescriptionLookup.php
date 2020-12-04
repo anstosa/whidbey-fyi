@@ -1,23 +1,23 @@
 <?php
 
-namespace Wikibase\Lib\Store;
+namespace  Wikibase\Lib\Store;
 
+use Psr\SimpleCache\CacheInterface;
 use Wikibase\DataModel\Entity\EntityId;
 use Wikibase\DataModel\Services\Lookup\LabelDescriptionLookupException;
 use Wikibase\DataModel\Term\TermFallback;
-use Wikibase\Lib\TermFallbackCache\TermFallbackCacheFacade;
-use Wikibase\Lib\TermLanguageFallbackChain;
+use Wikibase\Lib\LanguageFallbackChain;
 
 /**
  * @license GPL-2.0-or-later
  *
  * @note The class uses immutable cache approach: cached data never changes once persisted.
  *       For this purpose we not only include Item ID in cache key construction, but also
- *       Item's current revision ID. Revisions never change, the cached data does not need
- *       to change either, which means that we don't need to purge caches. As soon as new revision
+ *       Item's current revision ID. Revisions never change, the cached data doesn not need
+ *       to change as well, what means that we don't need to purge caches. As soon as new revision
  *       is created, cache key will change and old cache data will eventually be purged by
- *       the caching system (eg. APC, Memcached, ...) based on a Least Recently Used strategy
- *       as soon as no code will request it anymore.
+ *       the caching system (eg. APC, Memcached, ...) as Least Recently Used  as soon as no code
+ *       will request it.
  */
 class CachingFallbackLabelDescriptionLookup implements FallbackLabelDescriptionLookup {
 
@@ -26,8 +26,15 @@ class CachingFallbackLabelDescriptionLookup implements FallbackLabelDescriptionL
 	private const LABEL = 'label';
 	private const DESCRIPTION = 'description';
 
+	const FIELD_LANGUAGE = 'language';
+	const FIELD_VALUE = 'value';
+	const FIELD_REQUEST_LANGUAGE = 'requestLanguage';
+	const FIELD_SOURCE_LANGUAGE = 'sourceLanguage';
+
+	const NO_VALUE = 'no value in cache';
+
 	/**
-	 * @var TermFallbackCacheFacade
+	 * @var CacheInterface
 	 */
 	private $cache;
 
@@ -42,26 +49,34 @@ class CachingFallbackLabelDescriptionLookup implements FallbackLabelDescriptionL
 	private $labelDescriptionLookup;
 
 	/**
-	 * @var TermLanguageFallbackChain
+	 * @var LanguageFallbackChain
 	 */
-	private $termLanguageFallbackChain;
+	private $languageFallbackChain;
 
 	/**
-	 * @param TermFallbackCacheFacade $fallbackCache
+	 * @var int
+	 */
+	private $cacheTtlInSeconds;
+
+	/**
+	 * @param CacheInterface $cache
 	 * @param RedirectResolvingLatestRevisionLookup $redirectResolvingRevisionLookup
 	 * @param FallbackLabelDescriptionLookup $labelDescriptionLookup
-	 * @param TermLanguageFallbackChain $termLanguageFallbackChain
+	 * @param LanguageFallbackChain $languageFallbackChain
+	 * @param int $cacheTtlInSeconds
 	 */
 	public function __construct(
-		TermFallbackCacheFacade $fallbackCache,
+		CacheInterface $cache,
 		RedirectResolvingLatestRevisionLookup $redirectResolvingRevisionLookup,
 		FallbackLabelDescriptionLookup $labelDescriptionLookup,
-		TermLanguageFallbackChain $termLanguageFallbackChain
+		LanguageFallbackChain $languageFallbackChain,
+		$cacheTtlInSeconds
 	) {
-		$this->cache = $fallbackCache;
+		$this->cache = $cache;
 		$this->redirectResolvingRevisionLookup = $redirectResolvingRevisionLookup;
 		$this->labelDescriptionLookup = $labelDescriptionLookup;
-		$this->termLanguageFallbackChain = $termLanguageFallbackChain;
+		$this->languageFallbackChain = $languageFallbackChain;
+		$this->cacheTtlInSeconds = $cacheTtlInSeconds;
 	}
 
 	/**
@@ -71,11 +86,7 @@ class CachingFallbackLabelDescriptionLookup implements FallbackLabelDescriptionL
 	 * @return TermFallback|null
 	 */
 	public function getDescription( EntityId $entityId ) {
-		$languageCodes = $this->termLanguageFallbackChain->getFetchLanguageCodes();
-		if ( !$languageCodes ) {
-			// Can happen when the current interface language is not a valid term language, e.g. "de-formal"
-			return null;
-		}
+		$languageCodes = $this->languageFallbackChain->getFetchLanguageCodes();
 
 		$languageCode = $languageCodes[0];
 		$description = $this->getTerm( $entityId, $languageCode, self::DESCRIPTION );
@@ -90,12 +101,7 @@ class CachingFallbackLabelDescriptionLookup implements FallbackLabelDescriptionL
 	 * @return TermFallback|null
 	 */
 	public function getLabel( EntityId $entityId ) {
-		$languageCodes = $this->termLanguageFallbackChain->getFetchLanguageCodes();
-		if ( !$languageCodes ) {
-			// Can happen when the current interface language is not a valid term language, e.g. "de-formal"
-			return null;
-		}
-
+		$languageCodes = $this->languageFallbackChain->getFetchLanguageCodes();
 		$languageCode = $languageCodes[0];
 		$label = $this->getTerm( $entityId, $languageCode, self::LABEL );
 
@@ -110,17 +116,62 @@ class CachingFallbackLabelDescriptionLookup implements FallbackLabelDescriptionL
 
 		list( $revisionId, $targetEntityId ) = $resolutionResult;
 
-		$termFallback = $this->cache->get( $targetEntityId, $revisionId, $languageCode, $termName );
-		if ( $termFallback === TermFallbackCacheFacade::NO_VALUE ) {
-			$termFallback = $termName === self::LABEL
+		$cacheKey = $this->buildCacheKey( $targetEntityId, $revisionId, $languageCode, $termName );
+		$result = $this->cache->get( $cacheKey, self::NO_VALUE );
+		if ( $result === self::NO_VALUE ) {
+			$term = $termName === self::LABEL
 				? $this->labelDescriptionLookup->getLabel( $targetEntityId )
 				: $this->labelDescriptionLookup->getDescription( $targetEntityId );
 
-			$this->cache->set( $termFallback, $targetEntityId, $revisionId, $languageCode, $termName );
+			$serialization = $this->serialize( $term );
 
-			return $termFallback;
+			$this->cache->set( $cacheKey, $serialization, $this->cacheTtlInSeconds );
+
+			return $term;
 		}
 
-		return $termFallback;
+		if ( $result === null ) {
+			return $result;
+		}
+
+		$term = $this->unserialize( $result );
+
+		return $term;
 	}
+
+	/**
+	 * @param TermFallback|null $termFallback
+	 * @return array|null
+	 */
+	private function serialize( TermFallback $termFallback = null ) {
+		if ( $termFallback === null ) {
+			return null;
+		}
+
+		return [
+			self::FIELD_LANGUAGE => $termFallback->getActualLanguageCode(),
+			self::FIELD_VALUE => $termFallback->getText(),
+			self::FIELD_REQUEST_LANGUAGE => $termFallback->getLanguageCode(),
+			self::FIELD_SOURCE_LANGUAGE => $termFallback->getSourceLanguageCode(),
+		];
+	}
+
+	/**
+	 * @param array|null $serialized
+	 * @return null|TermFallback
+	 */
+	private function unserialize( $serialized ) {
+		if ( $serialized === null ) {
+			return null;
+		}
+
+		$termData = $serialized;
+		return new TermFallback(
+			$termData[self::FIELD_REQUEST_LANGUAGE],
+			$termData[self::FIELD_VALUE],
+			$termData[self::FIELD_LANGUAGE],
+			$termData[self::FIELD_SOURCE_LANGUAGE]
+		);
+	}
+
 }

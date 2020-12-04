@@ -57,14 +57,12 @@ class SpecialRedirectEntity extends SpecialWikibasePage {
 		$this->interactor = $interactor;
 	}
 
-	public static function factory(
-		EntityIdParser $entityIdParser
-	): self {
+	public static function newFromGlobalState(): self {
 		$user = RequestContext::getMain()->getUser();
 		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
 
 		return new self(
-			$entityIdParser,
+			$wikibaseRepo->getEntityIdParser(),
 			$wikibaseRepo->getExceptionLocalizer(),
 			new TokenCheckInteractor(
 				$user

@@ -1,6 +1,17 @@
 # Selenium tests
 
-Please see tests/selenium/README.md file in mediawiki repository.
+Please see tests/selenium/README.md file in mediawiki/core repository, usually at mediawiki/vagrant/mediawiki folder.
+
+## Setup
+
+Set up MediaWiki-Vagrant:
+
+    cd mediawiki/vagrant
+    vagrant up
+    vagrant roles enable wikidata
+    vagrant provision
+    cd mediawiki
+    npm install
 
 ## Run all specs
 

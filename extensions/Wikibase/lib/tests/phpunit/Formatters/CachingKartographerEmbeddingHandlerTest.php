@@ -7,7 +7,6 @@ use DataValues\Geo\Values\LatLongValue;
 use ExtensionRegistry;
 use Language;
 use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
 use Parser;
 use ParserOutput;
 use Wikibase\Lib\Formatters\CachingKartographerEmbeddingHandler;
@@ -22,7 +21,7 @@ use Xml;
  * @license GPL-2.0-or-later
  * @author Marius Hoch
  */
-class CachingKartographerEmbeddingHandlerTest extends MediaWikiIntegrationTestCase {
+class CachingKartographerEmbeddingHandlerTest extends \MediaWikiTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -47,11 +46,16 @@ class CachingKartographerEmbeddingHandlerTest extends MediaWikiIntegrationTestCa
 	}
 
 	public function testGetHtml_cached() {
-		$parser = $this->createMock( Parser::class );
+		$parser = $this->getMockBuilder( Parser::class )
+			->disableOriginalConstructor()
+			->enableProxyingToOriginalMethods()
+			->setProxyTarget(
+				MediaWikiServices::getInstance()->getParserFactory()->create()
+			)
+			->getMock();
 
 		$parser->expects( $this->once() )
-			->method( 'parse' )
-			->willReturn( $this->createMock( ParserOutput::class ) );
+			->method( 'parse' );
 
 		$handler = new CachingKartographerEmbeddingHandler( $parser );
 		$language = Language::factory( 'qqx' );
@@ -63,8 +67,8 @@ class CachingKartographerEmbeddingHandlerTest extends MediaWikiIntegrationTestCa
 			$language
 		);
 
-		// This should be cached and not trigger Parser::parse() a second time
-		$handler->getHtml( $this->newSampleCoordinate(), $language );
+		$result = $handler->getHtml( $this->newSampleCoordinate(), $language );
+		$this->assertStringContainsString( 'mw-kartographer-map', $result );
 	}
 
 	public function testGetHtml_marsCoordinate() {

@@ -102,7 +102,7 @@ class EditActionHookHandlerTest extends \PHPUnit\Framework\TestCase {
 			) {
 				return Html::rawElement( 'a', [
 					'href' => 'https://www.wikidata.org/wiki/' . $entityId,
-					'class' => $classes,
+					'class' => implode( ' ', $classes ),
 				], $text ?: $entityId );
 			} ) );
 

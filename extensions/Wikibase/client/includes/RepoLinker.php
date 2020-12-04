@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Client;
 
 use Html;
@@ -16,23 +14,25 @@ use Wikibase\DataModel\Entity\EntityId;
  */
 class RepoLinker {
 
-	/** @var string */
 	private $baseUrl;
 
-	/** @var string */
 	private $articlePath;
 
-	/** @var string */
 	private $scriptPath;
 
-	/** @var EntitySourceDefinitions */
 	private $entitySourceDefinitions;
 
+	/**
+	 * @param EntitySourceDefinitions $entitySourceDefinitions
+	 * @param string $baseUrl
+	 * @param string $articlePath
+	 * @param string $scriptPath
+	 */
 	public function __construct(
 		EntitySourceDefinitions $entitySourceDefinitions,
-		string $baseUrl,
-		string $articlePath,
-		string $scriptPath
+		$baseUrl,
+		$articlePath,
+		$scriptPath
 	) {
 		$this->entitySourceDefinitions = $entitySourceDefinitions;
 		$this->baseUrl = $baseUrl;
@@ -46,12 +46,21 @@ class RepoLinker {
 	 * @throws InvalidArgumentException
 	 * @return string
 	 */
-	public function getPageUrl( string $page ): string {
+	public function getPageUrl( $page ) {
+		if ( !is_string( $page ) ) {
+			throw new InvalidArgumentException( '$page must be a string' );
+		}
+
 		$encodedPage = $this->encodePage( $page );
 		return $this->getBaseUrl() . str_replace( '$1', $encodedPage, $this->articlePath );
 	}
 
-	private function encodePage( string $page ): string {
+	/**
+	 * @param string $page
+	 *
+	 * @return string
+	 */
+	private function encodePage( $page ) {
 		return wfUrlencode( str_replace( ' ', '_', $page ) );
 	}
 
@@ -64,7 +73,7 @@ class RepoLinker {
 	 *
 	 * @return string (html)
 	 */
-	public function formatLink( string $url, string $text, array $attribs = [] ): string {
+	public function formatLink( $url, $text, array $attribs = [] ) {
 		$attribs['class'] = isset( $attribs['class'] )
 			? 'extiw ' . $attribs['class']
 			: 'extiw';
@@ -79,11 +88,11 @@ class RepoLinker {
 	 *
 	 * @param EntityId $entityId
 	 * @param array $classes
-	 * @param string|null $text Defaults to the entity id serialization.
+	 * @param string $text Defaults to the entity id serialization.
 	 *
 	 * @return string (html)
 	 */
-	public function buildEntityLink( EntityId $entityId, array $classes = [], string $text = null ): string {
+	public function buildEntityLink( EntityId $entityId, array $classes = [], $text = null ) {
 		if ( $text === null ) {
 			$text = $entityId->getSerialization();
 		}
@@ -101,7 +110,12 @@ class RepoLinker {
 		);
 	}
 
-	public function getEntityTitle( EntityId $entityId ): string {
+	/**
+	 * @param EntityId $entityId
+	 *
+	 * @return string
+	 */
+	public function getEntityTitle( EntityId $entityId ) {
 		$title = $entityId->getSerialization();
 		return 'Special:EntityPage/' . $title;
 	}
@@ -113,7 +127,7 @@ class RepoLinker {
 	 *
 	 * @return string
 	 */
-	public function getEntityUrl( EntityId $entityId ): string {
+	public function getEntityUrl( EntityId $entityId ) {
 		$title = $this->getEntityTitle( $entityId );
 		return $this->getPageUrl( $title );
 	}
@@ -127,12 +141,15 @@ class RepoLinker {
 	 *
 	 * @return string
 	 */
-	public function getEntityConceptUri( EntityId $entityId ): string {
+	public function getEntityConceptUri( EntityId $entityId ) {
 		$baseUri = $this->getConceptBaseUri( $entityId );
 		return $baseUri . '/' . wfUrlencode( $entityId->getLocalPart() );
 	}
 
-	public function getBaseUrl(): string {
+	/**
+	 * @return string
+	 */
+	public function getBaseUrl() {
 		return rtrim( $this->baseUrl, '/' );
 	}
 
@@ -143,7 +160,7 @@ class RepoLinker {
 	 *
 	 * @return string
 	 */
-	private function getConceptBaseUri( EntityId $entityId ): string {
+	private function getConceptBaseUri( EntityId $entityId ) {
 		$uri = null;
 		$source = $this->entitySourceDefinitions->getSourceForEntityType( $entityId->getEntityType() );
 		if ( $source !== null ) {
@@ -158,15 +175,27 @@ class RepoLinker {
 		return rtrim( $uri, '/' );
 	}
 
-	public function getApiUrl(): string {
+	/**
+	 * @return string
+	 */
+	public function getApiUrl() {
 		return $this->getBaseUrl() . $this->scriptPath . '/api.php';
 	}
 
-	public function getIndexUrl(): string {
+	/**
+	 * @return string
+	 */
+	public function getIndexUrl() {
 		return $this->getBaseUrl() . $this->scriptPath . '/index.php';
 	}
 
-	public function addQueryParams( string $url, array $params ): string {
+	/**
+	 * @param string $url
+	 * @param array $params
+	 *
+	 * @return string
+	 */
+	public function addQueryParams( $url, array $params ) {
 		return wfAppendQuery( $url, wfArrayToCgi( $params ) );
 	}
 

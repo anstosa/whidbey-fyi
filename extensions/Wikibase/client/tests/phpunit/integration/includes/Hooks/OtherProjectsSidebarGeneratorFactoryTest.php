@@ -3,7 +3,6 @@
 namespace Wikibase\Client\Tests\Integration\Hooks;
 
 use MediaWiki\HookContainer\HookContainer;
-use MediaWikiIntegrationTestCase;
 use Psr\Log\LoggerInterface;
 use SiteLookup;
 use Wikibase\Client\Hooks\OtherProjectsSidebarGenerator;
@@ -23,7 +22,7 @@ use Wikibase\Lib\Store\SiteLinkLookup;
  * @license GPL-2.0-or-later
  * @author Katie Filbert < aude.wiki@gmail.com >
  */
-class OtherProjectsSidebarGeneratorFactoryTest extends MediaWikiIntegrationTestCase {
+class OtherProjectsSidebarGeneratorFactoryTest extends \MediaWikiTestCase {
 
 	public function testGetOtherProjectsSidebarGenerator() {
 		$settings = new SettingsArray( [

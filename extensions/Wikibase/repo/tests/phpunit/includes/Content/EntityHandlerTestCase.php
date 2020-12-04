@@ -12,7 +12,6 @@ use Language;
 use LogicException;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
-use MediaWikiIntegrationTestCase;
 use MWException;
 use RequestContext;
 use RuntimeException;
@@ -26,6 +25,7 @@ use Wikibase\DataModel\Entity\EntityId;
 use Wikibase\DataModel\Entity\EntityRedirect;
 use Wikibase\DataModel\SerializerFactory;
 use Wikibase\DataModel\Term\LabelsProvider;
+use Wikibase\Lib\DataTypeDefinitions;
 use Wikibase\Lib\EntityTypeDefinitions;
 use Wikibase\Lib\SettingsArray;
 use Wikibase\Repo\Content\EntityContent;
@@ -48,16 +48,7 @@ use WikitextContent;
  * @author Jeroen De Dauw < jeroendedauw@gmail.com >
  * @author Daniel Kinzler
  */
-abstract class EntityHandlerTestCase extends MediaWikiIntegrationTestCase {
-
-	public function setUp(): void {
-		parent::setUp();
-
-		$this->setService(
-			'WikibaseRepo.EntityTypeDefinitions',
-			$this->getEntityTypeDefinitions()
-		);
-	}
+abstract class EntityHandlerTestCase extends \MediaWikiTestCase {
 
 	abstract public function getModelId();
 
@@ -76,6 +67,8 @@ abstract class EntityHandlerTestCase extends MediaWikiIntegrationTestCase {
 
 		return new WikibaseRepo(
 			new SettingsArray( $repoSettings ),
+			new DataTypeDefinitions( [] ),
+			$this->getEntityTypeDefinitions(),
 			new EntitySourceDefinitions(
 				[ new EntitySource(
 					'test',
@@ -89,29 +82,17 @@ abstract class EntityHandlerTestCase extends MediaWikiIntegrationTestCase {
 					'',
 					''
 				) ],
-				$this->getEntityTypeDefinitions()
+				new EntityTypeDefinitions( [] )
 			)
 		);
 	}
 
-	/**
-	 * When overloading this you probably want to merge the parent call results in
-	 * (i.e. inherit the wikibase entity types) unless you are sure of what you are doing.
-	 * Mind that in the real world this is done by the WikibaseRepoEntityTypes hook.
-	 */
-	protected function getEntityTypeDefinitionsConfiguration(): array {
-		return array_merge_recursive(
-			require __DIR__ . '/../../../../../lib/WikibaseLib.entitytypes.php',
-			require __DIR__ . '/../../../../WikibaseRepo.entitytypes.php'
-		);
-	}
-
-	/**
-	 * Get the EntityTypeDefinitions configured in getEntityTypeDefinitionsConfiguration()
-	 */
-	final protected function getEntityTypeDefinitions(): EntityTypeDefinitions {
+	protected function getEntityTypeDefinitions() {
 		return new EntityTypeDefinitions(
-			$this->getEntityTypeDefinitionsConfiguration()
+			array_merge_recursive(
+				require __DIR__ . '/../../../../../lib/WikibaseLib.entitytypes.php',
+				require __DIR__ . '/../../../../WikibaseRepo.entitytypes.php'
+			)
 		);
 	}
 

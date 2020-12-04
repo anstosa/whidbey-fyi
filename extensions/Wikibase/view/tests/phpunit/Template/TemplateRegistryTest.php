@@ -3,7 +3,6 @@
 namespace Wikibase\View\Tests\Template;
 
 use Wikibase\View\Template\TemplateRegistry;
-use Wikimedia\AtEase\AtEase;
 
 /**
  * @covers \Wikibase\View\Template\TemplateRegistry
@@ -46,9 +45,9 @@ class TemplateRegistryTest extends \PHPUnit\Framework\TestCase {
 	public function testGetUnknownTemplate() {
 		$registry = new TemplateRegistry( [] );
 
-		AtEase::suppressWarnings();
+		\Wikimedia\suppressWarnings();
 		$html = $registry->getTemplate( 'unknown' );
-		AtEase::restoreWarnings();
+		\Wikimedia\restoreWarnings();
 
 		$this->assertNull( $html );
 	}

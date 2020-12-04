@@ -15,11 +15,8 @@ use Wikibase\Lib\Store\EntityStore;
  */
 class StatsdSaveTimeRecordingEntityStore implements EntityStore {
 
-	/** @var EntityStore */
 	private $entityStore;
-	/** @var StatsdDataFactoryInterface */
 	private $stats;
-	/** @var string */
 	private $timingPrefix;
 
 	/**
@@ -30,7 +27,7 @@ class StatsdSaveTimeRecordingEntityStore implements EntityStore {
 	public function __construct(
 		EntityStore $entityStore,
 		StatsdDataFactoryInterface $stats,
-		string $timingPrefix
+		$timingPrefix
 	) {
 		$this->entityStore = $entityStore;
 		$this->stats = $stats;

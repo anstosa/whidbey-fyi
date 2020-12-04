@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Lib\Store;
 
 use Exception;
@@ -11,9 +9,7 @@ use Exception;
  */
 class InconsistentRedirectException extends BadRevisionException {
 
-	/** @var int */
 	private $revisionId;
-	/** @var string */
 	private $slot;
 
 	public function __construct( int $revisionId, string $slot, $status = '', $code = 0, Exception $previous = null ) {

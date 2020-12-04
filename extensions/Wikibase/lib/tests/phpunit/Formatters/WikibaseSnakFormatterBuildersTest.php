@@ -70,10 +70,7 @@ class WikibaseSnakFormatterBuildersTest extends \PHPUnit\Framework\TestCase {
 		return [
 			[ $snak, SnakFormatter::FORMAT_PLAIN, 'AB123' ],
 			[ $snak, SnakFormatter::FORMAT_WIKI, '[http://acme.com/vocab/AB123 AB123]' ],
-			[
-				$snak, SnakFormatter::FORMAT_HTML,
-				'<a class="wb-external-id external" href="http://acme.com/vocab/AB123" rel="nofollow">AB123</a>'
-			],
+			[ $snak, SnakFormatter::FORMAT_HTML, '<a class="wb-external-id external" href="http://acme.com/vocab/AB123" rel="nofollow">AB123</a>' ],
 		];
 	}
 

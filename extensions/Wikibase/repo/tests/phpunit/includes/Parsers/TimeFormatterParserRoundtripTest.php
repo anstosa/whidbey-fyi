@@ -65,10 +65,15 @@ class TimeFormatterParserRoundtripTest extends \PHPUnit\Framework\TestCase {
 
 	public function timeValueProvider() {
 		$gregorian = 'http://www.wikidata.org/entity/Q1985727';
+		$cases = [];
 
 		foreach ( $this->isoTimestampProvider() as $case ) {
-			yield [ new TimeValue( $case[0], 0, 0, 0, $case[1], $gregorian ) ];
+			$cases[] = [
+				new TimeValue( $case[0], 0, 0, 0, $case[1], $gregorian )
+			];
 		}
+
+		return $cases;
 	}
 
 	/**
@@ -149,6 +154,7 @@ class TimeFormatterParserRoundtripTest extends \PHPUnit\Framework\TestCase {
 
 	public function precisionDayProvider() {
 		$gregorian = 'http://www.wikidata.org/entity/Q1985727';
+		$cases = [];
 
 		$tests = [
 			// Positive dates
@@ -218,12 +224,14 @@ class TimeFormatterParserRoundtripTest extends \PHPUnit\Framework\TestCase {
 			$formatted = $args[1];
 			$languageCode = $args[2] ?? 'en';
 
-			yield [
+			$cases[] = [
 				new TimeValue( $timestamp, 0, 0, 0, TimeValue::PRECISION_DAY, $gregorian ),
 				$formatted,
 				$languageCode
 			];
 		}
+
+		return $cases;
 	}
 
 }

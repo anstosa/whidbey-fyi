@@ -416,7 +416,8 @@ class Scribunto_LuaWikibaseLibraryTest extends Scribunto_LuaWikibaseLibraryTestC
 
 	public function testResolvePropertyId() {
 		if ( !WikibaseSettings::isRepoEnabled() ) {
-			$this->markTestSkipped( "Skipping because WikibaseClient doesn't have local term store tables." );
+			$this->markTestSkipped( "Skipping because a local wb_terms table"
+				. " is not available on a WikibaseClient only instance." );
 		}
 
 		$cacheSplit = false;
@@ -440,7 +441,8 @@ class Scribunto_LuaWikibaseLibraryTest extends Scribunto_LuaWikibaseLibraryTestC
 
 	public function testResolvePropertyId_labelNotFound() {
 		if ( !WikibaseSettings::isRepoEnabled() ) {
-			$this->markTestSkipped( "Skipping because WikibaseClient doesn't have local term store tables." );
+			$this->markTestSkipped( "Skipping because a local wb_terms table"
+				. " is not available on a WikibaseClient only instance." );
 		}
 
 		$luaWikibaseLibrary = $this->newScribuntoLuaWikibaseLibrary();
@@ -587,7 +589,7 @@ class Scribunto_LuaWikibaseLibraryTest extends Scribunto_LuaWikibaseLibraryTestC
 	 * @return Scribunto_LuaWikibaseLibrary
 	 */
 	private function newScribuntoLuaWikibaseLibrary( &$cacheSplit = false, Language $userLang = null ) {
-		/** @var $engine Scribunto_LuaEngine */
+		/* @var $engine Scribunto_LuaEngine */
 		$engine = $this->getEngine();
 		$engine->load();
 

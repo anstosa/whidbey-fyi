@@ -22,10 +22,11 @@ use Wikimedia\Purtle\RdfWriter;
  */
 class ExternalIdentifierRdfBuilder implements ValueSnakRdfBuilder {
 
-	/** @var PropertyInfoProvider */
+	/**
+	 * @var PropertyInfoProvider
+	 */
 	private $uriPatternProvider;
 
-	/** @var RdfVocabulary */
 	private $rdfVocabulary;
 
 	public function __construct( RdfVocabulary $rdfVocabulary, PropertyInfoProvider $uriPatternProvider ) {

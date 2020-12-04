@@ -9,11 +9,10 @@ use Psr\SimpleCache\CacheInterface;
 use Wikibase\DataModel\Entity\EntityId;
 use Wikibase\DataModel\Entity\ItemId;
 use Wikibase\DataModel\Term\TermFallback;
+use Wikibase\Lib\LanguageFallbackChain;
 use Wikibase\Lib\Store\CachingFallbackLabelDescriptionLookup;
 use Wikibase\Lib\Store\FallbackLabelDescriptionLookup;
 use Wikibase\Lib\Store\RedirectResolvingLatestRevisionLookup;
-use Wikibase\Lib\TermFallbackCache\TermFallbackCacheFacade;
-use Wikibase\Lib\TermLanguageFallbackChain;
 
 /**
  * @covers \Wikibase\Lib\Store\CachingFallbackLabelDescriptionLookup
@@ -54,13 +53,11 @@ class CachingFallbackLabelDescriptionLookupTest extends TestCase {
 		$ttlInSeconds = 10;
 
 		$lookup = new CachingFallbackLabelDescriptionLookup(
-			new TermFallbackCacheFacade(
-				$this->cache->reveal(),
-				$ttlInSeconds
-			),
+			$this->cache->reveal(),
 			$this->newRedirectResolvingLatestRevisionLookup( 1, $itemId ),
 			$ldLookup->reveal(),
-			$this->newFallbackChain()
+			$this->newFallbackChain(),
+			$ttlInSeconds
 		);
 
 		$this->assertSame( self::TEST_LABEL, $lookup->getLabel( $itemId )->getText() );
@@ -76,13 +73,11 @@ class CachingFallbackLabelDescriptionLookupTest extends TestCase {
 		$ttlInSeconds = 10;
 
 		$lookup = new CachingFallbackLabelDescriptionLookup(
-			new TermFallbackCacheFacade(
-				$this->cache->reveal(),
-				$ttlInSeconds
-			),
+			$this->cache->reveal(),
 			$this->newRedirectResolvingLatestRevisionLookup( 99, $itemId ),
 			$ldLookup->reveal(),
-			$this->newFallbackChain()
+			$this->newFallbackChain(),
+			$ttlInSeconds
 		);
 
 		$lookup->getLabel( $itemId );
@@ -114,13 +109,11 @@ class CachingFallbackLabelDescriptionLookupTest extends TestCase {
 		$ttlInSeconds = 10;
 
 		$lookup = new CachingFallbackLabelDescriptionLookup(
-			new TermFallbackCacheFacade(
-				$this->cache->reveal(),
-				$ttlInSeconds
-			),
+			$this->cache->reveal(),
 			$this->newRedirectResolvingLatestRevisionLookup( 99, $itemId ),
 			$ldLookup->reveal(),
-			$this->newFallbackChain()
+			$this->newFallbackChain(),
+			$ttlInSeconds
 		);
 
 		$this->assertSame( self::TEST_LABEL, $lookup->getLabel( $itemId )->getText() );
@@ -137,13 +130,11 @@ class CachingFallbackLabelDescriptionLookupTest extends TestCase {
 		$ttlInSeconds = 10;
 
 		$lookup = new CachingFallbackLabelDescriptionLookup(
-			new TermFallbackCacheFacade(
-				$this->cache->reveal(),
-				$ttlInSeconds
-			),
+			$this->cache->reveal(),
 			$this->newRedirectResolvingLatestRevisionLookup( 99, $itemId ),
 			$ldLookup->reveal(),
-			$this->newFallbackChain()
+			$this->newFallbackChain(),
+			$ttlInSeconds
 		);
 
 		$lookup->getLabel( $itemId );
@@ -160,40 +151,16 @@ class CachingFallbackLabelDescriptionLookupTest extends TestCase {
 		$ldLookup = $this->prophesize( FallbackLabelDescriptionLookup::class );
 
 		$lookup = new CachingFallbackLabelDescriptionLookup(
-			new TermFallbackCacheFacade(
-				$this->cache->reveal(),
-				$ttlInSeconds
-			),
+			$this->cache->reveal(),
 			$this->newRedirectResolvingLatestRevisionLookup( 99, $itemId ),
 			$ldLookup->reveal(),
-			$this->newFallbackChain()
+			$this->newFallbackChain(),
+			$ttlInSeconds
 		);
 
 		$this->assertNull( $lookup->getLabel( $itemId ) );
 
 		$ldLookup->getLabel()->shouldNotHaveBeenCalled();
-	}
-
-	public function testGivenEmptyLanguageCodes_getLabelReturnsNull() {
-		$itemId = new ItemId( 'Q123' );
-		$ttlInSeconds = 10;
-
-		$fallbackChain = $this->prophesize( TermLanguageFallbackChain::class );
-		$fallbackChain->getFetchLanguageCodes()->willReturn( [] );
-		$revLookup = $this->prophesize( RedirectResolvingLatestRevisionLookup::class );
-
-		$lookup = new CachingFallbackLabelDescriptionLookup(
-			new TermFallbackCacheFacade(
-				$this->cache->reveal(),
-				$ttlInSeconds
-			),
-			$revLookup->reveal(),
-			$this->prophesize( FallbackLabelDescriptionLookup::class )->reveal(),
-			$fallbackChain->reveal()
-		);
-
-		$this->assertNull( $lookup->getLabel( $itemId ) );
-		$revLookup->lookupLatestRevisionResolvingRedirect()->shouldNotHaveBeenCalled();
 	}
 
 	public function testGivenNoDescriptionInCache_getDescriptionPassesRequestToInnerLookup() {
@@ -206,13 +173,11 @@ class CachingFallbackLabelDescriptionLookupTest extends TestCase {
 		$ttlInSeconds = 10;
 
 		$lookup = new CachingFallbackLabelDescriptionLookup(
-			new TermFallbackCacheFacade(
-				$this->cache->reveal(),
-				$ttlInSeconds
-			),
+			$this->cache->reveal(),
 			$this->newRedirectResolvingLatestRevisionLookup( 1, $itemId ),
 			$ldLookup->reveal(),
-			$this->newFallbackChain()
+			$this->newFallbackChain(),
+			$ttlInSeconds
 		);
 
 		$this->assertSame( self::TEST_DESCRIPTION, $lookup->getDescription( $itemId )->getText() );
@@ -228,13 +193,11 @@ class CachingFallbackLabelDescriptionLookupTest extends TestCase {
 		$ttlInSeconds = 10;
 
 		$lookup = new CachingFallbackLabelDescriptionLookup(
-			new TermFallbackCacheFacade(
-				$this->cache->reveal(),
-				$ttlInSeconds
-			),
+			$this->cache->reveal(),
 			$this->newRedirectResolvingLatestRevisionLookup( 99, $itemId ),
 			$ldLookup->reveal(),
-			$this->newFallbackChain()
+			$this->newFallbackChain(),
+			$ttlInSeconds
 		);
 
 		$lookup->getDescription( $itemId );
@@ -266,13 +229,11 @@ class CachingFallbackLabelDescriptionLookupTest extends TestCase {
 		$ttlInSeconds = 10;
 
 		$lookup = new CachingFallbackLabelDescriptionLookup(
-			new TermFallbackCacheFacade(
-				$this->cache->reveal(),
-				$ttlInSeconds
-			),
+			$this->cache->reveal(),
 			$this->newRedirectResolvingLatestRevisionLookup( 99, $itemId ),
 			$ldLookup->reveal(),
-			$this->newFallbackChain()
+			$this->newFallbackChain(),
+			$ttlInSeconds
 		);
 
 		$this->assertSame( self::TEST_DESCRIPTION, $lookup->getDescription( $itemId )->getText() );
@@ -289,13 +250,11 @@ class CachingFallbackLabelDescriptionLookupTest extends TestCase {
 		$ttl = 10;
 
 		$lookup = new CachingFallbackLabelDescriptionLookup(
-			new TermFallbackCacheFacade(
-				$this->cache->reveal(),
-				$ttl
-			),
+			$this->cache->reveal(),
 			$this->newRedirectResolvingLatestRevisionLookup( 99, $itemId ),
 			$ldLookup->reveal(),
-			$this->newFallbackChain()
+			$this->newFallbackChain(),
+			$ttl
 		);
 
 		$lookup->getDescription( $itemId );
@@ -312,40 +271,16 @@ class CachingFallbackLabelDescriptionLookupTest extends TestCase {
 		$ldLookup = $this->prophesize( FallbackLabelDescriptionLookup::class );
 
 		$lookup = new CachingFallbackLabelDescriptionLookup(
-			new TermFallbackCacheFacade(
-				$this->cache->reveal(),
-				$ttlInSeconds
-			),
+			$this->cache->reveal(),
 			$this->newRedirectResolvingLatestRevisionLookup( 99, $itemId ),
 			$ldLookup->reveal(),
-			$this->newFallbackChain()
+			$this->newFallbackChain(),
+			$ttlInSeconds
 		);
 
 		$this->assertNull( $lookup->getDescription( $itemId ) );
 
 		$ldLookup->getDescription()->shouldNotHaveBeenCalled();
-	}
-
-	public function testGivenEmptyLanguageCodes_getDescriptionReturnsNull() {
-		$itemId = new ItemId( 'Q123' );
-		$ttlInSeconds = 10;
-
-		$fallbackChain = $this->prophesize( TermLanguageFallbackChain::class );
-		$fallbackChain->getFetchLanguageCodes()->willReturn( [] );
-		$revLookup = $this->prophesize( RedirectResolvingLatestRevisionLookup::class );
-
-		$lookup = new CachingFallbackLabelDescriptionLookup(
-			new TermFallbackCacheFacade(
-				$this->cache->reveal(),
-				$ttlInSeconds
-			),
-			$revLookup->reveal(),
-			$this->prophesize( FallbackLabelDescriptionLookup::class )->reveal(),
-			$fallbackChain->reveal()
-		);
-
-		$this->assertNull( $lookup->getDescription( $itemId ) );
-		$revLookup->lookupLatestRevisionResolvingRedirect()->shouldNotHaveBeenCalled();
 	}
 
 	public function testNoRevisionFoundForTheEntity_ReturnsNull() {
@@ -360,13 +295,11 @@ class CachingFallbackLabelDescriptionLookupTest extends TestCase {
 			->willReturn( null );
 
 		$lookup = new CachingFallbackLabelDescriptionLookup(
-			new TermFallbackCacheFacade(
-				$this->cache->reveal(),
-				self::TTL
-			),
+			$this->cache->reveal(),
 			$revLookup->reveal(),
 			$ldLookup->reveal(),
-			$this->newFallbackChain()
+			$this->newFallbackChain(),
+			self::TTL
 		);
 
 		$got = $lookup->getDescription( $itemId );
@@ -381,13 +314,11 @@ class CachingFallbackLabelDescriptionLookupTest extends TestCase {
 		$ldLookup->getLabel( $redirectsToItemId )->willReturn( $expectedLabel );
 
 		$lookup = new CachingFallbackLabelDescriptionLookup(
-			new TermFallbackCacheFacade(
-				$this->cache->reveal(),
-				self::TTL
-			),
+			$this->cache->reveal(),
 			$this->newRedirectResolvingLatestRevisionLookup( 2, $redirectsToItemId ),
 			$ldLookup->reveal(),
-			$this->newFallbackChain()
+			$this->newFallbackChain(),
+			self::TTL
 		);
 
 		$gotLabel = $lookup->getLabel( $itemId );
@@ -403,7 +334,7 @@ class CachingFallbackLabelDescriptionLookupTest extends TestCase {
 	}
 
 	private function newFallbackChain() {
-		$fallbackChain = $this->prophesize( TermLanguageFallbackChain::class );
+		$fallbackChain = $this->prophesize( LanguageFallbackChain::class );
 		$fallbackChain->getFetchLanguageCodes()->willReturn( [ 'en' ] );
 		return $fallbackChain->reveal();
 	}

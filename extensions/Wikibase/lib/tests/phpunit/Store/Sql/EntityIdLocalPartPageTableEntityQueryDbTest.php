@@ -3,7 +3,7 @@
 namespace Wikibase\Lib\Tests\Store\Sql;
 
 use MediaWiki\Storage\NameTableStore;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use Wikibase\DataModel\Entity\EntityId;
 use Wikibase\Lib\Store\EntityNamespaceLookup;
 use Wikibase\Lib\Store\Sql\EntityIdLocalPartPageTableEntityQuery;
@@ -18,7 +18,7 @@ use Wikibase\Lib\Store\Sql\EntityIdLocalPartPageTableEntityQuery;
  *
  * @license GPL-2.0-or-later
  */
-class EntityIdLocalPartPageTableEntityQueryDbTest extends MediaWikiIntegrationTestCase {
+class EntityIdLocalPartPageTableEntityQueryDbTest extends MediaWikiTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -34,7 +34,6 @@ class EntityIdLocalPartPageTableEntityQueryDbTest extends MediaWikiIntegrationTe
 				'page_random' => 1,
 				'page_latest' => 1,
 				'page_len' => 1,
-				'page_touched' => $this->db->timestamp(),
 			]
 		);
 		$this->db->insert(
@@ -46,7 +45,6 @@ class EntityIdLocalPartPageTableEntityQueryDbTest extends MediaWikiIntegrationTe
 				'page_random' => 2,
 				'page_latest' => 221,
 				'page_len' => 2,
-				'page_touched' => $this->db->timestamp(),
 			]
 		);
 		$this->db->insert(

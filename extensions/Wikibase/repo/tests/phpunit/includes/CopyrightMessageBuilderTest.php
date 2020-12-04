@@ -3,7 +3,6 @@
 namespace Wikibase\Repo\Tests;
 
 use Language;
-use MediaWikiIntegrationTestCase;
 use Wikibase\Repo\CopyrightMessageBuilder;
 
 /**
@@ -14,7 +13,7 @@ use Wikibase\Repo\CopyrightMessageBuilder;
  * @license GPL-2.0-or-later
  * @author Katie Filbert < aude.wiki@gmail.com >
  */
-class CopyrightMessageBuilderTest extends MediaWikiIntegrationTestCase {
+class CopyrightMessageBuilderTest extends \MediaWikiTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();

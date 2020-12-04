@@ -14,11 +14,8 @@ use Wikibase\DataModel\Entity\EntityRedirect;
  */
 class StatsdTimeRecordingEditFilterHookRunner implements EditFilterHookRunner {
 
-	/** @var EditFilterHookRunner */
 	private $hookRunner;
-	/** @var StatsdDataFactoryInterface */
 	private $stats;
-	/** @var string */
 	private $timingPrefix;
 
 	/**
@@ -29,7 +26,7 @@ class StatsdTimeRecordingEditFilterHookRunner implements EditFilterHookRunner {
 	public function __construct(
 		EditFilterHookRunner $hookRunner,
 		StatsdDataFactoryInterface $stats,
-		string $timingPrefix
+		$timingPrefix
 	) {
 		$this->hookRunner = $hookRunner;
 		$this->stats = $stats;

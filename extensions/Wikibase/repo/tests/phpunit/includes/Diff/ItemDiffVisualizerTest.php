@@ -7,7 +7,7 @@ use Diff\DiffOp\DiffOpAdd;
 use Diff\DiffOp\DiffOpChange;
 use Diff\DiffOp\DiffOpRemove;
 use HashSiteStore;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use MessageLocalizer;
 use RawMessage;
 use Site;
@@ -29,7 +29,7 @@ use Wikibase\Repo\Diff\ItemDiffVisualizer;
  * @author Daniel Kinzler
  * @author Thiemo Kreuz
  */
-class ItemDiffVisualizerTest extends MediaWikiIntegrationTestCase {
+class ItemDiffVisualizerTest extends MediaWikiTestCase {
 
 	public function testVisualizingEmptyDiff() {
 		$emptyDiff = new EntityContentDiff( new EntityDiff(), new Diff(), 'item' );

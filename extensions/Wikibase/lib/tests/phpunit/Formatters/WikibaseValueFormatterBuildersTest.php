@@ -12,7 +12,7 @@ use DataValues\TimeValue;
 use DataValues\UnboundedQuantityValue;
 use DataValues\UnDeserializableValue;
 use Language;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use Psr\SimpleCache\CacheInterface;
 use Title;
 use ValueFormatters\FormatterOptions;
@@ -38,7 +38,6 @@ use Wikibase\Lib\Store\EntityRevisionLookup;
 use Wikibase\Lib\Store\EntityTitleLookup;
 use Wikibase\Lib\Store\EntityTitleTextLookup;
 use Wikibase\Lib\Store\EntityUrlLookup;
-use Wikibase\Lib\TermFallbackCache\TermFallbackCacheFacade;
 
 /**
  * @covers \Wikibase\Lib\Formatters\WikibaseValueFormatterBuilders
@@ -51,7 +50,7 @@ use Wikibase\Lib\TermFallbackCache\TermFallbackCacheFacade;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class WikibaseValueFormatterBuildersTest extends MediaWikiIntegrationTestCase {
+class WikibaseValueFormatterBuildersTest extends MediaWikiTestCase {
 
 	const GEO_SHAPE_STORAGE_FRONTEND_URL = '//commons.wikimedia.org/wiki/';
 
@@ -621,10 +620,7 @@ class WikibaseValueFormatterBuildersTest extends MediaWikiIntegrationTestCase {
 	}
 
 	private function createCache() {
-		return new TermFallbackCacheFacade(
-			$this->prophesize( CacheInterface::class )->reveal(),
-			10
-		);
+		return $this->prophesize( CacheInterface::class )->reveal();
 	}
 
 }

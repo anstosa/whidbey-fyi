@@ -1,13 +1,10 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Api;
 
 use ApiBase;
 use ApiMain;
 use Wikibase\DataModel\Entity\EntityId;
-use Wikibase\DataModel\Entity\EntityIdParser;
 use Wikibase\DataModel\Services\Statement\StatementGuidParser;
 use Wikibase\DataModel\Statement\Statement;
 use Wikibase\DataModel\Statement\StatementList;
@@ -16,7 +13,6 @@ use Wikibase\Repo\ChangeOp\ChangeOp;
 use Wikibase\Repo\ChangeOp\ChangeOpException;
 use Wikibase\Repo\ChangeOp\ChangeOps;
 use Wikibase\Repo\ChangeOp\StatementChangeOpFactory;
-use Wikibase\Repo\WikibaseRepo;
 
 /**
  * API module for removing claims.
@@ -27,8 +23,6 @@ use Wikibase\Repo\WikibaseRepo;
  */
 class RemoveClaims extends ApiBase {
 
-	use FederatedPropertyApiValidatorTrait;
-
 	/**
 	 * @var StatementChangeOpFactory
 	 */
@@ -37,7 +31,7 @@ class RemoveClaims extends ApiBase {
 	/**
 	 * @var ApiErrorReporter
 	 */
-	protected $errorReporter;
+	private $errorReporter;
 
 	/**
 	 * @var StatementModificationHelper
@@ -59,16 +53,25 @@ class RemoveClaims extends ApiBase {
 	 */
 	private $entitySavingHelper;
 
+	/**
+	 * @param ApiMain $mainModule
+	 * @param string $moduleName
+	 * @param ApiErrorReporter $errorReporter
+	 * @param StatementChangeOpFactory $statementChangeOpFactory
+	 * @param StatementModificationHelper $modificationHelper
+	 * @param StatementGuidParser $guidParser
+	 * @param callable $resultBuilderInstantiator
+	 * @param callable $entitySavingHelperInstantiator
+	 */
 	public function __construct(
 		ApiMain $mainModule,
-		string $moduleName,
+		$moduleName,
 		ApiErrorReporter $errorReporter,
 		StatementChangeOpFactory $statementChangeOpFactory,
 		StatementModificationHelper $modificationHelper,
 		StatementGuidParser $guidParser,
 		callable $resultBuilderInstantiator,
-		callable $entitySavingHelperInstantiator,
-		bool $federatedPropertiesEnabled
+		callable $entitySavingHelperInstantiator
 	) {
 		parent::__construct( $mainModule, $moduleName );
 
@@ -79,51 +82,14 @@ class RemoveClaims extends ApiBase {
 		$this->guidParser = $guidParser;
 		$this->resultBuilder = $resultBuilderInstantiator( $this );
 		$this->entitySavingHelper = $entitySavingHelperInstantiator( $this );
-		$this->federatedPropertiesEnabled = $federatedPropertiesEnabled;
-	}
-
-	public static function factory(
-		ApiMain $mainModule,
-		string $moduleName,
-		EntityIdParser $entityIdParser
-	): self {
-		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
-		$apiHelperFactory = $wikibaseRepo->getApiHelperFactory( $mainModule->getContext() );
-		$changeOpFactoryProvider = $wikibaseRepo->getChangeOpFactoryProvider();
-
-		$modificationHelper = new StatementModificationHelper(
-			$wikibaseRepo->getSnakFactory(),
-			$entityIdParser,
-			$wikibaseRepo->getStatementGuidValidator(),
-			$apiHelperFactory->getErrorReporter( $mainModule )
-		);
-
-		return new self(
-			$mainModule,
-			$moduleName,
-			$apiHelperFactory->getErrorReporter( $mainModule ),
-			$changeOpFactoryProvider->getStatementChangeOpFactory(),
-			$modificationHelper,
-			$wikibaseRepo->getStatementGuidParser(),
-			function ( $module ) use ( $apiHelperFactory ) {
-				return $apiHelperFactory->getResultBuilder( $module );
-			},
-			function ( $module ) use ( $apiHelperFactory ) {
-				return $apiHelperFactory->getEntitySavingHelper( $module );
-			},
-			$wikibaseRepo->inFederatedPropertyMode()
-		);
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public function execute(): void {
+	public function execute() {
 		$params = $this->extractRequestParams();
 		$entityId = $this->getEntityId( $params );
-
-		$this->validateAlteringEntityById( $entityId );
-
 		$entity = $this->entitySavingHelper->loadEntity( $entityId );
 
 		if ( $entity instanceof StatementListProvider ) {
@@ -154,7 +120,7 @@ class RemoveClaims extends ApiBase {
 	 *
 	 * @return EntityId
 	 */
-	private function getEntityId( array $params ): EntityId {
+	private function getEntityId( array $params ) {
 		$entityId = null;
 
 		foreach ( $params['claim'] as $guid ) {
@@ -182,7 +148,7 @@ class RemoveClaims extends ApiBase {
 	 * @param StatementList $statements
 	 * @param string[] $requiredGuids
 	 */
-	private function assertStatementListContainsGuids( StatementList $statements, array $requiredGuids ): void {
+	private function assertStatementListContainsGuids( StatementList $statements, array $requiredGuids ) {
 		$existingGuids = [];
 
 		/** @var Statement $statement */
@@ -208,7 +174,7 @@ class RemoveClaims extends ApiBase {
 	 *
 	 * @return ChangeOp[]
 	 */
-	private function getChangeOps( array $params ): array {
+	private function getChangeOps( array $params ) {
 		$changeOps = [];
 
 		foreach ( $params['claim'] as $guid ) {
@@ -221,7 +187,7 @@ class RemoveClaims extends ApiBase {
 	/**
 	 * @inheritDoc
 	 */
-	public function isWriteMode(): bool {
+	public function isWriteMode() {
 		return true;
 	}
 
@@ -230,14 +196,14 @@ class RemoveClaims extends ApiBase {
 	 *
 	 * @return string
 	 */
-	public function needsToken(): string {
+	public function needsToken() {
 		return 'csrf';
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	protected function getAllowedParams(): array {
+	protected function getAllowedParams() {
 		return array_merge(
 			[
 				'claim' => [
@@ -265,7 +231,7 @@ class RemoveClaims extends ApiBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getExamplesMessages(): array {
+	protected function getExamplesMessages() {
 		return [
 			'action=wbremoveclaims&claim=Q42$D8404CDA-25E4-4334-AF13-A3290BCD9C0N&token=foobar'
 				. '&baserevid=7201010'

@@ -4,7 +4,7 @@ namespace Wikibase\Client\Tests\Integration\DataAccess\ParserFunctions;
 
 use Language;
 use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use Parser;
 use ParserOptions;
 use ParserOutput;
@@ -32,7 +32,7 @@ use Wikimedia\TestingAccessWrapper;
  * @license GPL-2.0-or-later
  * @author Marius Hoch < hoo@online.de >
  */
-class PropertyParserFunctionIntegrationTest extends MediaWikiIntegrationTestCase {
+class PropertyParserFunctionIntegrationTest extends MediaWikiTestCase {
 
 	/**
 	 * @var bool

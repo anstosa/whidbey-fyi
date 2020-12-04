@@ -4,8 +4,7 @@ namespace Wikibase\Client\Tests\Integration\Changes;
 
 use ArrayIterator;
 use InvalidArgumentException;
-use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use Psr\Log\NullLogger;
 use SiteLookup;
 use Title;
@@ -38,16 +37,14 @@ use Wikibase\Lib\Tests\MockRepository;
  * @author Daniel Kinzler
  * @author Jeroen De Dauw < jeroendedauw@gmail.com >
  */
-class ChangeHandlerTest extends MediaWikiIntegrationTestCase {
+class ChangeHandlerTest extends MediaWikiTestCase {
 
 	private function getAffectedPagesFinder( UsageLookup $usageLookup, TitleFactory $titleFactory ) {
 		// @todo: mock the finder directly
 		return new AffectedPagesFinder(
 			$usageLookup,
 			$titleFactory,
-			MediaWikiServices::getInstance()->getLinkBatchFactory(),
 			'enwiki',
-			null,
 			false
 		);
 	}
@@ -179,8 +176,8 @@ class ChangeHandlerTest extends MediaWikiIntegrationTestCase {
 		$changeHandler = $this->getChangeHandler();
 		$changeHandler->handleChanges( $changes );
 
-		$this->assertSame( count( $changes ), $spy->handleChangeCallCount );
-		$this->assertSame( 1, $spy->handleChangesCallCount );
+		$this->assertEquals( count( $changes ), $spy->handleChangeCallCount );
+		$this->assertEquals( 1, $spy->handleChangesCallCount );
 	}
 
 	/**
@@ -231,20 +228,15 @@ class ChangeHandlerTest extends MediaWikiIntegrationTestCase {
 
 		$titleFactory = $this->createMock( TitleFactory::class );
 
-		$titleFactory->method( 'newFromIDs' )
-			->willReturnCallback( function ( array $ids ) use ( $titlesById ) {
-				$titles = [];
-				foreach ( $ids as $id ) {
-					if ( isset( $titlesById[$id] ) ) {
-						$title = Title::newFromText( $titlesById[$id] );
-						$title->resetArticleID( $id );
-						$titles[] = $title;
-					} else {
-						throw new InvalidArgumentException( 'Unknown ID: ' . $id );
-					}
+		$titleFactory->expects( $this->any() )
+			->method( 'newFromID' )
+			->will( $this->returnCallback( function( $id ) use ( $titlesById ) {
+				if ( isset( $titlesById[$id] ) ) {
+					return Title::newFromText( $titlesById[$id] );
+				} else {
+					throw new InvalidArgumentException( 'Unknown ID: ' . $id );
 				}
-				return $titles;
-			} );
+			} ) );
 
 		$titleFactory->expects( $this->any() )
 			->method( 'newFromText' )
@@ -509,7 +501,7 @@ class ChangeHandlerTest extends MediaWikiIntegrationTestCase {
 
 		foreach ( $expected as $k => $exp ) {
 			$up = $updates[$k];
-			$this->assertSame( array_keys( $exp ), array_keys( $up ), $k );
+			$this->assertEquals( array_keys( $exp ), array_keys( $up ), $k );
 		}
 	}
 
@@ -593,18 +585,17 @@ class ChangeHandlerTest extends MediaWikiIntegrationTestCase {
 		$titleFactory = $this->getMockBuilder( TitleFactory::class )
 			->disableOriginalConstructor()
 			->getMock();
-		$titleFactory->method( 'newFromIDs' )
-			->willReturnCallback( function ( array $ids ) {
-				// NOTE: the fake title construction influences the expected hash values
-				// defined in provideHandleChange_rootJobParams!
-				$titles = [];
-				foreach ( $ids as $id ) {
+		$titleFactory->expects( $this->any() )
+			->method( 'newFromID' )
+			->will( $this->returnCallback(
+				function( $id ) {
+					// NOTE: the fake title construction influences the expected hash values
+					// defined in provideHandleChange_rootJobParams!
 					$title = Title::makeTitle( NS_MAIN, 'Page_No_' . $id );
 					$title->resetArticleID( $id );
-					$titles[] = $title;
+					return $title;
 				}
-				return $titles;
-			} );
+			) );
 
 		$handler = new ChangeHandler(
 			$affectedPagesFinder,
@@ -627,7 +618,7 @@ class ChangeHandlerTest extends MediaWikiIntegrationTestCase {
 			if ( $k !== 'scheduleRefreshLinks' ) {
 				$this->assertSame( '20171122040506', $act['rootJobTimestamp'], "$k/rootJobTimestamp" );
 			}
-			$this->assertSame( $exp['rootJobSignature'], $act['rootJobSignature'], "$k/rootJobSignature" );
+			$this->assertEquals( $exp['rootJobSignature'], $act['rootJobSignature'], "$k/rootJobSignature" );
 		}
 	}
 

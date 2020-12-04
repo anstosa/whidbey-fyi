@@ -3,7 +3,6 @@
 namespace Wikibase\Lib\Tests\Formatters;
 
 use Language;
-use MediaWikiIntegrationTestCase;
 use Wikibase\Lib\Formatters\AutoCommentFormatter;
 
 /**
@@ -15,7 +14,7 @@ use Wikibase\Lib\Formatters\AutoCommentFormatter;
  * @author Addshore
  * @author Jonas Kress
  */
-class AutoCommentFormatterTest extends MediaWikiIntegrationTestCase {
+class AutoCommentFormatterTest extends \MediaWikiTestCase {
 
 	/**
 	 * @var Language

@@ -125,13 +125,16 @@ class GetEntitiesTest extends WikibaseApiTestCase {
 
 	/**
 	 * This method builds an array of test cases using the data provided in the static arrays above
+	 * @return array
 	 */
 	public function provideData() {
+		$testCases = [];
+
 		// Test cases for props filter
 		foreach ( self::$goodProps  as $propData ) {
 			foreach ( self::$goodItems as $testCase ) {
 				$testCase['p']['props'] = $propData;
-				yield $testCase;
+				$testCases[] = $testCase;
 			}
 		}
 
@@ -139,7 +142,7 @@ class GetEntitiesTest extends WikibaseApiTestCase {
 		foreach ( self::$goodLangs as $langData ) {
 			foreach ( self::$goodItems as $testCase ) {
 				$testCase['p']['languages'] = $langData;
-				yield $testCase;
+				$testCases[] = $testCase;
 			}
 		}
 
@@ -147,8 +150,10 @@ class GetEntitiesTest extends WikibaseApiTestCase {
 		foreach ( self::$goodFormats as $formatData ) {
 			$testCase = reset( self::$goodItems );
 			$testCase['p']['format'] = $formatData;
-			yield $testCase;
+			$testCases[] = $testCase;
 		}
+
+		return $testCases;
 	}
 
 	/**

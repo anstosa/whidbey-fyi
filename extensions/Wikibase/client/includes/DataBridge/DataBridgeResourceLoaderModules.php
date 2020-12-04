@@ -12,7 +12,6 @@ use Wikibase\Lib\Modules\MediaWikiConfigModule;
  * Dynamically registering data bridge resource loader modules in extension.json
  * It should be deleted and moved to extension.json once the feature flag has been removed.
  *
- * @license GPL-2.0-or-later
  */
 class DataBridgeResourceLoaderModules {
 	public static function initModule() {

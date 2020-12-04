@@ -2,12 +2,12 @@ import { DataValue } from '@wmde/wikibase-datamodel-types';
 import {
 	NS_ENTITY, NS_STATEMENTS,
 } from './namespaces';
-import { EntityState } from '@/store/entity/EntityState';
+import { EntityState } from '@/store/entity';
 import { ValidApplicationStatus } from '@/definitions/ApplicationStatus';
 import Term from '@/datamodel/Term';
 import ApplicationError from '@/definitions/ApplicationError';
 import EditDecision from '@/definitions/EditDecision';
-import { StatementState } from '@/store/statements/StatementState';
+import { StatementState } from '@/store/statements';
 
 interface Application {
 	applicationErrors: ApplicationError[];

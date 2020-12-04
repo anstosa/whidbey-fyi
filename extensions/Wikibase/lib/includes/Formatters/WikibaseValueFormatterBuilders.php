@@ -1,13 +1,12 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Lib\Formatters;
 
 use DataValues\Geo\Formatters\GlobeCoordinateFormatter;
 use DataValues\Geo\Formatters\LatLongFormatter;
 use InvalidArgumentException;
 use Language;
+use Psr\SimpleCache\CacheInterface;
 use RequestContext;
 use ValueFormatters\DecimalFormatter;
 use ValueFormatters\FormatterOptions;
@@ -29,7 +28,6 @@ use Wikibase\Lib\Store\EntityTitleTextLookup;
 use Wikibase\Lib\Store\EntityUrlLookup;
 use Wikibase\Lib\Store\LanguageFallbackLabelDescriptionLookup;
 use Wikibase\Lib\Store\RedirectResolvingLatestRevisionLookup;
-use Wikibase\Lib\TermFallbackCache\TermFallbackCacheFacade;
 use Wikimedia\Assert\Assert;
 
 /**
@@ -97,7 +95,7 @@ class WikibaseValueFormatterBuilders {
 	private $entityRevisionLookup;
 
 	/**
-	 * @var TermFallbackCacheFacade
+	 * @var CacheInterface
 	 */
 	private $cache;
 
@@ -151,30 +149,80 @@ class WikibaseValueFormatterBuilders {
 	 */
 	private $entityRedirectChecker;
 
+	/**
+	 * @param FormatterLabelDescriptionLookupFactory $labelDescriptionLookupFactory
+	 * @param LanguageNameLookup $languageNameLookup
+	 * @param EntityIdParser $itemUriParser
+	 * @param string $geoShapeStorageBaseUrl
+	 * @param string $tabularDataStorageBaseUrl
+	 * @param CacheInterface $formatterCache
+	 * @param int $cacheTtlInSeconds
+	 * @param EntityLookup $entityLookup
+	 * @param EntityRevisionLookup $entityRevisionLookup
+	 * @param int $entitySchemaNamespace
+	 * @param EntityExistenceChecker $entityExistenceChecker
+	 * @param EntityTitleTextLookup $entityTitleTextLookup
+	 * @param EntityUrlLookup $entityUrlLookup
+	 * @param EntityRedirectChecker $entityRedirectChecker
+	 * @param EntityTitleLookup|null $entityTitleLookup
+	 * @param CachingKartographerEmbeddingHandler|null $kartographerEmbeddingHandler
+	 * @param bool $useKartographerMaplinkInWikitext
+	 * @param array $thumbLimits
+	 */
 	public function __construct(
 		FormatterLabelDescriptionLookupFactory $labelDescriptionLookupFactory,
 		LanguageNameLookup $languageNameLookup,
 		EntityIdParser $itemUriParser,
-		string $geoShapeStorageBaseUrl,
-		string $tabularDataStorageBaseUrl,
-		TermFallbackCacheFacade $termFallbackCacheFacade,
-		int $cacheTtlInSeconds,
+		$geoShapeStorageBaseUrl,
+		$tabularDataStorageBaseUrl,
+		CacheInterface $formatterCache,
+		$cacheTtlInSeconds,
 		EntityLookup $entityLookup,
 		EntityRevisionLookup $entityRevisionLookup,
-		int $entitySchemaNamespace,
+		$entitySchemaNamespace,
 		EntityExistenceChecker $entityExistenceChecker,
 		EntityTitleTextLookup $entityTitleTextLookup,
 		EntityUrlLookup $entityUrlLookup,
 		EntityRedirectChecker $entityRedirectChecker,
 		EntityTitleLookup $entityTitleLookup = null,
 		CachingKartographerEmbeddingHandler $kartographerEmbeddingHandler = null,
-		bool $useKartographerMaplinkInWikitext = false,
-		array $thumbLimits = []
+		$useKartographerMaplinkInWikitext = false,
+		$thumbLimits = []
 	) {
+		Assert::parameterType(
+			'string',
+			$geoShapeStorageBaseUrl,
+			'$geoShapeStorageBaseUrl'
+		);
+
+		Assert::parameterType(
+			'string',
+			$tabularDataStorageBaseUrl,
+			'$tabularDataStorageBaseUrl'
+		);
+
+		Assert::parameterType(
+			'integer',
+			$cacheTtlInSeconds,
+			'$cacheTtlInSeconds'
+		);
+
 		Assert::parameter(
 			$cacheTtlInSeconds >= 0,
 			'$cacheTtlInSeconds',
 			"should be non-negative"
+		);
+
+		Assert::parameterType(
+			'integer',
+			$entitySchemaNamespace,
+			'$entitySchemaNamespace'
+		);
+
+		Assert::parameterType(
+			'array',
+			$thumbLimits,
+			'$thumbLimits'
 		);
 
 		$this->labelDescriptionLookupFactory = $labelDescriptionLookupFactory;
@@ -185,7 +233,7 @@ class WikibaseValueFormatterBuilders {
 		$this->entityTitleLookup = $entityTitleLookup;
 		$this->entityRevisionLookup = $entityRevisionLookup;
 		$this->entityLookup = $entityLookup;
-		$this->cache = $termFallbackCacheFacade;
+		$this->cache = $formatterCache;
 		$this->snakFormat = new SnakFormat();
 		$this->cacheTtlInSeconds = $cacheTtlInSeconds;
 		$this->kartographerEmbeddingHandler = $kartographerEmbeddingHandler;
@@ -258,41 +306,24 @@ class WikibaseValueFormatterBuilders {
 		return $this->escapeValueFormatter( $format, $plainFormatter );
 	}
 
-	public function newPropertyIdHtmlLinkFormatter( FormatterOptions $options ) {
-		return new ItemPropertyIdHtmlLinkFormatter(
-			$this->getLabelDescriptionLookup( $options ),
-			$this->entityTitleLookup,
-			$this->languageNameLookup,
-			new NonExistingEntityIdHtmlBrokenLinkFormatter(
-				'wikibase-deletedentity-',
-				$this->entityTitleTextLookup,
-				$this->entityUrlLookup
-			)
-		);
-	}
-
-	public function newItemIdHtmlLinkFormatter( FormatterOptions $options ) {
-		return new ItemPropertyIdHtmlLinkFormatter(
-			$this->getLabelDescriptionLookup( $options ),
-			$this->entityTitleLookup,
-			$this->languageNameLookup,
-			new NonExistingEntityIdHtmlFormatter( 'wikibase-deletedentity-' )
-		);
-	}
-
-	private function getNonCachingLookup( FormatterOptions $options ) {
-		return new LanguageFallbackLabelDescriptionLookup(
+	public function newItemPropertyIdHtmlLinkFormatter( FormatterOptions $options ) {
+		$nonCachingLookup = new LanguageFallbackLabelDescriptionLookup(
 			new EntityRetrievingTermLookup( $this->entityLookup ),
 			$options->getOption( FormatterLabelDescriptionLookupFactory::OPT_LANGUAGE_FALLBACK_CHAIN )
 		);
-	}
 
-	private function getLabelDescriptionLookup( FormatterOptions $options ) {
-		return new CachingFallbackLabelDescriptionLookup(
+		$labelDescriptionLookup = new CachingFallbackLabelDescriptionLookup(
 			$this->cache,
 			new RedirectResolvingLatestRevisionLookup( $this->entityRevisionLookup ),
-			$this->getNonCachingLookup( $options ),
-			$options->getOption( FormatterLabelDescriptionLookupFactory::OPT_LANGUAGE_FALLBACK_CHAIN )
+			$nonCachingLookup,
+			$options->getOption( FormatterLabelDescriptionLookupFactory::OPT_LANGUAGE_FALLBACK_CHAIN ),
+			$this->cacheTtlInSeconds
+		);
+
+		return new ItemPropertyIdHtmlLinkFormatter(
+			$labelDescriptionLookup,
+			$this->entityTitleLookup,
+			$this->languageNameLookup
 		);
 	}
 

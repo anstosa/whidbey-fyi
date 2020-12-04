@@ -2,7 +2,6 @@
 
 namespace Wikibase\Repo\Tests\Store\Sql;
 
-use MediaWikiIntegrationTestCase;
 use Wikibase\DataModel\Entity\Item;
 use Wikibase\DataModel\Entity\ItemId;
 use Wikibase\DataModel\Services\EntityId\EntityIdComposer;
@@ -22,7 +21,7 @@ use Wikibase\Repo\Store\Sql\SqlSiteLinkConflictLookup;
  * @license GPL-2.0-or-later
  * @author Katie Filbert < aude.wiki@gmail.com >
  */
-class SqlSiteLinkConflictLookupTest extends MediaWikiIntegrationTestCase {
+class SqlSiteLinkConflictLookupTest extends \MediaWikiTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();

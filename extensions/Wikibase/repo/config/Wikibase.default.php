@@ -3,8 +3,8 @@
 /**
  * This file assigns the default values to all Wikibase Repo settings.
  *
- * This file is NOT an entry point the Wikibase extension.
- * It should not be included from outside the extension.
+ * This file is NOT an entry point the Wikibase extension. Use Wikibase.php.
+ * It should furthermore not be included from outside the extension.
  *
  * @license GPL-2.0-or-later
  */
@@ -105,21 +105,6 @@ return [
 		// hardcoded internal handling
 		'html',
 	],
-
-	'entityDataCachePaths' => function() {
-		return [
-			// JSON from entity page JS, compare wikibase.entityPage.entityLoaded.js
-			wfAppendQuery(
-				str_replace( '$1', 'Special:EntityData/{entity_id}.json', $GLOBALS['wgArticlePath'] ),
-				'revision={revision_id}'
-			),
-			// Turtle from Query Service updater, compare WikibaseRepository.java
-			wfAppendQuery(
-				str_replace( '$1', 'Special:EntityData/{entity_id}.ttl', $GLOBALS['wgArticlePath'] ),
-				'flavor=dump&revision={revision_id}'
-			),
-		];
-	},
 
 	'enableEntitySearchUI' => true,
 
@@ -290,6 +275,12 @@ return [
 	// List of properties that, if in a qualifier, will be used for indexing quantities
 	'searchIndexQualifierPropertiesForQuantity' => [],
 
+	// Use search-related fields of wb_terms table
+	'useTermsTableSearchFields' => true,
+
+	// Override useTermsTableSearchFields for writing
+	'forceWriteTermsTableSearchFields' => false,
+
 	// Change it to a positive number so it becomes effective
 	'dispatchLagToMaxLagFactor' => 0,
 
@@ -323,20 +314,21 @@ return [
 	 */
 	'idGeneratorSeparateDbConnection' => false,
 
-	/**
-	 * Whether entity ID generator usage should be logged or not.
-	 *
-	 * @var bool
-	 * @see https://phabricator.wikimedia.org/T268625
-	 * @see \Wikibase\Repo\WikibaseRepo::newIdGenerator
-	 */
-	'idGeneratorLogging' => false,
-
 	'entityTypesWithoutRdfOutput' => [],
 
 	'entitySources' => [],
 
 	'localEntitySourceName' => 'local',
+
+	/**
+	 * @note This config options is primarily added for Wikidata transition use-case and can be
+	 * considered temporary. It could be removed in the future with no warning.
+	 *
+	 * @var bool Whether to serialize empty containers as {} instead of [] in json output of Special:EntityData
+	 *
+	 * @see \Wikibase\Repo\LinkedData\EntityDataSerializationService::serializeEmptyContainersProperly
+	 */
+	'tmpSerializeEmptyListsAsObjects' => true,
 
 	// Do not enable this one in production environments, unless you know what you are doing when
 	// using the script there.
@@ -347,10 +339,7 @@ return [
 
 	'dataBridgeEnabled' => false,
 
+	'propagateChangeVisibility' => false,
 	'changeVisibilityNotificationClientRCMaxAge' => $GLOBALS['wgRCMaxAge'],
 	'changeVisibilityNotificationJobBatchSize' => 3,
-
-	'deleteNotificationClientRCMaxAge' => $GLOBALS['wgRCMaxAge'],
-
-	'termFallbackCacheVersion' => null,
 ];

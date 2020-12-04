@@ -4,7 +4,7 @@ namespace Wikibase\Repo\Tests\Api;
 
 use ApiMain;
 use FauxRequest;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use RequestContext;
 use Title;
 use Wikibase\DataAccess\EntitySource;
@@ -42,7 +42,7 @@ use Wikibase\Repo\Api\SearchEntities;
  * @license GPL-2.0-or-later
  * @author Thiemo Kreuz
  */
-class SearchEntitiesIntegrationTest extends MediaWikiIntegrationTestCase {
+class SearchEntitiesIntegrationTest extends MediaWikiTestCase {
 
 	/**
 	 * @var EntityIdParser

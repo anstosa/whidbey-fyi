@@ -24,14 +24,14 @@ abstract class SpecialWikibaseQueryPage extends SpecialWikibasePage {
 	/**
 	 * The offset in use
 	 *
-	 * @var int
+	 * @var integer
 	 */
 	protected $offset = 0;
 
 	/**
 	 * The limit in use
 	 *
-	 * @var int
+	 * @var integer
 	 */
 	protected $limit = 0;
 
@@ -40,7 +40,7 @@ abstract class SpecialWikibaseQueryPage extends SpecialWikibasePage {
 	 * only makes sense in functions that are run after the query has been
 	 * done.
 	 *
-	 * @var int
+	 * @var integer
 	 */
 	protected $numRows;
 

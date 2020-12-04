@@ -5,7 +5,7 @@ namespace Wikibase\Repo\ParserOutput;
 use Language;
 use OutOfBoundsException;
 use Wikibase\DataModel\Entity\EntityDocument;
-use Wikibase\Lib\TermLanguageFallbackChain;
+use Wikibase\Lib\LanguageFallbackChain;
 use Wikibase\View\EntityDocumentView;
 use Wikimedia\Assert\Assert;
 
@@ -35,7 +35,7 @@ class DispatchingEntityViewFactory {
 	 * Creates a new EntityDocumentView that can display the given type of entity.
 	 *
 	 * @param Language $language
-	 * @param TermLanguageFallbackChain $termFallbackChain
+	 * @param LanguageFallbackChain $fallbackChain
 	 * @param EntityDocument $entity
 	 *
 	 * @throws OutOfBoundsException
@@ -43,7 +43,7 @@ class DispatchingEntityViewFactory {
 	 */
 	public function newEntityView(
 		Language $language,
-		TermLanguageFallbackChain $termFallbackChain,
+		LanguageFallbackChain $fallbackChain,
 		EntityDocument $entity
 	) {
 		$entityType = $entity->getType();
@@ -54,7 +54,7 @@ class DispatchingEntityViewFactory {
 		$entityView = call_user_func(
 			$this->entityViewFactoryCallbacks[$entityType],
 			$language,
-			$termFallbackChain,
+			$fallbackChain,
 			$entity
 		);
 

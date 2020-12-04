@@ -4,7 +4,6 @@ namespace Wikibase\Client\Tests\Integration\Hooks;
 
 use JobQueueGroup;
 use LinksUpdate;
-use MediaWikiIntegrationTestCase;
 use ParserOutput;
 use Title;
 use Wikibase\Client\Hooks\DataUpdateHookHandler;
@@ -28,7 +27,7 @@ use Wikibase\DataModel\Entity\ItemId;
  * @author Daniel Kinzler
  * @author Marius Hoch
  */
-class DataUpdateHookHandlerTest extends MediaWikiIntegrationTestCase {
+class DataUpdateHookHandlerTest extends \MediaWikiTestCase {
 
 	/**
 	 * @param Title $title
@@ -249,6 +248,11 @@ class DataUpdateHookHandlerTest extends MediaWikiIntegrationTestCase {
 			->will( $this->returnValue( $pout ) );
 
 		return $linksUpdate;
+	}
+
+	public function testNewFromGlobalState() {
+		$handler = DataUpdateHookHandler::newFromGlobalState();
+		$this->assertInstanceOf( DataUpdateHookHandler::class, $handler );
 	}
 
 	public function provideEntityUsages() {

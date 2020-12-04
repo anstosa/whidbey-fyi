@@ -1,15 +1,10 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Client\Tests\Integration\Changes;
 
 use ArrayIterator;
 use DataValues\DataValue;
 use DataValues\StringValue;
-use LinkBatch;
-use MediaWiki\Cache\LinkBatchFactory;
-use MediaWikiIntegrationTestCase;
 use Title;
 use TitleFactory;
 use Traversable;
@@ -35,7 +30,7 @@ use Wikibase\Lib\Tests\Changes\TestChanges;
  * @author Katie Filbert < aude.wiki@gmail.com >
  * @author Daniel Kinzler
  */
-class AffectedPagesFinderTest extends MediaWikiIntegrationTestCase {
+class AffectedPagesFinderTest extends \MediaWikiTestCase {
 
 	/**
 	 * Returns a TitleFactory that generates Title objects based on the assumption
@@ -47,15 +42,11 @@ class AffectedPagesFinderTest extends MediaWikiIntegrationTestCase {
 		$titleFactory = $this->createMock( TitleFactory::class );
 
 		$titleFactory->expects( $this->any() )
-			->method( 'newFromIDs' )
-			->will( $this->returnCallback( function( array $ids ) {
-				$titles = [];
-				foreach ( $ids as $id ) {
-					$title = Title::makeTitle( NS_MAIN, "$id" );
-					$title->resetArticleID( $id );
-					$titles[] = $title;
-				}
-				return $titles;
+			->method( 'newFromID' )
+			->will( $this->returnCallback( function( $id ) {
+				$title = Title::makeTitle( NS_MAIN, "$id" );
+				$title->resetArticleID( $id );
+				return $title;
 			} ) );
 
 		$titleFactory->expects( $this->any() )
@@ -74,18 +65,6 @@ class AffectedPagesFinderTest extends MediaWikiIntegrationTestCase {
 		return $titleFactory;
 	}
 
-	private function getLinkBatchFactory(): LinkBatchFactory {
-		$linkBatch = $this->createMock( LinkBatch::class );
-		$linkBatch->method( 'execute' )
-			->willReturn( null );
-
-		$linkBatchFactory = $this->createMock( LinkBatchFactory::class );
-		$linkBatchFactory->method( 'newLinkBatch' )
-			->willReturn( $linkBatch );
-
-		return $linkBatchFactory;
-	}
-
 	private function getAffectedPagesFinder( array $usage, array $expectedAspects ) {
 		$usageLookup = $this->createMock( UsageLookup::class );
 
@@ -97,9 +76,7 @@ class AffectedPagesFinderTest extends MediaWikiIntegrationTestCase {
 		$affectedPagesFinder = new AffectedPagesFinder(
 			$usageLookup,
 			$this->getTitleFactory(),
-			$this->getLinkBatchFactory(),
 			'enwiki',
-			null,
 			false
 		);
 
@@ -536,9 +513,7 @@ class AffectedPagesFinderTest extends MediaWikiIntegrationTestCase {
 		$affectedPagesFinder = new AffectedPagesFinder(
 			$this->getSiteLinkUsageLookup( $pageTitle ),
 			new TitleFactory(),
-			$this->getLinkBatchFactory(),
 			'enwiki',
-			null,
 			false
 		);
 

@@ -45,19 +45,7 @@ return call_user_func( function() {
 		'remoteExtPath' => 'Wikibase/view/lib/wikibase-termbox',
 	];
 
-	$wikibaseApiPaths = [
-		'localBasePath' => __DIR__ . '/../lib/resources/wikibase-api/src',
-		'remoteExtPath' => 'Wikibase/lib/resources/wikibase-api/src',
-	];
-
 	$modules = [
-		'wikibase' => $moduleTemplate + [
-			'scripts' => [
-				'wikibase.js',
-			],
-			'targets' => [ 'desktop', 'mobile' ],
-		],
-
 		'jquery.wikibase.entityselector' => $moduleTemplate + [
 			'scripts' => [
 				'jquery/wikibase/jquery.wikibase.entityselector.js',
@@ -216,7 +204,6 @@ return call_user_func( function() {
 				'resources/jquery/wikibase/jquery.wikibase.statementlistview.js',
 				'resources/jquery/wikibase/jquery.wikibase.statementview.js',
 				'resources/jquery/wikibase/jquery.wikibase.statementview.RankSelector.js',
-				'resources/jquery/wikibase/jquery.wikibase.siteselector.js',
 				'resources/jquery/ui/jquery.ui.tagadata.js',
 				'resources/jquery/jquery.sticknode.js',
 				'resources/jquery/jquery.removeClassByRegex.js',
@@ -256,6 +243,7 @@ return call_user_func( function() {
 				'jquery.inputautoexpand',
 				'jquery.throttle-debounce',
 				'jquery.wikibase.entityselector',
+				'jquery.wikibase.siteselector',
 				'wikibase.buildErrorOutput',
 				'wikibase.getLanguageNameByCode',
 				'wikibase.sites',
@@ -575,10 +563,12 @@ return call_user_func( function() {
 		'valueParsers.parsers' => $wikibaseDatavaluesSrcPaths + [
 			'scripts' => [
 				'valueParsers/parsers/ValueParser.js',
+
+				'valueParsers/parsers/BoolParser.js',
+				'valueParsers/parsers/FloatParser.js',
+				'valueParsers/parsers/IntParser.js',
 				'valueParsers/parsers/NullParser.js',
-				// we do not use any of the actual parsers (StringParser etc.);
-				// instead, we use the PHP parsers via the wbparsevalue API
-				// (wired up in repo/resources/parsers/getStore.js)
+				'valueParsers/parsers/StringParser.js',
 			],
 			'dependencies' => [
 				'dataValues.values',
@@ -744,12 +734,6 @@ return call_user_func( function() {
 				'valueview-expert-globecoordinateinput-precision',
 				'valueview-expert-globecoordinateinput-nullprecision',
 				'valueview-expert-globecoordinateinput-customprecision',
-				'valueview-expert-globecoordinateinput-precisionlabel-arcminute',
-				'valueview-expert-globecoordinateinput-precisionlabel-arcsecond',
-				'valueview-expert-globecoordinateinput-precisionlabel-tenth-of-arcsecond',
-				'valueview-expert-globecoordinateinput-precisionlabel-hundredth-of-arcsecond',
-				'valueview-expert-globecoordinateinput-precisionlabel-thousandth-of-arcsecond',
-				'valueview-expert-globecoordinateinput-precisionlabel-tenthousandth-of-arcsecond',
 			],
 		],
 
@@ -892,10 +876,10 @@ return call_user_func( function() {
 			'dependencies' => [
 				'wikibase.termbox.styles',
 				'wikibase.getLanguageNameByCode',
+				'wikibase.entityPage.entityLoaded',
 				'wikibase.WikibaseContentLanguages',
 				'wikibase.getUserLanguages',
-				'mw.config.values.wbRepo',
-				'vue'
+				'mw.config.values.wbRepo'
 			],
 			// 'messages' are declared by ./resources.json via TermboxModule.
 		],
@@ -908,6 +892,12 @@ return call_user_func( function() {
 				'minerva' => '../../resources/wikibase/termbox/minerva.less',
 			],
 			'targets' => 'mobile'
+		],
+
+		// DEPRECATED, use the vue module from core instead
+		'vue2' => $moduleTemplate + [
+			'scripts' => 'vendor/vue2.common.prod.js',
+			'targets' => [ 'desktop', 'mobile' ],
 		],
 
 		'wikibase.tainted-ref' => [
@@ -932,6 +922,18 @@ return call_user_func( function() {
 			'remoteExtPath' => 'Wikibase/view/lib/wikibase-tainted-ref/dist',
 			'localBasePath' => __DIR__ . '/lib/wikibase-tainted-ref/dist',
 		],
+
+		// TODO: Merge with wikibase.view.ControllerViewFactory
+		'jquery.wikibase.siteselector' => $moduleTemplate + [
+			'scripts' => [
+				'jquery/wikibase/jquery.wikibase.siteselector.js',
+			],
+			'dependencies' => [
+				'jquery.event.special.eachchange',
+				'jquery.ui.suggester',
+				'util.highlightSubstring',
+			],
+		],
 		'jquery.wikibase.wbtooltip' => $moduleTemplate + [
 			'scripts' => [
 				'jquery/wikibase/jquery.wikibase.wbtooltip.js',
@@ -952,45 +954,6 @@ return call_user_func( function() {
 			'dependencies' => [
 				'wikibase',
 			],
-		],
-
-		'wikibase.api.RepoApi' => $wikibaseApiPaths + [
-			'scripts' => [
-				'namespace.js',
-				'RepoApi.js',
-				'getLocationAgnosticMwApi.js',
-				'RepoApiError.js',
-			],
-			'dependencies' => [
-				'mediawiki.api',
-				'mediawiki.ForeignApi',
-			],
-			'messages' => [
-				'wikibase-error-unexpected',
-				'wikibase-error-unknown',
-				'wikibase-error-save-generic',
-				'wikibase-error-remove-generic',
-				'wikibase-error-save-timeout',
-				'wikibase-error-remove-timeout',
-				'wikibase-error-ui-no-external-page',
-				'wikibase-error-ui-edit-conflict',
-			],
-			'targets' => [
-				'desktop',
-				'mobile'
-			]
-		],
-
-		'wikibase.api.ValueCaller' => $wikibaseApiPaths + [
-			'scripts' => [
-				'namespace.js',
-				'ParseValueCaller.js',
-				'FormatValueCaller.js',
-			],
-			'dependencies' => [
-				'wikibase.api.RepoApi',
-				'dataValues.DataValue',
-			]
 		],
 	];
 

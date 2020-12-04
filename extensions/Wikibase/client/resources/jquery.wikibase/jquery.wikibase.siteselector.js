@@ -320,7 +320,17 @@
 		 */
 		getSelectedSite: function () {
 			return this._selectedSite;
+		},
+
+		/**
+		 * Sets the selected site.
+		 *
+		 * @param {wikibase.Site} site
+		 */
+		setSelectedSite: function ( site ) {
+			this._selectedSite = site;
 		}
+
 	} );
 
 	/**

@@ -1,14 +1,11 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Actions;
 
 use Article;
 use Html;
 use MWException;
 use OutputPage;
-use SpecialPage;
 use ViewAction;
 use Wikibase\Repo\WikibaseRepo;
 
@@ -81,55 +78,7 @@ class ViewEntityAction extends ViewAction {
 		$outputPage->addJsConfigVars( 'wbIsEditView', $this->isEditable() );
 		$this->getArticle()->view();
 
-		$this->addLinkHeaders( $outputPage );
 		$this->overridePageMetaTags( $outputPage );
-	}
-
-	/**
-	 * Create an alternate link header for the given URI and MIME
-	 * type, with no extra information.
-	 *
-	 * @param string $url the URL of the relation
-	 * @param string $type the MIME type for the link header entry
-	 *
-	 * @return string relation
-	 */
-	private function constructLinkAlternateHeader( string $url, string $type ): string {
-		return '<' . $url . '>; rel="alternate"; type="' . $type . '"';
-	}
-
-	/**
-	 * Add alternate links to the HTTP response.
-	 *
-	 * @param OutputPage $outputPage
-	 */
-	private function addLinkHeaders( OutputPage $outputPage ) {
-		if ( !$this->isEditable() ) {
-			return;
-		}
-		$variables = $outputPage->getJsConfigVars();
-		if ( !isset( $variables['wbEntityId'] ) ) {
-			return;
-		}
-		$subPagePrefix = $variables['wbEntityId'] . '.';
-		$repo = WikibaseRepo::getDefaultInstance();
-		$entityDataFormatProvider = $repo->getEntityDataFormatProvider();
-		foreach ( $entityDataFormatProvider->getAllowedFormats() as $format ) {
-			$ext = $entityDataFormatProvider->getExtension( $format );
-			$mime = $entityDataFormatProvider->getMimeType( $format );
-			if ( $ext === null || $mime === null ) {
-				continue;
-			}
-			$entityDataTitle = SpecialPage::getTitleFor(
-				'EntityData',
-				$subPagePrefix . $ext
-			);
-			$linkAlternateHeader = $this->constructLinkAlternateHeader(
-				$entityDataTitle->getCanonicalURL(),
-				$mime
-			);
-			$this->getOutput()->addLinkHeader( $linkAlternateHeader );
-		}
 	}
 
 	/**

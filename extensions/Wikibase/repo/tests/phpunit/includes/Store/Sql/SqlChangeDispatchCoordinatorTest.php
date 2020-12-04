@@ -3,7 +3,6 @@
 namespace Wikibase\Repo\Tests\Store\Sql;
 
 use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
 use Psr\Log\NullLogger;
 use Wikibase\Repo\Store\Sql\SqlChangeDispatchCoordinator;
 
@@ -18,7 +17,7 @@ use Wikibase\Repo\Store\Sql\SqlChangeDispatchCoordinator;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class SqlChangeDispatchCoordinatorTest extends MediaWikiIntegrationTestCase {
+class SqlChangeDispatchCoordinatorTest extends \MediaWikiTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();

@@ -2,7 +2,6 @@
 
 namespace Wikibase\Client\Tests\Integration\Hooks;
 
-use MediaWikiIntegrationTestCase;
 use Title;
 use Wikibase\Client\Hooks\DeletePageNoticeCreator;
 use Wikibase\Client\RepoLinker;
@@ -21,7 +20,7 @@ use Wikibase\Lib\Store\SiteLinkLookup;
  * @license GPL-2.0-or-later
  * @author Marius Hoch < hoo@online.de >
  */
-class DeletePageNoticeCreatorTest extends MediaWikiIntegrationTestCase {
+class DeletePageNoticeCreatorTest extends \MediaWikiTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();

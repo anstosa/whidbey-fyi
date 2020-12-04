@@ -5,7 +5,7 @@ namespace Wikibase\Lib;
 use ExtensionRegistry;
 use MediaWiki\Hook\ExtensionTypesHook;
 use MediaWiki\Hook\UnitTestsListHook;
-use MediaWiki\ResourceLoader\Hook\ResourceLoaderRegisterModulesHook;
+use MediaWiki\ResourceLoader\Hook\ResourceLoaderTestModulesHook;
 use ResourceLoader;
 
 /**
@@ -18,7 +18,7 @@ use ResourceLoader;
  */
 final class LibHooks implements
 	UnitTestsListHook,
-	ResourceLoaderRegisterModulesHook,
+	ResourceLoaderTestModulesHook,
 	ExtensionTypesHook
 {
 
@@ -45,38 +45,52 @@ final class LibHooks implements
 	public function onUnitTestsList( &$paths ): void {
 		$paths[] = __DIR__ . '/../tests/phpunit/';
 		$paths[] = __DIR__ . '/../../data-access/tests/phpunit/';
-		$paths[] = __DIR__ . '/../packages/wikibase/changes/tests/';
 	}
 
 	/**
-	 * Register the wikibase.Site ResourceLoader module with a dynamic dependency on ULS.
+	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/ResourceLoaderTestModules
+	 * @param array &$testModules
+	 * @param ResourceLoader $rl
+	 * @return void
+	 */
+	public function onResourceLoaderTestModules( array &$testModules, ResourceLoader $rl ): void {
+		$testModules['qunit'] = array_merge(
+			$testModules['qunit'],
+			require __DIR__ . '/../tests/qunit/resources.php'
+		);
+	}
+
+	/**
+	 * Register ResourceLoader modules with dynamic dependencies.
 	 *
 	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/ResourceLoaderRegisterModules
 	 * @param ResourceLoader $rl
 	 * @return void
 	 */
 	public function onResourceLoaderRegisterModules( ResourceLoader $rl ): void {
-		if ( $rl->isModuleRegistered( 'wikibase.Site' ) ) {
-			return;
-		}
-
-		$module = [
+		$moduleTemplate = [
 			'localBasePath' => __DIR__ . '/../',
 			'remoteExtPath' => 'Wikibase/lib',
-			'scripts' => [
-				'resources/wikibase.Site.js',
-			],
-			'dependencies' => [
-				'mediawiki.util',
+		];
+
+		$modules = [
+			'wikibase.Site' => $moduleTemplate + [
+				'scripts' => [
+					'resources/wikibase.Site.js',
+				],
+				'dependencies' => [
+					'mediawiki.util',
+					'wikibase',
+				],
 			],
 		];
 
 		$isUlsLoaded = ExtensionRegistry::getInstance()->isLoaded( 'UniversalLanguageSelector' );
 		if ( $isUlsLoaded ) {
-			$module['dependencies'][] = 'ext.uls.mediawiki';
+			$modules['wikibase.Site']['dependencies'][] = 'ext.uls.mediawiki';
 		}
 
-		$rl->register( 'wikibase.Site', $module );
+		$rl->register( $modules );
 	}
 
 	/**

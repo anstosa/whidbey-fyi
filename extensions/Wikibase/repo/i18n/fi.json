@@ -309,7 +309,5 @@
 	"right-item-redirect": "Luoda kohdeohjaussivuja",
 	"right-property-term": "Muuttaa ominaisuuksien käsitteitä (nimet, kuvaukset, aliakset)",
 	"action-property-create": "luoda ominaisuuksia",
-	"right-property-create": "Luoda ominaisuuksia",
-	"wikibase-federated-properties-leaving-site-notice-cancel": "Peruuta",
-	"wikibase-federated-properties-leaving-site-notice-continue": "Jatka lähdewikiin"
+	"right-property-create": "Luoda ominaisuuksia"
 }

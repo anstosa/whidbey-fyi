@@ -4,12 +4,18 @@ namespace Wikibase\Repo\Tests;
 
 use ApiMain;
 use ApiQuery;
-use ApiTestContext;
-use FauxRequest;
+use DerivativeContext;
+use IContextSource;
+use LanguageQqx;
 use MediaWiki\Http\HttpRequestFactory;
 use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use RequestContext;
+use Traversable;
+use WebRequest;
+use Wikibase\Repo\Hooks\HtmlPageLinkRendererEndHookHandler;
+use Wikibase\Repo\Hooks\LabelPrefetchHookHandlers;
+use Wikibase\Repo\Hooks\OutputPageBeforeHTMLHookHandler;
 use Wikibase\Repo\Hooks\OutputPageJsConfigHookHandler;
 use Wikibase\Repo\Hooks\ShowSearchHitHandler;
 use Wikibase\Repo\ParserOutput\TermboxFlag;
@@ -26,7 +32,7 @@ use Wikimedia\TestingAccessWrapper;
  * @license GPL-2.0-or-later
  * @author Marius Hoch
  */
-class GlobalStateFactoryMethodsResourceTest extends MediaWikiIntegrationTestCase {
+class GlobalStateFactoryMethodsResourceTest extends MediaWikiTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -58,7 +64,7 @@ class GlobalStateFactoryMethodsResourceTest extends MediaWikiIntegrationTestCase
 		$this->assertTrue( true );
 	}
 
-	public function provideHookHandlerNames(): iterable {
+	public function provideHookHandlerNames(): Traversable {
 		foreach ( $this->getExtensionJson()['HookHandlers'] as $hookHandlerName => $specification ) {
 			yield [ $hookHandlerName ];
 		}
@@ -75,7 +81,7 @@ class GlobalStateFactoryMethodsResourceTest extends MediaWikiIntegrationTestCase
 		$this->assertTrue( true );
 	}
 
-	public function provideApiModuleNames(): iterable {
+	public function provideApiModuleNames(): Traversable {
 		foreach ( $this->getExtensionJson()['APIModules'] as $moduleName => $specification ) {
 			yield [ $moduleName ];
 		}
@@ -92,7 +98,7 @@ class GlobalStateFactoryMethodsResourceTest extends MediaWikiIntegrationTestCase
 		$this->assertTrue( true );
 	}
 
-	public function provideApiQueryModuleListsAndNames(): iterable {
+	public function provideApiQueryModuleListsAndNames(): Traversable {
 		foreach ( [ 'APIListModules', 'APIMetaModules', 'APIPropModules' ] as $moduleList ) {
 			foreach ( $this->getExtensionJson()[$moduleList] as $moduleName => $specification ) {
 				yield [ $moduleList, $moduleName ];
@@ -110,20 +116,34 @@ class GlobalStateFactoryMethodsResourceTest extends MediaWikiIntegrationTestCase
 		$this->assertTrue( true );
 	}
 
-	public function provideSpecialPageNames(): iterable {
+	public function provideSpecialPageNames(): Traversable {
 		foreach ( $this->getExtensionJson()['SpecialPages'] as $specialPageName => $specification ) {
 			yield [ $specialPageName ];
 		}
 	}
 
+	public function testHtmlPageLinkRendererBeginHookHandler(): void {
+		TestingAccessWrapper::newFromClass( HtmlPageLinkRendererEndHookHandler::class )
+			->newFromGlobalState();
+	}
+
+	public function testLabelPrefetchHookHandlers(): void {
+		TestingAccessWrapper::newFromClass( LabelPrefetchHookHandlers::class )
+			->newFromGlobalState();
+	}
+
+	public function testOutputPageBeforeHTMLHookHandler(): void {
+		OutputPageBeforeHTMLHookHandler::newFromGlobalState();
+	}
+
 	public function testOutputPageJsConfigHookHandler(): void {
 		TestingAccessWrapper::newFromClass( OutputPageJsConfigHookHandler::class )
-			->factory();
+			->newFromGlobalState();
 	}
 
 	public function testShowSearchHitHandler(): void {
 		TestingAccessWrapper::newFromClass( ShowSearchHitHandler::class )
-			->factory( RequestContext::getMain() );
+			->newFromGlobalState( RequestContext::getMain() );
 	}
 
 	public function testTermboxFlag(): void {
@@ -175,14 +195,30 @@ class GlobalStateFactoryMethodsResourceTest extends MediaWikiIntegrationTestCase
 	}
 
 	private function mockApiMain(): ApiMain {
-		$request = new FauxRequest();
-		$ctx = new ApiTestContext();
-		$ctx = $ctx->newTestContext( $request );
-		return new ApiMain( $ctx );
+		$contextSource = $this->createMock( IContextSource::class );
+		$contextSource->method( 'getRequest' )
+			->willReturn( $this->createMock( WebRequest::class ) );
+		$contextSource = new DerivativeContext( $contextSource );
+		$apiMain = $this->createMock( ApiMain::class );
+		$apiMain->method( 'getContext' )
+			->willReturn( $contextSource );
+		$apiMain->method( 'getRequest' )
+			->willReturn( $contextSource->getRequest() );
+		return $apiMain;
 	}
 
 	private function mockApiQuery(): ApiQuery {
-		return new ApiQuery( $this->mockApiMain(), 'query' );
+		$apiMain = $this->mockApiMain();
+		$apiQuery = $this->createMock( ApiQuery::class );
+		$apiQuery->method( 'getMain' )
+			->willReturn( $apiMain );
+		$apiQuery->method( 'getContext' )
+			->willReturn( $apiMain->getContext() );
+		$apiQuery->method( 'getRequest' )
+			->willReturn( $apiMain->getRequest() );
+		$apiQuery->method( 'getLanguage' )
+			->willReturn( new LanguageQqx() );
+		return $apiQuery;
 	}
 
 }

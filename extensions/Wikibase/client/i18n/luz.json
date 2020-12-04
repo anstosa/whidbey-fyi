@@ -1,7 +1,6 @@
 {
 	"@metadata": {
 		"authors": [
-			"Bluehamed",
 			"Shahriar.dehghani24",
 			"علی ساکی لرستانی"
 		]
@@ -13,8 +12,8 @@
 	"wikibase-editlinkstitle": "ئیصلاح لینکل زوٙوٙنل بین المللی",
 	"wikibase-rc-hide-wikidata": "$1 {{WBREPONAME}}",
 	"wikibase-rc-hide-wikidata-hide": "قائم کردن",
-	"wikibase-rc-hide-wikidata-show": "نشۊناڌٱن",
+	"wikibase-rc-hide-wikidata-show": "نیشۉ دائن",
 	"wikibase-rc-wikibase-edit-letter": "ڤدا",
 	"wikibase-rc-wikibase-edit-title": "{{WBREPONAME}} ئیصلاح",
-	"wikibase-otherprojects": "من باقی پرژیٱل"
+	"wikibase-otherprojects": "مِن بقیه پروژئل"
 }

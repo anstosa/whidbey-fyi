@@ -91,7 +91,7 @@ class SpecialItemByTitle extends SpecialWikibasePage {
 		$this->groups = $siteLinkGroups;
 	}
 
-	public static function factory(): self {
+	public static function newFromGlobalState(): self {
 		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
 
 		$siteLinkTargetProvider = new SiteLinkTargetProvider(

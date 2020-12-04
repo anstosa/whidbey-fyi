@@ -165,9 +165,12 @@ class ChangeOpLabel extends ChangeOpBase {
 
 		// TODO: Don't bind against DescriptionsProvider here, rather use general builders for validators
 		if ( $entity instanceof DescriptionsProvider ) {
-			$validator = $this->termValidatorFactory->getLabelDescriptionNotEqualValidator();
+			$fingerprintValidator = $this->termValidatorFactory->getFingerprintValidator(
+				$entity->getType(),
+				$entity->getId()
+			);
 
-			// Check if the new fingerprint of the entity is valid
+			// Check if the new fingerprint of the entity is valid (e.g. if the label is unique)
 			$labels = clone $entity->getLabels();
 			$this->updateLabels( $labels );
 
@@ -176,9 +179,10 @@ class ChangeOpLabel extends ChangeOpBase {
 				return $result;
 			}
 
-			$result = $validator->validateLabelAndDescription(
+			$result = $fingerprintValidator->validateFingerprint(
 				$labels,
 				$entity->getDescriptions(),
+				$entity->getId(),
 				[ $this->languageCode ]
 			);
 		}

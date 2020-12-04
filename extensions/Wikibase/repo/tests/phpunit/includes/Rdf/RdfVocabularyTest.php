@@ -32,24 +32,8 @@ class RdfVocabularyTest extends \PHPUnit\Framework\TestCase {
 			[ 'foo' => '<BASE-foo>' ],
 			[ 'local' => '<DATA>', 'foo' => '<DATA-foo>' ],
 			new EntitySourceDefinitions( [
-				new EntitySource(
-					'local',
-					'localdb',
-					[ 'item' => [ 'namespaceId' => 1234, 'slot' => 'main' ] ],
-					'<BASE>',
-					'wd',
-					'',
-					''
-				),
-				new EntitySource(
-					'foo',
-					'otherbd',
-					[ 'property' => [ 'namespaceId' => 4321, 'slot' => 'main' ] ],
-					'<BASE-foo>',
-					'other',
-					'other',
-					''
-				),
+				new EntitySource( 'local', 'localdb', [ 'item' => [ 'namespaceId' => 1234, 'slot' => 'main' ] ], '<BASE>', 'wd', '', '' ),
+				new EntitySource( 'foo', 'otherbd', [ 'property' => [ 'namespaceId' => 4321, 'slot' => 'main' ] ], '<BASE-foo>', 'other', 'other', '' ),
 			], new EntityTypeDefinitions( [] ) ),
 			'local',
 			[ 'localwiki' => 'wd', 'otherwiki' => 'other' ],
@@ -64,24 +48,8 @@ class RdfVocabularyTest extends \PHPUnit\Framework\TestCase {
 			[ 'local' => '<BASE>', 'foo' => '<BASE-foo>' ],
 			[ 'foo' => '<DATA-foo>' ],
 			new EntitySourceDefinitions( [
-				new EntitySource(
-					'local',
-					'localdb',
-					[ 'item' => [ 'namespaceId' => 1234, 'slot' => 'main' ] ],
-					'<BASE>',
-					'wd',
-					'',
-					''
-				),
-				new EntitySource(
-					'foo',
-					'otherbd',
-					[ 'property' => [ 'namespaceId' => 4321, 'slot' => 'main' ] ],
-					'<BASE-foo>',
-					'other',
-					'other',
-					''
-				),
+				new EntitySource( 'local', 'localdb', [ 'item' => [ 'namespaceId' => 1234, 'slot' => 'main' ] ], '<BASE>', 'wd', '', '' ),
+				new EntitySource( 'foo', 'otherbd', [ 'property' => [ 'namespaceId' => 4321, 'slot' => 'main' ] ], '<BASE-foo>', 'other', 'other', '' ),
 			], new EntityTypeDefinitions( [] ) ),
 			'local',
 			[ 'localwiki' => 'wd', 'otherwiki' => 'other' ],

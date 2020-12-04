@@ -3,7 +3,6 @@
 namespace Wikibase\Repo\Tests\ParserOutput;
 
 use Language;
-use MediaWikiIntegrationTestCase;
 use NullStatsdDataFactory;
 use RepoGroup;
 use Serializers\Serializer;
@@ -12,11 +11,13 @@ use Wikibase\Lib\Formatters\CachingKartographerEmbeddingHandler;
 use Wikibase\Lib\LanguageFallbackChainFactory;
 use Wikibase\Lib\Store\EntityTitleLookup;
 use Wikibase\Repo\EntityReferenceExtractors\EntityReferenceExtractorDelegator;
+use Wikibase\Repo\FederatedProperties\FederatedPropertiesEntityParserOutputGenerator;
 use Wikibase\Repo\LinkedData\EntityDataFormatProvider;
 use Wikibase\Repo\ParserOutput\DispatchingEntityMetaTagsCreatorFactory;
 use Wikibase\Repo\ParserOutput\DispatchingEntityViewFactory;
 use Wikibase\Repo\ParserOutput\EntityParserOutputGenerator;
 use Wikibase\Repo\ParserOutput\EntityParserOutputGeneratorFactory;
+use Wikibase\Repo\WikibaseRepo;
 use Wikibase\View\Template\TemplateFactory;
 
 /**
@@ -28,7 +29,7 @@ use Wikibase\View\Template\TemplateFactory;
  * @license GPL-2.0-or-later
  * @author Katie Filbert < aude.wiki@gmail.com >
  */
-class EntityParserOutputGeneratorFactoryTest extends MediaWikiIntegrationTestCase {
+class EntityParserOutputGeneratorFactoryTest extends \MediaWikiTestCase {
 
 	public function testGetEntityParserOutputGenerator() {
 		$parserOutputGeneratorFactory = $this->getEntityParserOutputGeneratorFactory();
@@ -36,6 +37,16 @@ class EntityParserOutputGeneratorFactoryTest extends MediaWikiIntegrationTestCas
 		$instance = $parserOutputGeneratorFactory->getEntityParserOutputGenerator( Language::factory( 'en' ) );
 
 		$this->assertInstanceOf( EntityParserOutputGenerator::class, $instance );
+	}
+
+	public function testGetFederatedPropertiesEntityParserOutputGenerator() {
+		$settings = WikibaseRepo::getDefaultInstance()->getSettings();
+		$settings->setSetting( 'federatedPropertiesEnabled', true );
+
+		$parserOutputGeneratorFactory = $this->getEntityParserOutputGeneratorFactory();
+		$instance = $parserOutputGeneratorFactory->getEntityParserOutputGenerator( Language::factory( 'en' ) );
+
+		$this->assertInstanceOf( FederatedPropertiesEntityParserOutputGenerator::class, $instance );
 	}
 
 	private function getEntityParserOutputGeneratorFactory() {

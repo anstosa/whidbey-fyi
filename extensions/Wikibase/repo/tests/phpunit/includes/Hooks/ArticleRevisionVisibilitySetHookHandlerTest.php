@@ -37,17 +37,20 @@ class ArticleRevisionVisibilitySetHookHandlerTest extends \PHPUnit\Framework\Tes
 		$repoRevision24IdentifierArray = ( new RepoRevisionIdentifier(
 			'Q44801',
 			$this->getMwTimestamp(),
-			24
+			24,
+			23
 		) )->toArray();
 		$repoRevision25IdentifierArray = ( new RepoRevisionIdentifier(
 			'Q44802',
 			$this->getMwTimestamp(),
-			25
+			25,
+			24
 		) )->toArray();
 		$repoRevision26IdentifierArray = ( new RepoRevisionIdentifier(
 			'Q44803',
 			$this->getMwTimestamp(),
-			26
+			26,
+			25
 		) )->toArray();
 		$visibilityChangeMap = [
 			12 =>
@@ -58,6 +61,14 @@ class ArticleRevisionVisibilitySetHookHandlerTest extends \PHPUnit\Framework\Tes
 			];
 
 		return [
+			'No jobs dispatched: Propagation disabled' => [
+				'expectedJobs' => null,
+				'revisionIds' => [ 12 ],
+				'visibilityChangeMap' => $visibilityChangeMap,
+				'isEntityNamespace' => true,
+				'batchSize' => 12,
+				'propagateChangeVisibility' => false,
+			],
 			'No jobs dispatched: Non-entity namespace' => [
 				'expectedJobs' => null,
 				'revisionIds' => [ 12 ],
@@ -183,7 +194,8 @@ class ArticleRevisionVisibilitySetHookHandlerTest extends \PHPUnit\Framework\Tes
 		array $revisionIds,
 		array $visibilityChangeMap,
 		bool $isEntityNamespace = true,
-		int $batchSize = 3
+		int $batchSize = 3,
+		bool $propagateChangeVisibility = true
 	) {
 		$wikiIds = [ 'dummywiki', 'another_wiki' ];
 		$jobQueueGroupFactoryCallCount = 0;
@@ -195,6 +207,7 @@ class ArticleRevisionVisibilitySetHookHandlerTest extends \PHPUnit\Framework\Tes
 			$this->newTitleFactory(),
 			$wikiIds,
 			$this->newJobQueueGroupFactory( $jobQueueGroupFactoryCallCount, $wikiIds, $expectedJobParams ),
+			$propagateChangeVisibility,
 			86400,
 			$batchSize
 		);
@@ -208,6 +221,13 @@ class ArticleRevisionVisibilitySetHookHandlerTest extends \PHPUnit\Framework\Tes
 		$this->assertSame(
 			$expectedJobParams !== null ? count( $wikiIds ) : 0,
 			$jobQueueGroupFactoryCallCount
+		);
+	}
+
+	public function testNewFromGlobalState() {
+		$this->assertInstanceOf(
+			ArticleRevisionVisibilitySetHookHandler::class,
+			ArticleRevisionVisibilitySetHookHandler::newFromGlobalState()
 		);
 	}
 
@@ -294,6 +314,7 @@ class ArticleRevisionVisibilitySetHookHandlerTest extends \PHPUnit\Framework\Tes
 					$revisionRecord->setTimestamp( '20050504121300' );
 				}
 				$revisionRecord->setId( 12 + $id );
+				$revisionRecord->setParentId( 11 + $id );
 				$revisionRecord->setPageId( 43789 + $id );
 
 				return $revisionRecord;

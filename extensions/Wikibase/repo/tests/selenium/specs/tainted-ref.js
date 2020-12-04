@@ -1,5 +1,3 @@
-'use strict';
-
 const WikibaseApi = require( 'wdio-wikibase/wikibase.api' );
 const Util = require( 'wdio-mediawiki/Util' );
 const EntityPage = require( 'wdio-wikibase/pageobjects/entity.page' );
@@ -56,7 +54,7 @@ describe( 'the Tainted icon', () => {
 		ItemPage.clickEditOnStatement( 0, propertyId );
 
 		assert(
-			ItemPage.taintedRefIcon.waitForExist( { timeout: 500, reverse: true } ),
+			ItemPage.taintedRefIcon.waitForExist( 500, true ),
 			'Tainted Icon should not be visible on entering edit mode'
 		);
 

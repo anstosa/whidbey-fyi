@@ -1,7 +1,6 @@
 {
 	"@metadata": {
 		"authors": [
-			"Cnii",
 			"Flixtey",
 			"Mybluberet"
 		]
@@ -9,6 +8,5 @@
 	"wikibase-edit": "tsakemɔ",
 	"wikibase-add": "Kɛfata he",
 	"wikibase-description-empty": "Ahako su",
-	"wikibase-sitelinks-special": "Hei krokomɛi",
-	"wikibase-federated-properties-edit-request-failed-notice-try-again": "Kaa ekoŋŋ"
+	"wikibase-sitelinks-special": "Hei krokomɛi"
 }

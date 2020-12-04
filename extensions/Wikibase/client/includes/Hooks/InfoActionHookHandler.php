@@ -82,7 +82,7 @@ class InfoActionHookHandler implements InfoActionHook {
 		$this->descriptionLookup = $descriptionLookup;
 	}
 
-	public static function factory(): self {
+	public static function newFromGlobalState(): self {
 		$wikibaseClient = WikibaseClient::getDefaultInstance();
 		$settings = $wikibaseClient->getSettings();
 
@@ -246,9 +246,12 @@ class InfoActionHookHandler implements InfoActionHook {
 	private function formatEntityUsage( IContextSource $context, array $usage ) {
 		$usageAspectsByEntity = [];
 		$entities = [];
-		foreach ( $usage as $entityUsage ) {
+		foreach ( $usage as $key => $entityUsage ) {
 			$entityId = $entityUsage->getEntityId()->getSerialization();
 			$entities[$entityId] = $entityUsage->getEntityId();
+			if ( !isset( $usageAspectsByEntity[$entityId] ) ) {
+				$usageAspectsByEntity[$entityId] = [];
+			}
 			$usageAspectsByEntity[$entityId][] = [
 				$entityUsage->getAspect(),
 				$entityUsage->getModifier()

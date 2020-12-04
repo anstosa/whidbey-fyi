@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Tests\Api;
 
 use ApiUsageException;
@@ -325,7 +323,7 @@ class SetAliasesTest extends ModifyTermTestCase {
 			$userWithAllPermissions
 		);
 
-		$this->assertSame( 1, $result['success'] );
+		$this->assertEquals( 1, $result['success'] );
 	}
 
 	public function testUserCannotSetAliasesWhenTheyLackPermission() {
@@ -352,7 +350,10 @@ class SetAliasesTest extends ModifyTermTestCase {
 		$user->removeGroup( 'all-permission' );
 		$user->addGroup( 'no-permission' );
 
-		MediaWikiServices::getInstance()->getPermissionManager()->invalidateUsersRightsCache( $user );
+		//TODO: later this can be replaced with PermissionManager::invalidateUsersRightsCache()
+		//	but for now we just reset the service one more time to avoid merge issues with
+		//	https://gerrit.wikimedia.org/r/c/mediawiki/core/+/502484
+		MediaWikiServices::getInstance()->resetServiceForTesting( 'PermissionManager' );
 
 		$this->doTestQueryExceptions(
 			$this->getAddAliasRequestParams( $newItem->getId() ),
@@ -375,7 +376,7 @@ class SetAliasesTest extends ModifyTermTestCase {
 			$userWithAllPermissions
 		);
 
-		$this->assertSame( 1, $result['success'] );
+		$this->assertEquals( 1, $result['success'] );
 		$this->assertSame( 'an alias', $result['entity']['aliases']['en'][0]['value'] );
 	}
 

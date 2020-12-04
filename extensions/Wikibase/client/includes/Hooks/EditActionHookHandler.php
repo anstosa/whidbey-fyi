@@ -57,7 +57,7 @@ class EditActionHookHandler implements EditPage__showStandardInputs_optionsHook 
 		$this->idParser = $idParser;
 	}
 
-	public static function factory(): self {
+	public static function newFromGlobalState(): self {
 		$wikibaseClient = WikibaseClient::getDefaultInstance();
 
 		$usageLookup = $wikibaseClient->getStore()->getUsageLookup();
@@ -107,7 +107,7 @@ class EditActionHookHandler implements EditPage__showStandardInputs_optionsHook 
 	}
 
 	/**
-	 * @param string[][] $rowAspects
+	 * @param string[] $rowAspects
 	 * @param IContextSource $context
 	 *
 	 * @return string HTML
@@ -146,9 +146,12 @@ class EditActionHookHandler implements EditPage__showStandardInputs_optionsHook 
 		$usageAspectsByEntity = [];
 		$entityIds = [];
 
-		foreach ( $usages as $entityUsage ) {
+		foreach ( $usages as $key => $entityUsage ) {
 			$entityId = $entityUsage->getEntityId()->getSerialization();
 			$entityIds[$entityId] = $entityUsage->getEntityId();
+			if ( !isset( $usageAspectsByEntity[$entityId] ) ) {
+				$usageAspectsByEntity[$entityId] = [];
+			}
 			$usageAspectsByEntity[$entityId][] = [
 				$entityUsage->getAspect(),
 				$entityUsage->getModifier()

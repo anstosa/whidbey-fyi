@@ -13,7 +13,6 @@ use MWException;
 use ParserOutput;
 use Revision;
 use Wikibase\Repo\Content\EntityContent;
-use Wikibase\Repo\FederatedProperties\FederatedPropertiesError;
 use Wikibase\Repo\WikibaseRepo;
 use Wikibase\View\ToolbarEditSectionGenerator;
 use WikiPage;
@@ -144,9 +143,6 @@ class EntityContentDiffView extends DifferenceEngine {
 	 */
 	public function generateContentDiffBody( Content $old, Content $new ) {
 		if ( ( $old instanceof EntityContent ) && ( $new instanceof EntityContent ) ) {
-			// add common CSS, the diff may include entity links with labels, including fallback indicators
-			$this->getOutput()->addModuleStyles( [ 'wikibase.common' ] );
-
 			$diff = $old->getDiff( $new );
 			return $this->diffVisualizer->visualizeEntityContentDiff( $diff );
 		} elseif ( ( $old instanceof EntityContent ) !== ( $new instanceof EntityContent ) ) {
@@ -169,11 +165,7 @@ class EntityContentDiffView extends DifferenceEngine {
 		// Do not poison parser cache with diff-specific stuff
 		$parserOptions->addExtraKey( 'diff=1' );
 
-		try {
-			$parserOutput = $page->getParserOutput( $parserOptions, $rev->getId() );
-		} catch ( FederatedPropertiesError $ex ) {
-			$parserOutput = false;
-		}
+		$parserOutput = $page->getParserOutput( $parserOptions, $rev->getId() );
 
 		if ( $parserOutput ) {
 			$parserOutput->setText( ToolbarEditSectionGenerator::enableSectionEditLinks(

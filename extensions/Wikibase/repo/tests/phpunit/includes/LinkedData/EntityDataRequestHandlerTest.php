@@ -9,10 +9,10 @@ use FauxResponse;
 use HashSiteStore;
 use HtmlCacheUpdater;
 use HttpError;
-use MediaWikiIntegrationTestCase;
 use OutputPage;
 use Psr\Log\NullLogger;
 use RequestContext;
+use SiteList;
 use Title;
 use Wikibase\DataAccess\EntitySource;
 use Wikibase\DataAccess\EntitySourceDefinitions;
@@ -22,7 +22,7 @@ use Wikibase\DataModel\SerializerFactory;
 use Wikibase\DataModel\Services\Lookup\InMemoryDataTypeLookup;
 use Wikibase\DataModel\Services\Lookup\PropertyDataTypeLookup;
 use Wikibase\Lib\EntityTypeDefinitions;
-use Wikibase\Repo\Content\EntityContentFactory;
+use Wikibase\Lib\Store\EntityTitleLookup;
 use Wikibase\Repo\LinkedData\EntityDataFormatProvider;
 use Wikibase\Repo\LinkedData\EntityDataRequestHandler;
 use Wikibase\Repo\LinkedData\EntityDataSerializationService;
@@ -41,7 +41,7 @@ use Wikibase\Repo\WikibaseRepo;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class EntityDataRequestHandlerTest extends MediaWikiIntegrationTestCase {
+class EntityDataRequestHandlerTest extends \MediaWikiTestCase {
 
 	/**
 	 * @var Title
@@ -57,8 +57,6 @@ class EntityDataRequestHandlerTest extends MediaWikiIntegrationTestCase {
 		parent::setUp();
 
 		$this->interfaceTitle = Title::newFromText( "Special:EntityDataRequestHandlerTest" );
-		// ensure the namespace name doesn’t get translated
-		$this->setMwGlobals( 'wgLanguageCode', 'qqx' );
 
 		$this->obLevel = ob_get_level();
 	}
@@ -81,8 +79,6 @@ class EntityDataRequestHandlerTest extends MediaWikiIntegrationTestCase {
 	 * @return EntityDataRequestHandler
 	 */
 	protected function newHandler() {
-		global $wgScriptPath;
-
 		$mockRepository = EntityDataTestProvider::getMockRepository();
 
 		$dataTypeLookup = $this->createMock( PropertyDataTypeLookup::class );
@@ -90,16 +86,12 @@ class EntityDataRequestHandlerTest extends MediaWikiIntegrationTestCase {
 			->method( 'getDataTypeIdForProperty' )
 			->will( $this->returnValue( 'string' ) );
 
-		$entityContentFactory = $this->createMock( EntityContentFactory::class );
-		// general EntityTitleLookup interface
-		$entityContentFactory->expects( $this->any() )
+		$titleLookup = $this->createMock( EntityTitleLookup::class );
+		$titleLookup->expects( $this->any() )
 			->method( 'getTitleForId' )
 			->will( $this->returnCallback( function( EntityId $id ) {
 				return Title::newFromText( $id->getEntityType() . ':' . $id->getSerialization() );
 			} ) );
-		// EntityContentFactory-specific method – should be unused since we configure no page props
-		$entityContentFactory->expects( $this->never() )
-			->method( 'newFromEntity' );
 
 		$entityDataFormatProvider = new EntityDataFormatProvider();
 		$serializerFactory = new SerializerFactory(
@@ -115,10 +107,11 @@ class EntityDataRequestHandlerTest extends MediaWikiIntegrationTestCase {
 
 		$service = new EntityDataSerializationService(
 			$mockRepository,
-			$entityContentFactory,
+			$titleLookup,
 			new InMemoryDataTypeLookup(),
 			$rdfBuilder,
 			$wikibaseRepo->getEntityRdfBuilderFactory(),
+			new SiteList(),
 			$entityDataFormatProvider,
 			$serializerFactory,
 			$serializerFactory->newItemSerializer(),
@@ -140,7 +133,8 @@ class EntityDataRequestHandlerTest extends MediaWikiIntegrationTestCase {
 				'test',
 				[ 'test' => 'wd' ],
 				[ 'test' => '' ]
-			)
+			),
+			true
 		);
 
 		$entityDataFormatProvider->setAllowedFormats(
@@ -174,12 +168,7 @@ class EntityDataRequestHandlerTest extends MediaWikiIntegrationTestCase {
 		$uriManager = new EntityDataUriManager(
 			$this->interfaceTitle,
 			$extensions,
-			[
-				// “Special” needs no translation because we override the content language
-				$wgScriptPath . '/index.php?title=Special:EntityDataRequestHandlerTest' .
-				'/{entity_id}.json&revision={revision_id}',
-			],
-			$entityContentFactory
+			$titleLookup
 		);
 		$mockHtmlCacheUpdater = $this->createMock( HtmlCacheUpdater::class );
 
@@ -188,7 +177,8 @@ class EntityDataRequestHandlerTest extends MediaWikiIntegrationTestCase {
 		$handler = new EntityDataRequestHandler(
 			$uriManager,
 			$mockHtmlCacheUpdater,
-			WikibaseRepo::getEntityIdParser(),
+			$titleLookup,
+			$wikibaseRepo->getEntityIdParser(),
 			$mockRepository,
 			$mockRepository,
 			$service,
@@ -213,7 +203,6 @@ class EntityDataRequestHandlerTest extends MediaWikiIntegrationTestCase {
 	protected function makeOutputPage( array $params, array $headers ) {
 		// construct request
 		$request = new FauxRequest( $params );
-		$request->setRequestURL( 'https://repo.example/wiki/Special:EntityData/Q1.ttl' );
 		$request->response()->header( 'Status: 200 OK', true, 200 ); // init/reset
 
 		foreach ( $headers as $name => $value ) {
@@ -360,50 +349,6 @@ class EntityDataRequestHandlerTest extends MediaWikiIntegrationTestCase {
 			$output->getRedirect(),
 			'redirect target'
 		);
-	}
-
-	public function testCacheHeaderIsSetWithRevision() {
-		$params = [ 'revision' => EntityDataTestProvider::ITEM_REVISION_ID ];
-		$subpage = 'Q42.json';
-		$output = $this->makeOutputPage( $params, [] );
-		/** @var FauxRequest $request */
-		$request = $output->getRequest();
-		'@phan-var FauxRequest $request';
-		$request->setRequestUrl(
-			$this->interfaceTitle->getSubpage( $subpage )->getLocalURL( $params ) );
-
-		/** @var FauxResponse $response */
-		$response = $request->response();
-
-		$handler = $this->newHandler();
-		ob_start();
-		$handler->handleRequest( $subpage, $request, $output );
-		ob_end_clean();
-
-		$this->assertStringContainsString( 'public', $response->getHeader( 'Cache-Control' ) );
-	}
-
-	public function testCacheHeaderIsNotSetWithoutRevision() {
-		$params = [];
-		$subpage = 'Q42.json';
-		$output = $this->makeOutputPage( $params, [] );
-		$request = $output->getRequest();
-		/** @var FauxRequest $request */
-		$request = $output->getRequest();
-		'@phan-var FauxRequest $request';
-		$request->setRequestUrl(
-			$this->interfaceTitle->getSubpage( $subpage )->getLocalURL( $params ) );
-
-		/** @var FauxResponse $response */
-		$response = $request->response();
-
-		$handler = $this->newHandler();
-		ob_start();
-		$handler->handleRequest( $subpage, $request, $output );
-		ob_end_clean();
-
-		$this->assertStringContainsString( 'no-cache', $response->getHeader( 'Cache-Control' ) );
-		$this->assertStringContainsString( 'private', $response->getHeader( 'Cache-Control' ) );
 	}
 
 	//TODO: test canHandleRequest

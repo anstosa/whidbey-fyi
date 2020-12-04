@@ -8,6 +8,7 @@ use ApiBase;
 use ApiQuery;
 use ApiQueryBase;
 use ApiResult;
+use MediaWiki\MediaWikiServices;
 use SiteLookup;
 use stdClass;
 use Wikibase\DataModel\Entity\EntityIdParser;
@@ -61,20 +62,16 @@ class ListSubscribers extends ApiQueryBase {
 		$this->siteLookup = $siteLookup;
 	}
 
-	public static function factory(
-		ApiQuery $apiQuery,
-		string $moduleName,
-		SiteLookup $siteLookup,
-		EntityIdParser $entityIdParser
-	): self {
+	public static function newFromGlobalState( ApiQuery $apiQuery, string $moduleName ): self {
 		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
+		$mediaWikiServices = MediaWikiServices::getInstance();
 		$apiHelper = $wikibaseRepo->getApiHelperFactory( $apiQuery->getContext() );
 		return new self(
 			$apiQuery,
 			$moduleName,
 			$apiHelper->getErrorReporter( $apiQuery ),
-			$entityIdParser,
-			$siteLookup
+			$wikibaseRepo->getEntityIdParser(),
+			$mediaWikiServices->getSiteLookup()
 		);
 	}
 

@@ -7,7 +7,7 @@ use DataValues\TimeValue;
 use ValueParsers\ParseException;
 use ValueParsers\ParserOptions;
 use ValueParsers\StringValueParser;
-use Wikimedia\AtEase\AtEase;
+use Wikimedia;
 
 /**
  * This parser is in essence the inverse operation of MediaWiki's Language::sprintfDate.
@@ -339,9 +339,9 @@ class DateFormatParser extends StringValueParser {
 	private function parseDate( $input ) {
 		$pattern = $this->parseDateFormat( $this->getDateFormat() );
 
-		AtEase::suppressWarnings();
+		Wikimedia\suppressWarnings();
 		$success = preg_match( $pattern, $input, $matches );
-		AtEase::restoreWarnings();
+		Wikimedia\restoreWarnings();
 
 		if ( !$success ) {
 			throw new ParseException(

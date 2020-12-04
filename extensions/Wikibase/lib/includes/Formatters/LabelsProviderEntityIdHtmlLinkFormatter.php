@@ -52,7 +52,7 @@ class LabelsProviderEntityIdHtmlLinkFormatter extends EntityIdLabelFormatter {
 	/**
 	 * @var NonExistingEntityIdHtmlFormatter
 	 */
-	private $nonExistingEntityIdHtmlFormatter;
+	private $nonExistingFormatter;
 
 	public function __construct(
 		LabelDescriptionLookup $labelDescriptionLookup,
@@ -64,14 +64,11 @@ class LabelsProviderEntityIdHtmlLinkFormatter extends EntityIdLabelFormatter {
 	) {
 		parent::__construct( $labelDescriptionLookup );
 		$this->languageFallbackIndicator = new LanguageFallbackIndicator( $languageNameLookup );
+		$this->nonExistingFormatter = new NonExistingEntityIdHtmlFormatter( 'wikibase-deletedentity-' );
 		$this->entityExistenceChecker = $entityExistenceChecker;
 		$this->entityTitleTextLookup = $entityTitleTextLookup;
 		$this->entityUrlLookup = $entityUrlLookup;
 		$this->entityRedirectChecker = $entityRedirectChecker;
-		$this->nonExistingEntityIdHtmlFormatter = new NonExistingEntityIdHtmlFormatterLinker(
-			$this->entityTitleTextLookup,
-			$this->entityUrlLookup
-		);
 	}
 
 	/**
@@ -85,19 +82,15 @@ class LabelsProviderEntityIdHtmlLinkFormatter extends EntityIdLabelFormatter {
 		$term = $this->lookupEntityLabel( $entityId );
 
 		// We can skip the potentially expensive exists() check if we found a term.
-		if ( $term === null && !$this->entityExistenceChecker->exists( $entityId ) ) {
-			return $this->nonExistingEntityIdHtmlFormatter->formatEntityId( $entityId );
-		}
-
-		if ( $term === null ) {
-			$label = $entityId->getSerialization();
-		} else {
+		if ( $term !== null ) {
 			$label = $term->getText();
+		} elseif ( !$this->entityExistenceChecker->exists( $entityId ) ) {
+			return $this->nonExistingFormatter->formatEntityId( $entityId );
+		} else {
+			$label = $entityId->getSerialization();
 		}
 
-		$linkAttribs = $this->getAttributes( $entityId, $term );
-
-		$html = Html::element( 'a', $linkAttribs, $label );
+		$html = Html::element( 'a', $this->getAttributes( $entityId, $term ), $label );
 
 		if ( $term instanceof TermFallback ) {
 			$html .= $this->languageFallbackIndicator->getHtml( $term );

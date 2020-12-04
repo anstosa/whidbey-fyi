@@ -4,7 +4,7 @@ declare( strict_types = 1 );
 namespace Wikibase\Lib\Tests\Store\Sql;
 
 use InvalidArgumentException;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use Wikibase\DataModel\Entity\Property;
 use Wikibase\DataModel\Entity\PropertyId;
 use Wikibase\DataModel\Services\EntityId\EntityIdComposer;
@@ -23,7 +23,7 @@ use Wikibase\Lib\WikibaseSettings;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class PropertyInfoTableTest extends MediaWikiIntegrationTestCase {
+class PropertyInfoTableTest extends MediaWikiTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -89,10 +89,7 @@ class PropertyInfoTableTest extends MediaWikiIntegrationTestCase {
 		$this->assertSame(
 			[
 				'P123' => [ PropertyInfoLookup::KEY_DATA_TYPE => 'string', 'foo' => 'bar' ],
-				'P456' => [
-					PropertyInfoLookup::KEY_DATA_TYPE => 'external-id',
-					PropertyInfoLookup::KEY_FORMATTER_URL => 'http://foo.bar/$1'
-				],
+				'P456' => [ PropertyInfoLookup::KEY_DATA_TYPE => 'external-id', PropertyInfoLookup::KEY_FORMATTER_URL => 'http://foo.bar/$1' ],
 			],
 			$table->getAllPropertyInfo()
 		);
@@ -121,10 +118,7 @@ class PropertyInfoTableTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertSame(
 			[
-				'P456' => [
-					PropertyInfoLookup::KEY_DATA_TYPE => 'external-id',
-					PropertyInfoLookup::KEY_FORMATTER_URL => 'http://foo.bar/$1'
-				],
+				'P456' => [ PropertyInfoLookup::KEY_DATA_TYPE => 'external-id', PropertyInfoLookup::KEY_FORMATTER_URL => 'http://foo.bar/$1' ],
 			],
 			$table->getPropertyInfoForDataType( 'external-id' )
 		);

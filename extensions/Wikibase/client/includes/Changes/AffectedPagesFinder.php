@@ -1,14 +1,10 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Client\Changes;
 
 use ArrayIterator;
 use InvalidArgumentException;
-use MediaWiki\Cache\LinkBatchFactory;
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 use Title;
 use TitleFactory;
 use Traversable;
@@ -17,6 +13,7 @@ use Wikibase\Client\Usage\EntityUsage;
 use Wikibase\Client\Usage\PageEntityUsages;
 use Wikibase\Client\Usage\UsageAspectTransformer;
 use Wikibase\Client\Usage\UsageLookup;
+use Wikibase\Client\WikibaseClient;
 use Wikibase\DataModel\Entity\EntityId;
 use Wikibase\Lib\Changes\Change;
 use Wikibase\Lib\Changes\EntityChange;
@@ -39,18 +36,10 @@ class AffectedPagesFinder {
 	 */
 	private $titleFactory;
 
-	/** @var LinkBatchFactory */
-	private $linkBatchFactory;
-
 	/**
 	 * @var string
 	 */
 	private $siteId;
-
-	/**
-	 * @var LoggerInterface
-	 */
-	private $logger;
 
 	/**
 	 * @var bool
@@ -58,11 +47,14 @@ class AffectedPagesFinder {
 	private $checkPageExistence;
 
 	/**
+	 * @var LoggerInterface
+	 */
+	private $logger;
+
+	/**
 	 * @param UsageLookup $usageLookup
 	 * @param TitleFactory $titleFactory
-	 * @param LinkBatchFactory $linkBatchFactory
 	 * @param string $siteId
-	 * @param LoggerInterface|null $logger
 	 * @param bool $checkPageExistence To disable slow filtering that is not relevant in test
 	 *  scenarios. Not meant to be used in production!
 	 *
@@ -71,17 +63,23 @@ class AffectedPagesFinder {
 	public function __construct(
 		UsageLookup $usageLookup,
 		TitleFactory $titleFactory,
-		LinkBatchFactory $linkBatchFactory,
-		string $siteId,
-		?LoggerInterface $logger = null,
-		bool $checkPageExistence = true
+		$siteId,
+		$checkPageExistence = true
 	) {
+		if ( !is_string( $siteId ) ) {
+			throw new InvalidArgumentException( '$siteId must be a string' );
+		}
+
+		if ( !is_bool( $checkPageExistence ) ) {
+			throw new InvalidArgumentException( '$checkPageExistence must be a boolean' );
+		}
+
 		$this->usageLookup = $usageLookup;
 		$this->titleFactory = $titleFactory;
-		$this->linkBatchFactory = $linkBatchFactory;
 		$this->siteId = $siteId;
-		$this->logger = $logger ?: new NullLogger();
 		$this->checkPageExistence = $checkPageExistence;
+		// TODO inject me
+		$this->logger = WikibaseClient::getDefaultInstance()->getLogger();
 	}
 
 	/**
@@ -194,8 +192,6 @@ class AffectedPagesFinder {
 	 * @param EntityChange $change
 	 *
 	 * @return Traversable of PageEntityUsages
-	 *
-	 * @see @ref md_docs_topics_usagetracking for details about virtual usages
 	 */
 	private function getAffectedPages( EntityChange $change ) {
 		$entityId = $change->getEntityId();
@@ -208,9 +204,10 @@ class AffectedPagesFinder {
 			array_merge( $changedAspects, [ EntityUsage::ALL_USAGE ] )
 		);
 
+		// @todo: use iterators throughout!
+		$usages = iterator_to_array( $usages, true );
 		$usages = $this->transformAllPageEntityUsages( $usages, $entityId, $changedAspects );
 
-		// if title changed, add virtual usages for both old and new title
 		if ( $change instanceof ItemChange && in_array( EntityUsage::TITLE_USAGE, $changedAspects ) ) {
 			$diffChangedAspects = $change->getCompactDiff();
 			$namesFromDiff = $this->getPagesReferencedInDiff(
@@ -229,17 +226,17 @@ class AffectedPagesFinder {
 			$mergedUsages = [];
 			$this->mergeUsagesInto( $usages, $mergedUsages );
 			$this->mergeUsagesInto( $usagesFromDiff, $mergedUsages );
-			$usages = new ArrayIterator( $mergedUsages );
+			$usages = $mergedUsages;
 		}
 
-		return $usages;
+		return new ArrayIterator( $usages );
 	}
 
 	/**
-	 * @param iterable<PageEntityUsages> $from
+	 * @param PageEntityUsages[] $from
 	 * @param PageEntityUsages[] &$into Array to merge into
 	 */
-	private function mergeUsagesInto( iterable $from, array &$into ) {
+	private function mergeUsagesInto( array $from, array &$into ) {
 		foreach ( $from as $pageEntityUsages ) {
 			$key = $pageEntityUsages->getPageId();
 
@@ -282,29 +279,25 @@ class AffectedPagesFinder {
 	}
 
 	/**
-	 * Filters updates. This removes duplicates and non-existing pages.
+	 * Filters updates based on namespace. This removes duplicates, non-existing pages, and pages from
+	 * namespaces that are not considered "enabled" by the namespace checker.
 	 *
 	 * @param Traversable $usages A traversable of PageEntityUsages.
 	 *
 	 * @return PageEntityUsages[]
 	 */
 	private function filterUpdates( Traversable $usages ) {
-		$usagesByPageId = [];
+		$titlesToUpdate = [];
 
 		/** @var PageEntityUsages $pageEntityUsages */
 		foreach ( $usages as $pageEntityUsages ) {
-			$usagesByPageId[$pageEntityUsages->getPageId()] = $pageEntityUsages;
-		}
-
-		$titlesToUpdate = [];
-
-		foreach ( $this->titleFactory->newFromIDs( array_keys( $usagesByPageId ) ) as $title ) {
-			if ( $this->checkPageExistence && !$title->exists() ) {
+			$title = $this->titleFactory->newFromID( $pageEntityUsages->getPageId() );
+			if ( !$title || ( $this->checkPageExistence && !$title->exists() ) ) {
 				continue;
 			}
 
-			$pageId = $title->getArticleID();
-			$titlesToUpdate[$pageId] = $usagesByPageId[$pageId];
+			$key = $pageEntityUsages->getPageId();
+			$titlesToUpdate[$key] = $pageEntityUsages;
 		}
 
 		return $titlesToUpdate;
@@ -342,9 +335,6 @@ class AffectedPagesFinder {
 			$usagesForItem[] = new EntityUsage( $entityId, $aspect, $modifier );
 		}
 
-		// bulk-load the page IDs into the LinkCache
-		$this->linkBatchFactory->newLinkBatch( $titles )->execute();
-
 		$usagesPerPage = [];
 		foreach ( $titles as $title ) {
 			$pageId = $title->getArticleID();
@@ -365,23 +355,27 @@ class AffectedPagesFinder {
 	}
 
 	/**
-	 * @param iterable<PageEntityUsages> $usages
+	 * @param PageEntityUsages[] $usages
 	 * @param EntityId $entityId
 	 * @param string[] $changedAspects
 	 *
-	 * @return iterable<PageEntityUsages>
+	 * @return PageEntityUsages[]
 	 */
-	private function transformAllPageEntityUsages( iterable $usages, EntityId $entityId, array $changedAspects ): iterable {
+	private function transformAllPageEntityUsages( array $usages, EntityId $entityId, array $changedAspects ) {
 		$aspectTransformer = new UsageAspectTransformer();
 		$aspectTransformer->setRelevantAspects( $entityId, $changedAspects );
+
+		$transformed = [];
 
 		foreach ( $usages as $key => $usagesOnPage ) {
 			$transformedUsagesOnPage = $aspectTransformer->transformPageEntityUsages( $usagesOnPage );
 
 			if ( !$transformedUsagesOnPage->isEmpty() ) {
-				yield $key => $transformedUsagesOnPage;
+				$transformed[$key] = $transformedUsagesOnPage;
 			}
 		}
+
+		return $transformed;
 	}
 
 }

@@ -58,7 +58,7 @@ class SpecialAvailableBadges extends SpecialWikibasePage {
 		$this->languageFallbackChainFactory = $languageFallbackChainFactory;
 	}
 
-	public static function factory(): self {
+	public static function newFromGlobalState(): self {
 		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
 
 		return new self(

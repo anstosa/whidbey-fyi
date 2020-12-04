@@ -121,7 +121,7 @@ class SpecialSetSiteLink extends SpecialModifyEntity {
 		$this->siteLinkChangeOpFactory = $siteLinkChangeOpFactory;
 	}
 
-	public static function factory(): self {
+	public static function newFromGlobalState(): self {
 		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
 		$siteLookup = $wikibaseRepo->getSiteLookup();
 		$settings = $wikibaseRepo->getSettings();

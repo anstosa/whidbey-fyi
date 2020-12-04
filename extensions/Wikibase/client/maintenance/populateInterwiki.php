@@ -5,7 +5,6 @@ namespace Wikibase;
 use BagOStuff;
 use Maintenance;
 use MediaWiki\MediaWikiServices;
-use ObjectCache;
 
 $basePath = getenv( 'MW_INSTALL_PATH' ) !== false
 	? getenv( 'MW_INSTALL_PATH' )
@@ -58,7 +57,7 @@ TEXT
 		$force = $this->getOption( 'force', false );
 		$this->source = $this->getOption( 'source', 'https://en.wikipedia.org/w/api.php' );
 
-		$this->cache = ObjectCache::getLocalClusterInstance();
+		$this->cache = wfGetMainCache();
 
 		$data = $this->fetchLinks();
 
@@ -155,7 +154,7 @@ TEXT
 	 * @param string $prefix
 	 */
 	private function clearCacheEntry( $prefix ) {
-		$key = $this->cache->makeKey( 'interwiki', $prefix );
+		$key = wfMemcKey( 'interwiki', $prefix );
 		$this->cache->delete( $key );
 	}
 

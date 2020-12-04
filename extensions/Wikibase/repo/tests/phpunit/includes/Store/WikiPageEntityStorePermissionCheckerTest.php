@@ -4,7 +4,6 @@ namespace Wikibase\Repo\Tests\Store;
 
 use InvalidArgumentException;
 use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
 use Title;
 use TitleValue;
 use Wikibase\DataModel\Entity\EntityDocument;
@@ -27,7 +26,7 @@ use Wikibase\Repo\Store\WikiPageEntityStorePermissionChecker;
  *
  * @license GPL-2.0-or-later
  */
-class WikiPageEntityStorePermissionCheckerTest extends MediaWikiIntegrationTestCase {
+class WikiPageEntityStorePermissionCheckerTest extends \MediaWikiTestCase {
 
 	const EXISTING_ITEM_ID = 'Q2';
 	const NON_EXISTING_ITEM_ID = 'Q3';

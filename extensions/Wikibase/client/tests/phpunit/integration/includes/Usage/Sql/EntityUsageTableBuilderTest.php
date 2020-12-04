@@ -2,7 +2,6 @@
 
 namespace Wikibase\Client\Tests\Integration\Usage\Sql;
 
-use MediaWikiIntegrationTestCase;
 use Onoi\MessageReporter\MessageReporter;
 use PHPUnit\Framework\MockObject\Matcher\Invocation;
 use Wikibase\Client\Usage\Sql\EntityUsageTable;
@@ -23,7 +22,7 @@ use Wikibase\Lib\Tests\Store\Sql\Terms\Util\FakeLoadBalancer;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class EntityUsageTableBuilderTest extends MediaWikiIntegrationTestCase {
+class EntityUsageTableBuilderTest extends \MediaWikiTestCase {
 
 	protected function setUp(): void {
 		$this->tablesUsed[] = EntityUsageTable::DEFAULT_TABLE_NAME;

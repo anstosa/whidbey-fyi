@@ -6,7 +6,7 @@ use ContextSource;
 use ExtensionRegistry;
 use HtmlArmor;
 use Language;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use MWException;
 use RawMessage;
 use SearchResult;
@@ -17,13 +17,14 @@ use Wikibase\DataModel\Entity\ItemId;
 use Wikibase\DataModel\Services\Lookup\EntityLookup;
 use Wikibase\DataModel\SiteLink;
 use Wikibase\DataModel\Snak\PropertyNoValueSnak;
-use Wikibase\Lib\LanguageFallbackChainFactory;
+use Wikibase\Lib\LanguageFallbackChain;
 use Wikibase\Lib\Store\EntityIdLookup;
 use Wikibase\Lib\Store\EntityTitleTextLookup;
 use Wikibase\Lib\Store\RevisionedUnresolvedRedirectException;
-use Wikibase\Lib\TermLanguageFallbackChain;
 use Wikibase\Repo\Content\EntityContentFactory;
+use Wikibase\Repo\Hooks\Formatters\DefaultEntityLinkFormatter;
 use Wikibase\Repo\Hooks\ShowSearchHitHandler;
+use Wikimedia\TestingAccessWrapper;
 
 /**
  * @covers \Wikibase\Repo\Hooks\ShowSearchHitHandler
@@ -33,7 +34,7 @@ use Wikibase\Repo\Hooks\ShowSearchHitHandler;
  * @license GPL-2.0-or-later
  * @author Matěj Suchánek
  */
-class ShowSearchHitHandlerTest extends MediaWikiIntegrationTestCase {
+class ShowSearchHitHandlerTest extends MediaWikiTestCase {
 
 	/**
 	 * Test cases that should be covered:
@@ -53,7 +54,9 @@ class ShowSearchHitHandlerTest extends MediaWikiIntegrationTestCase {
 	 * @throws MWException
 	 */
 	private function getSearchPage( $language ) {
-		$searchPage = $this->createMock( SpecialSearch::class );
+		$searchPage = $this->getMockBuilder( SpecialSearch::class )
+			->disableOriginalConstructor()
+			->getMock();
 		$searchPage->method( 'msg' )
 			->willReturnCallback(
 				function ( ...$args ) {
@@ -63,11 +66,13 @@ class ShowSearchHitHandlerTest extends MediaWikiIntegrationTestCase {
 		$searchPage->method( 'getLanguage' )
 			->willReturn( Language::factory( $language ) );
 
-		$context = $this->createMock( ContextSource::class );
+		$context = $this->getMockBuilder( ContextSource::class )
+			->disableOriginalConstructor()
+			->getMock();
 		$context->method( 'getLanguage' )
 			->willReturn( Language::factory( $language ) );
 		$context->method( 'getUser' )
-			->willReturn( MediaWikiIntegrationTestCase::getTestUser()->getUser() );
+			->willReturn( MediaWikiTestCase::getTestUser()->getUser() );
 
 		$searchPage->method( 'getContext' )->willReturn( $context );
 
@@ -102,8 +107,7 @@ class ShowSearchHitHandlerTest extends MediaWikiIntegrationTestCase {
 		$redirect = $section = $score = $size = $date = $related = $html = '';
 		$searchResult = $this->createMock( SearchResult::class );
 		$searchResult->method( 'getTitle' )->willReturn( Title::newFromText( 'Test', NS_TALK ) );
-		$handler = $this->getShowSearchHitHandler();
-		$handler->onShowSearchHit(
+		ShowSearchHitHandler::onShowSearchHit(
 			$searchPage,
 			$searchResult,
 			[],
@@ -141,31 +145,21 @@ class ShowSearchHitHandlerTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/**
+	 * @param string[] $languages
 	 * @param Item[] $entities
 	 * @param EntityLookup|null $lookup
 	 *
-	 * @param TermLanguageFallbackChain|null $fallbackChain
 	 * @return ShowSearchHitHandler
+	 * @throws MWException
 	 */
-	private function getShowSearchHitHandler(
-		array $entities = [],
-		EntityLookup $lookup = null,
-		TermLanguageFallbackChain $fallbackChain = null
-	) {
+	private function getShowSearchHitHandler( array $languages, array $entities, EntityLookup $lookup = null ) {
 		return new ShowSearchHitHandler(
 			$this->getEntityContentFactory(),
+			$this->getMockFallbackChain( $languages ),
 			$this->getEntityIdLookup(),
 			isset( $lookup ) ? $lookup : $this->getEntityLookup( $entities ),
-			$this->getFallbackChainFactory( $fallbackChain )
+			new DefaultEntityLinkFormatter( Language::factory( 'en' ), $this->getEntityTitleTextLookupMock() )
 		);
-	}
-
-	private function getFallbackChainFactory( TermLanguageFallbackChain $mockChain = null ): LanguageFallbackChainFactory {
-		$factory = $this->createMock( LanguageFallbackChainFactory::class );
-		if ( $mockChain !== null ) {
-			$factory->method( 'newFromContext' )->willReturn( $mockChain );
-		}
-		return $factory;
 	}
 
 	private function getEntityTitleTextLookupMock() {
@@ -174,10 +168,12 @@ class ShowSearchHitHandlerTest extends MediaWikiIntegrationTestCase {
 
 	/**
 	 * @param string[] $languages
-	 * @return TermLanguageFallbackChain
+	 * @return LanguageFallbackChain
 	 */
 	private function getMockFallbackChain( array $languages ) {
-		$mock = $this->createMock( TermLanguageFallbackChain::class );
+		$mock = $this->getMockBuilder( LanguageFallbackChain::class )
+			->disableOriginalConstructor()
+			->getMock();
 		$mock->expects( $this->any() )
 			->method( 'getFetchLanguageCodes' )
 			->will( $this->returnValue( $languages ) );
@@ -284,8 +280,9 @@ class ShowSearchHitHandlerTest extends MediaWikiIntegrationTestCase {
 		$testFile = __DIR__ . '/../../data/searchHits/' . $expected . ".plain.html";
 
 		$entities[$title] = $this->makeItem( $title, $labels );
-
-		$showHandler = $this->getShowSearchHitHandler( $entities, null, $this->getMockFallbackChain( $languages ) );
+		$showHandler = TestingAccessWrapper::newFromObject(
+			$this->getShowSearchHitHandler( $languages, $entities )
+		);
 		$searchPage = $this->getSearchPage( $displayLanguage );
 
 		$searchResult = $this->getSearchResult( $title );
@@ -295,30 +292,30 @@ class ShowSearchHitHandlerTest extends MediaWikiIntegrationTestCase {
 		$redirect = $section = $score = $size = $date = $related = $html = '';
 		$title = "TITLE";
 
-		$showHandler->onShowSearchHit(
-			$searchPage,
-			$searchResult,
-			[],
-			$link,
-			$redirect,
-			$section,
-			$extract,
-			$score,
-			$size,
-			$date,
-			$related,
-			$html
+		$showHandler->__call(
+			'showPlainSearchHit',
+			[
+				$searchPage,
+				$searchResult,
+				[],
+				&$link,
+				&$redirect,
+				&$section,
+				&$extract,
+				&$score,
+				&$size,
+				&$date,
+				&$related,
+				&$html,
+			]
 		);
 
-		$searchTitle = $searchResult->getTitle();
-		$showHandler->onShowSearchHitTitle(
-			$searchTitle,
-			$title,
-			$searchResult,
-			[],
-			$searchPage,
-			$query,
-			$attributes
+		$showHandler->__call(
+			'showPlainSearchTitle',
+			[
+				$searchResult->getTitle(),
+				&$title,
+			]
 		);
 
 		$output = HtmlArmor::getHtml( $title ) . "\n" .
@@ -336,30 +333,37 @@ class ShowSearchHitHandlerTest extends MediaWikiIntegrationTestCase {
 	 */
 	public function testRedirectExceptionsShouldReturnNothing() {
 		$displayLanguage = 'en';
+		$languages = [ $displayLanguage ];
 
 		$lookup = $this->getEntityLookup();
 		$lookup->expects( $this->any() )
 			->method( 'getEntity' )
 			->willThrowException( new RevisionedUnresolvedRedirectException( new ItemId( 'Q1' ), new ItemId( 'Q2' ), "" ) );
-		$showHandler = $this->getShowSearchHitHandler( [], $lookup );
+
+		$showHandler = TestingAccessWrapper::newFromObject(
+			$this->getShowSearchHitHandler( $languages, [], $lookup )
+		);
 
 		$link = '<a>link</a>';
 		$extract = '<span>unaltered extract</span>';
 		$redirect = $section = $score = $size = $date = $related = $html = '';
 
-		$showHandler->onShowSearchHit(
+		$showHandler->__call(
+			'showPlainSearchHit',
+			[
 				$this->getSearchPage( $displayLanguage ),
 				$this->getSearchResult( "TITLE" ),
 				[],
-				$link,
-				$redirect,
-				$section,
-				$extract,
-				$score,
-				$size,
-				$date,
-				$related,
-				$html
+				&$link,
+				&$redirect,
+				&$section,
+				&$extract,
+				&$score,
+				&$size,
+				&$date,
+				&$related,
+				&$html,
+			]
 		);
 		$this->assertSame( '<span>unaltered extract</span>', $extract );
 		$this->assertSame( '', $size );

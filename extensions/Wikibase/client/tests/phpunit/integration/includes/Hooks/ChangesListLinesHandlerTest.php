@@ -4,7 +4,7 @@ namespace Wikibase\Client\Tests\Integration\Hooks;
 
 use EnhancedChangesList;
 use Language;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use OldChangesList;
 use RecentChange;
 use Title;
@@ -24,7 +24,7 @@ use Wikibase\Client\RecentChanges\RecentChangeFactory;
  * @license GPL-2.0-or-later
  * @author Matěj Suchánek
  */
-class ChangesListLinesHandlerTest extends MediaWikiIntegrationTestCase {
+class ChangesListLinesHandlerTest extends MediaWikiTestCase {
 
 	private function getChangeLineFormatter() {
 		return $this->createMock( ChangeLineFormatter::class );

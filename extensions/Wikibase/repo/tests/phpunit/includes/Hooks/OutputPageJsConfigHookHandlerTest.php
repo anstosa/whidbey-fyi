@@ -2,7 +2,7 @@
 
 namespace Wikibase\Repo\Tests\Hooks;
 
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use RequestContext;
 use Title;
 use Wikibase\DataModel\Entity\EntityId;
@@ -20,7 +20,7 @@ use Wikibase\Repo\Hooks\OutputPageJsConfigHookHandler;
  * @author Katie Filbert < aude.wiki@gmail.com >
  * @author Marius Hoch
  */
-class OutputPageJsConfigHookHandlerTest extends MediaWikiIntegrationTestCase {
+class OutputPageJsConfigHookHandlerTest extends MediaWikiTestCase {
 
 	/**
 	 * @dataProvider doOutputPageBeforeHtmlRegisterConfigProvider

@@ -3,7 +3,6 @@
 namespace Wikibase\Client\Tests\Integration;
 
 use InvalidArgumentException;
-use MediaWikiIntegrationTestCase;
 use MWNamespace;
 use Wikibase\Client\NamespaceChecker;
 
@@ -17,7 +16,7 @@ use Wikibase\Client\NamespaceChecker;
  * @author Katie Filbert < aude.wiki@gmail.com >
  * @author Daniel Kinzler
  */
-class NamespaceCheckerTest extends MediaWikiIntegrationTestCase {
+class NamespaceCheckerTest extends \MediaWikiTestCase {
 
 	public function constructorProvider() {
 		return [

@@ -222,11 +222,11 @@ class ItemHandlerTest extends EntityHandlerTestCase {
 		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
 
 		return new ItemHandler(
-			new NullEntityTermStoreWriter(),
+			[ new NullEntityTermStoreWriter() ],
 			$wikibaseRepo->getEntityContentDataCodec(),
 			$wikibaseRepo->getEntityConstraintProvider(),
 			$wikibaseRepo->getValidatorErrorLocalizer(),
-			WikibaseRepo::getEntityIdParser(),
+			$wikibaseRepo->getEntityIdParser(),
 			$wikibaseRepo->getStore()->newSiteLinkStore(),
 			$wikibaseRepo->getEntityIdLookup(),
 			$wikibaseRepo->getLanguageFallbackLabelDescriptionLookupFactory(),

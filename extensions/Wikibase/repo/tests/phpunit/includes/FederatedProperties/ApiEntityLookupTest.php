@@ -3,12 +3,12 @@
 declare( strict_types = 1 );
 namespace Wikibase\Repo\Tests\FederatedProperties;
 
+use GuzzleHttp\Psr7\Response;
 use LogicException;
 use PHPUnit\Framework\TestCase;
 use Wikibase\DataModel\Entity\PropertyId;
 use Wikibase\Repo\FederatedProperties\ApiEntityLookup;
 use Wikibase\Repo\FederatedProperties\GenericActionApiClient;
-use Wikibase\Repo\Tests\HttpResponseMockerTrait;
 use Wikimedia\Assert\ParameterElementTypeException;
 
 /**
@@ -19,8 +19,6 @@ use Wikimedia\Assert\ParameterElementTypeException;
  * @license GPL-2.0-or-later
  */
 class ApiEntityLookupTest extends TestCase {
-
-	use HttpResponseMockerTrait;
 
 	private $responseDataFiles = [
 		'p18-en' => 'api-prefetching-term-lookup-test-data-p18-en.json',
@@ -112,8 +110,8 @@ class ApiEntityLookupTest extends TestCase {
 		$api->expects( $this->exactly( 2 ) )
 			->method( 'get' )
 			->willReturn(
-				$this->newMockResponse( json_encode( $this->data[ $this->responseDataFiles[ 'p18-en' ] ] ), 200 ),
-				$this->newMockResponse( json_encode( $this->data[ $this->responseDataFiles[ 'p31-en-de' ] ] ), 200 )
+				$this->newResponse( $this->responseDataFiles['p18-en'] ),
+				$this->newResponse( $this->responseDataFiles['p31-en-de'] )
 			);
 
 		// Generate a list of 60 ids to fetch, as 50 is the batch size
@@ -139,8 +137,8 @@ class ApiEntityLookupTest extends TestCase {
 				[ $this->getRequestParameters( [ $this->p18 ] ) ]
 			)
 			->willReturnOnConsecutiveCalls(
-				$this->newMockResponse( json_encode( $this->data[ $this->responseDataFiles[ 'p1-missing' ] ] ), 200 ),
-				$this->newMockResponse( json_encode( $this->data[ $this->responseDataFiles[ 'p18-en' ] ] ), 200 )
+				$this->newResponse( $this->responseDataFiles['p1-missing'] ),
+				$this->newResponse( $this->responseDataFiles['p18-en'] )
 			);
 
 		$entityLookup = new ApiEntityLookup( $api );
@@ -154,7 +152,7 @@ class ApiEntityLookupTest extends TestCase {
 		$api->expects( $this->once() )
 			->method( 'get' )
 			->with( $this->getRequestParameters( $ids ) )
-			->willReturn( $this->newMockResponse( json_encode( $this->data[ $responseDataFile ] ), 200 ) );
+			->willReturn( $this->newResponse( $responseDataFile ) );
 
 		return $api;
 	}
@@ -166,6 +164,10 @@ class ApiEntityLookupTest extends TestCase {
 			'props' => 'labels|descriptions|datatype',
 			'format' => 'json'
 		];
+	}
+
+	private function newResponse( string $responseDataFile ): Response {
+		return new Response( 200, [], json_encode( $this->data[$responseDataFile] ) );
 	}
 
 }

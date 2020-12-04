@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Merge\Validator;
 
 use Wikibase\DataModel\Entity\EntityId;
@@ -17,10 +15,14 @@ use Wikibase\DataModel\Statement\Statement;
  */
 class NoCrossReferencingStatements {
 
-	/** @var PropertyId[] */
 	private $violations = [];
 
-	public function validate( StatementListProvidingEntity $source, StatementListProvidingEntity $target ): bool {
+	/**
+	 * @param StatementListProvidingEntity $source
+	 * @param StatementListProvidingEntity $target
+	 * @return bool
+	 */
+	public function validate( StatementListProvidingEntity $source, StatementListProvidingEntity $target ) {
 		$this->violations = [];
 
 		foreach ( $target->getStatements()->toArray() as $toStatement ) {
@@ -38,7 +40,7 @@ class NoCrossReferencingStatements {
 	/**
 	 * @return PropertyId[] Properties used to link across
 	 */
-	public function getViolations(): array {
+	public function getViolations() {
 		return $this->violations;
 	}
 

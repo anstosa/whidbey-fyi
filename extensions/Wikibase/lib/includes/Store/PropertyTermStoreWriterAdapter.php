@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Lib\Store;
 
 use InvalidArgumentException;
@@ -19,14 +17,13 @@ use Wikibase\DataModel\Services\Term\TermStoreException;
  */
 class PropertyTermStoreWriterAdapter implements EntityTermStoreWriter {
 
-	/** @var PropertyTermStoreWriter */
 	private $store;
 
 	public function __construct( PropertyTermStoreWriter $store ) {
 		$this->store = $store;
 	}
 
-	public function saveTermsOfEntity( EntityDocument $entity ): bool {
+	public function saveTermsOfEntity( EntityDocument $entity ) {
 		if ( $entity instanceof Property ) {
 			try {
 				$this->store->storeTerms( $entity->getId(), $entity->getFingerprint() );
@@ -39,7 +36,7 @@ class PropertyTermStoreWriterAdapter implements EntityTermStoreWriter {
 		throw new InvalidArgumentException( 'Unsupported entity type' );
 	}
 
-	public function deleteTermsOfEntity( EntityId $entityId ): bool {
+	public function deleteTermsOfEntity( EntityId $entityId ) {
 		if ( $entityId instanceof PropertyId ) {
 			try {
 				$this->store->deleteTerms( $entityId );

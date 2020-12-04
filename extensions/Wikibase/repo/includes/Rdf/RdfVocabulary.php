@@ -74,16 +74,16 @@ class RdfVocabulary {
 	// Ranks
 	const WIKIBASE_RANK_BEST = 'BestRank';
 
-	const RANK_MAP = [
+	public static $rankMap = [
 		Statement::RANK_DEPRECATED => 'DeprecatedRank',
 		Statement::RANK_NORMAL => 'NormalRank',
 		Statement::RANK_PREFERRED => 'PreferredRank',
 	];
-	/** @var string[] Value properties */
+	// Value properties
 	public $claimToValue = [];
-	/** @var string[] Value properties for normalized values */
+	// Value properties for normalized values
 	public $claimToValueNormalized = [];
-	/** @var string[] Value properties for normalized values, including for direct claims */
+	// Value properties for normalized values, including for direct claims
 	public $normalizedPropertyValueNamespace = [];
 
 	/**
@@ -97,10 +97,8 @@ class RdfVocabulary {
 	 */
 	public $entityNamespaceNames = [];
 
-	/** @var string[] */
 	public $dataNamespaceNames = [];
 
-	/** @var string[][] */
 	public $statementNamespaceNames = [];
 
 	/**
@@ -130,10 +128,8 @@ class RdfVocabulary {
 	 */
 	private $pagePropertyDefs;
 
-	/** @var string */
 	private $licenseUrl;
 
-	/** @var string[] */
 	private $sourceNameByEntityType;
 
 	/**
@@ -146,8 +142,7 @@ class RdfVocabulary {
 	 * @param string[] $canonicalLanguageCodes Mapping of non-standard to canonical language codes.
 	 * @param string[] $dataTypeUris Mapping of property data type IDs to their URIs,
 	 *                 if different from the default mapping.
-	 * @param string[][] $pagePropertyDefs Mapping of page props, e.g.:
-	 *                 pageProp => [ 'name' => wikibase predicate, 'type' => integer ]
+	 * @param string[][] $pagePropertyDefs Mapping of page props: pageProp => wikibase predicate
 	 *                 All predicates will be prefixed with wikibase:
 	 * @param string $licenseUrl
 	 */
@@ -202,6 +197,8 @@ class RdfVocabulary {
 			self::NS_GEO => self::GEO_URI,
 			self::NS_PROV => self::PROV_URI,
 		];
+
+		$topUri = $this->getConceptUriBase( $conceptUris[$localEntitySourceName] );
 
 		$propertyNamespaces = [
 			self::NSP_CLAIM,
@@ -512,7 +509,7 @@ class RdfVocabulary {
 	 * Get the map of configured page properties
 	 * @return string[][]
 	 */
-	public function getPagePropertyDefs() {
+	public function getPageProperties() {
 		return $this->pagePropertyDefs;
 	}
 

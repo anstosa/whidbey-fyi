@@ -23,12 +23,11 @@ use Wikibase\DataModel\Entity\EntityIdParsingException;
 use Wikibase\DataModel\Entity\PropertyId;
 use Wikibase\DataModel\Services\Lookup\EntityAccessLimitException;
 use Wikibase\DataModel\Services\Lookup\EntityRetrievingClosestReferencedEntityIdLookup;
+use Wikibase\Lib\LanguageFallbackChain;
 use Wikibase\Lib\Store\CachingFallbackLabelDescriptionLookup;
 use Wikibase\Lib\Store\LanguageFallbackLabelDescriptionLookup;
-use Wikibase\Lib\Store\LanguageFallbackLabelDescriptionLookupFactory;
 use Wikibase\Lib\Store\PropertyOrderProvider;
 use Wikibase\Lib\Store\RedirectResolvingLatestRevisionLookup;
-use Wikibase\Lib\TermLanguageFallbackChain;
 
 /**
  * Registers and defines functions to access Wikibase through the Scribunto extension
@@ -58,9 +57,9 @@ class Scribunto_LuaWikibaseLibrary extends Scribunto_LuaLibraryBase {
 	private $snakSerializationRenderers = [];
 
 	/**
-	 * @var TermLanguageFallbackChain|null
+	 * @var LanguageFallbackChain|null
 	 */
-	private $termFallbackChain = null;
+	private $fallbackChain = null;
 
 	/**
 	 * @var ParserOutputUsageAccumulator|null
@@ -144,15 +143,15 @@ class Scribunto_LuaWikibaseLibrary extends Scribunto_LuaLibraryBase {
 	}
 
 	/**
-	 * @return TermLanguageFallbackChain
+	 * @return LanguageFallbackChain
 	 */
 	private function getLanguageFallbackChain() {
-		if ( $this->termFallbackChain === null ) {
-			$this->termFallbackChain = WikibaseClient::getDefaultInstance()->
+		if ( $this->fallbackChain === null ) {
+			$this->fallbackChain = WikibaseClient::getDefaultInstance()->
 				getDataAccessLanguageFallbackChain( $this->getLanguage() );
 		}
 
-		return $this->termFallbackChain;
+		return $this->fallbackChain;
 	}
 
 	/**
@@ -253,8 +252,7 @@ class Scribunto_LuaWikibaseLibrary extends Scribunto_LuaLibraryBase {
 			$this->getLanguageFallbackChain(),
 			$this->getLanguage(),
 			$wikibaseClient->getTermsLanguages(),
-			$settings->getSetting( 'fineGrainedLuaTracking' ),
-			$wikibaseClient->getLogger()
+			$settings->getSetting( 'fineGrainedLuaTracking' )
 		);
 	}
 
@@ -301,10 +299,11 @@ class Scribunto_LuaWikibaseLibrary extends Scribunto_LuaLibraryBase {
 		);
 
 		$labelDescriptionLookup = new CachingFallbackLabelDescriptionLookup(
-			$wikibaseClient->getTermFallbackCache(),
+			$wikibaseClient->getFormatterCache(),
 			new RedirectResolvingLatestRevisionLookup( $wikibaseClient->getStore()->getEntityRevisionLookup() ),
 			$nonCachingLookup,
-			$this->getLanguageFallbackChain()
+			$this->getLanguageFallbackChain(),
+			$wikibaseClient->getSettings()->getSetting( 'sharedCacheDuration' )
 		);
 
 		$usageTrackingLabelDescriptionLookup = new UsageTrackingLanguageFallbackLabelDescriptionLookup(
@@ -325,24 +324,13 @@ class Scribunto_LuaWikibaseLibrary extends Scribunto_LuaLibraryBase {
 		$wikibaseClient = WikibaseClient::getDefaultInstance();
 		$settings = $wikibaseClient->getSettings();
 
-		$termLookup = new CachingFallbackBasedTermLookup(
-			$wikibaseClient->getTermFallbackCache(),
-			new RedirectResolvingLatestRevisionLookup( $wikibaseClient->getStore()->getEntityRevisionLookup() ),
-			new LanguageFallbackLabelDescriptionLookupFactory(
-				$wikibaseClient->getLanguageFallbackChainFactory(),
-				$wikibaseClient->getTermLookup()
-			),
-			$mediaWikiServices->getLanguageFactory(),
-			$wikibaseClient->getTermsLanguages()
-		);
-
 		return new WikibaseLanguageIndependentLuaBindings(
 			$wikibaseClient->getStore()->getSiteLinkLookup(),
 			$wikibaseClient->getEntityIdLookup(),
 			$settings,
 			$this->getUsageAccumulator(),
 			$this->getEntityIdParser(),
-			$termLookup,
+			$wikibaseClient->getTermLookup(),
 			$wikibaseClient->getTermsLanguages(),
 			new EntityRetrievingClosestReferencedEntityIdLookup(
 				$wikibaseClient->getStore()->getEntityLookup(),

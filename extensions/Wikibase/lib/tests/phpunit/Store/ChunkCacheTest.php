@@ -2,7 +2,6 @@
 
 namespace Wikibase\Lib\Tests\Store;
 
-use MediaWikiIntegrationTestCase;
 use Wikibase\Lib\Store\ChunkAccess;
 use Wikibase\Lib\Store\ChunkCache;
 
@@ -14,7 +13,7 @@ use Wikibase\Lib\Store\ChunkCache;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class ChunkCacheTest extends MediaWikiIntegrationTestCase {
+class ChunkCacheTest extends \MediaWikiTestCase {
 
 	/**
 	 * @return string[]

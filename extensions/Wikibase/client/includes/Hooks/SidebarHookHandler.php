@@ -44,7 +44,7 @@ class SidebarHookHandler implements
 		$this->badgeDisplay = $badgeDisplay;
 	}
 
-	public static function factory(): self {
+	public static function newFromGlobalState(): self {
 		$wikibaseClient = WikibaseClient::getDefaultInstance();
 
 		return new self(

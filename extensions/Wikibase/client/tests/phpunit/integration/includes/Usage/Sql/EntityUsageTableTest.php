@@ -2,7 +2,7 @@
 
 namespace Wikibase\Client\Tests\Integration\Usage\Sql;
 
-use MediaWikiIntegrationTestCase;
+use InvalidArgumentException;
 use Wikibase\Client\Usage\EntityUsage;
 use Wikibase\Client\Usage\PageEntityUsages;
 use Wikibase\Client\Usage\Sql\EntityUsageTable;
@@ -23,7 +23,7 @@ use Wikimedia\Rdbms\IDatabase;
  * @author Daniel Kinzler
  * @author Marius Hoch
  */
-class EntityUsageTableTest extends MediaWikiIntegrationTestCase {
+class EntityUsageTableTest extends \MediaWikiTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -208,6 +208,24 @@ class EntityUsageTableTest extends MediaWikiIntegrationTestCase {
 
 		$this->assertArrayHasKey( 'Q3#X', $usages );
 		$this->assertArrayNotHasKey( 'ODD123#X', $usages );
+	}
+
+	public function provideQueryUsages_InvalidArgumentException() {
+		return [
+			'$pageId is null' => [ null ],
+			'$pageId is false' => [ false ],
+			'$pageId is a string' => [ '-7' ],
+		];
+	}
+
+	/**
+	 * @dataProvider provideQueryUsages_InvalidArgumentException
+	 */
+	public function testQueryUsages_InvalidArgumentException( $pageId ) {
+		$usageTable = $this->getEntityUsageTable();
+
+		$this->expectException( InvalidArgumentException::class );
+		$usageTable->queryUsages( $pageId );
 	}
 
 	public function testGetPagesUsing() {

@@ -53,7 +53,7 @@ class LineReader implements Iterator {
 	 * @throws InvalidArgumentException
 	 */
 	public function __construct( $fileHandle, $canClose = true, $autoDispose = false ) {
-		if ( !$fileHandle ) {
+		if ( !is_resource( $fileHandle ) ) {
 			throw new InvalidArgumentException( '$fileHandle must be a file resource.' );
 		}
 

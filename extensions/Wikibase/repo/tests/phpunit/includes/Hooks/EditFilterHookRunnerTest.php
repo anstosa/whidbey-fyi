@@ -5,7 +5,6 @@ namespace Wikibase\Repo\Tests\Hooks;
 use Content;
 use FauxRequest;
 use IContextSource;
-use MediaWikiIntegrationTestCase;
 use RequestContext;
 use Status;
 use Title;
@@ -30,7 +29,7 @@ use Wikibase\Repo\Store\EntityTitleStoreLookup;
  * @license GPL-2.0-or-later
  * @author Addshore
  */
-class EditFilterHookRunnerTest extends MediaWikiIntegrationTestCase {
+class EditFilterHookRunnerTest extends \MediaWikiTestCase {
 
 	/**
 	 * @return MediawikiEditFilterHookRunner

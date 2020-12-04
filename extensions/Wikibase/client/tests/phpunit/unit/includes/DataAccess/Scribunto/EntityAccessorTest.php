@@ -6,7 +6,6 @@ use DataValues\Serializers\DataValueSerializer;
 use DataValues\StringValue;
 use InvalidArgumentException;
 use Language;
-use Psr\Log\LoggerInterface;
 use ReflectionMethod;
 use Wikibase\Client\DataAccess\Scribunto\EntityAccessor;
 use Wikibase\Client\Usage\EntityUsage;
@@ -25,7 +24,6 @@ use Wikibase\DataModel\Snak\PropertyValueSnak;
 use Wikibase\DataModel\Statement\Statement;
 use Wikibase\Lib\LanguageFallbackChainFactory;
 use Wikibase\Lib\StaticContentLanguages;
-use Wikibase\Lib\Store\RevisionedUnresolvedRedirectException;
 use Wikibase\Lib\Tests\MockRepository;
 
 /**
@@ -50,8 +48,7 @@ class EntityAccessorTest extends \PHPUnit\Framework\TestCase {
 		EntityLookup $entityLookup = null,
 		UsageAccumulator $usageAccumulator = null,
 		$langCode = 'en',
-		$fineGrainedTracking = true,
-		$logger = null
+		$fineGrainedTracking = true
 	) {
 		$language = Language::factory( $langCode );
 		$serializerFactory = new SerializerFactory(
@@ -82,8 +79,7 @@ class EntityAccessorTest extends \PHPUnit\Framework\TestCase {
 			$fallbackChain,
 			$language,
 			new StaticContentLanguages( [ 'de', $langCode, 'es', 'ja' ] ),
-			$fineGrainedTracking,
-			$logger
+			$fineGrainedTracking
 		);
 	}
 
@@ -452,56 +448,6 @@ class EntityAccessorTest extends \PHPUnit\Framework\TestCase {
 
 		$this->assertSame( true, $entityAccessor->entityExists( 'Q123099' ) );
 		$this->assertSame( false, $entityAccessor->entityExists( 'Q1239' ) );
-	}
-
-	/**
-	 * @dataProvider doubleRedirectMethodProvider
-	 * @param EntityId $entityId
-	 * @param string $methodName
-	 * @param array $methodParameters
-	 * @param string $lookupMethodCalled
-	 */
-	public function testGetEntityStatementsLogsDoubleRedirects(
-		EntityId $entityId,
-		string $methodName,
-		array $methodParameters,
-		string $lookupMethodCalled
-	) {
-		$entityLookup = $this->createMock( EntityLookup::class );
-		$entityLookup->expects( $this->once() )
-			->method( $lookupMethodCalled )
-			->with( $entityId )
-			->willThrowException( new RevisionedUnresolvedRedirectException( $entityId, $entityId ) );
-
-		$logger = $this->createMock( LoggerInterface::class );
-		$logger->expects( $this->once() )
-			->method( 'info' )
-			->with(
-				'Unresolved redirect encountered loading {prefixedEntityId}. This is typically cleaned up asynchronously.',
-				[
-					'prefixedEntityId' => $entityId->serialize()
-				]
-			);
-
-		$entityAccessor = $this->getEntityAccessor(
-			$entityLookup,
-			null,
-			'en',
-			true,
-			$logger
-		);
-
-		$entityAccessor->$methodName( ...$methodParameters );
-	}
-
-	public function doubleRedirectMethodProvider() {
-		$entityId = new ItemId( 'Q1' );
-		$serialization = $entityId->getSerialization();
-		return [
-			[ $entityId, 'getEntityStatements', [ $serialization, 'P1', 'best' ], 'getEntity' ],
-			[ $entityId, 'getEntity', [ $serialization ], 'getEntity' ],
-			[ $entityId, 'entityExists', [ $serialization ], 'hasEntity' ],
-		];
 	}
 
 }

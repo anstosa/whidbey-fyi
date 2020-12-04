@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Api;
 
 use ApiBase;
@@ -16,7 +14,6 @@ use Wikibase\Lib\Store\EntityRevisionLookup;
 use Wikibase\Lib\Store\LookupConstants;
 use Wikibase\Lib\Summary;
 use Wikibase\Repo\SiteLinkTargetProvider;
-use Wikibase\Repo\Store\Store;
 use Wikibase\Repo\WikibaseRepo;
 
 /**
@@ -59,9 +56,21 @@ class LinkTitles extends ApiBase {
 	 */
 	private $entitySavingHelper;
 
+	/**
+	 * @see ApiBase::__construct
+	 *
+	 * @param ApiMain $mainModule
+	 * @param string $moduleName
+	 * @param SiteLinkTargetProvider $siteLinkTargetProvider
+	 * @param ApiErrorReporter $errorReporter
+	 * @param array $siteLinkGroups
+	 * @param EntityRevisionLookup $revisionLookup
+	 * @param callable $resultBuilderInstantiator
+	 * @param callable $entitySavingHelperInstantiator
+	 */
 	public function __construct(
 		ApiMain $mainModule,
-		string $moduleName,
+		$moduleName,
 		SiteLinkTargetProvider $siteLinkTargetProvider,
 		ApiErrorReporter $errorReporter,
 		array $siteLinkGroups,
@@ -79,36 +88,10 @@ class LinkTitles extends ApiBase {
 		$this->entitySavingHelper = $entitySavingHelperInstantiator( $this );
 	}
 
-	public static function factory( ApiMain $mainModule, string $moduleName ): self {
-		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
-		$settings = $wikibaseRepo->getSettings();
-		$apiHelperFactory = $wikibaseRepo->getApiHelperFactory( $mainModule->getContext() );
-
-		$siteLinkTargetProvider = new SiteLinkTargetProvider(
-			$wikibaseRepo->getSiteLookup(),
-			$settings->getSetting( 'specialSiteLinkGroups' )
-		);
-
-		return new self(
-			$mainModule,
-			$moduleName,
-			$siteLinkTargetProvider,
-			$apiHelperFactory->getErrorReporter( $mainModule ),
-			$settings->getSetting( 'siteLinkGroups' ),
-			$wikibaseRepo->getEntityRevisionLookup( Store::LOOKUP_CACHING_DISABLED ),
-			function ( $module ) use ( $apiHelperFactory ) {
-				return $apiHelperFactory->getResultBuilder( $module );
-			},
-			function ( $module ) use ( $apiHelperFactory ) {
-				return $apiHelperFactory->getEntitySavingHelper( $module );
-			}
-		);
-	}
-
 	/**
 	 * Main method. Does the actual work and sets the result.
 	 */
-	public function execute(): void {
+	public function execute() {
 		$lookup = $this->revisionLookup;
 
 		$params = $this->extractRequestParams();
@@ -199,7 +182,7 @@ class LinkTitles extends ApiBase {
 	 * @return array ( Site $site, string $pageName )
 	 * @phan-return array{0:Site,1:string}
 	 */
-	private function getSiteAndNormalizedPageName( SiteList $sites, string $site, string $pageTitle ): array {
+	private function getSiteAndNormalizedPageName( SiteList $sites, $site, $pageTitle ) {
 		$siteObj = $sites->getSite( $site );
 		$page = $siteObj->normalizePageName( $pageTitle );
 		if ( $page === false ) {
@@ -212,7 +195,14 @@ class LinkTitles extends ApiBase {
 		return [ $siteObj, $page ];
 	}
 
-	private function getAttemptSaveStatus( ?Item $item, Summary $summary, int $flags ): Status {
+	/**
+	 * @param Item|null $item
+	 * @param Summary $summary
+	 * @param int $flags
+	 *
+	 * @return Status
+	 */
+	private function getAttemptSaveStatus( ?Item $item, Summary $summary, $flags ) {
 		if ( $item === null ) {
 			// to not have an Item isn't really bad at this point
 			return Status::newGood( true );
@@ -222,7 +212,7 @@ class LinkTitles extends ApiBase {
 		}
 	}
 
-	private function buildResult( ?Item $item, Status $status ): void {
+	private function buildResult( ?Item $item, Status $status ) {
 		if ( $item !== null ) {
 			$this->resultBuilder->addRevisionIdFromStatusToResult( $status, 'entity' );
 			$this->resultBuilder->addBasicEntityInformation( $item->getId(), 'entity' );
@@ -236,7 +226,7 @@ class LinkTitles extends ApiBase {
 	 *
 	 * @param array $params
 	 */
-	protected function validateParameters( array $params ): void {
+	protected function validateParameters( array $params ) {
 		if ( $params['fromsite'] === $params['tosite'] ) {
 			$this->errorReporter->dieError( 'The from site cannot match the to site', 'param-illegal' );
 		}
@@ -245,7 +235,7 @@ class LinkTitles extends ApiBase {
 	/**
 	 * @inheritDoc
 	 */
-	public function isWriteMode(): bool {
+	public function isWriteMode() {
 		return true;
 	}
 
@@ -254,14 +244,14 @@ class LinkTitles extends ApiBase {
 	 *
 	 * @return string
 	 */
-	public function needsToken(): string {
+	public function needsToken() {
 		return 'csrf';
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	protected function getAllowedParams(): array {
+	protected function getAllowedParams() {
 		$sites = $this->siteLinkTargetProvider->getSiteList( $this->siteLinkGroups );
 
 		return array_merge( parent::getAllowedParams(), [
@@ -289,7 +279,7 @@ class LinkTitles extends ApiBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getExamplesMessages(): array {
+	protected function getExamplesMessages() {
 		return [
 			'action=wblinktitles&fromsite=enwiki&fromtitle=Hydrogen&tosite=dewiki&totitle=Wasserstoff'
 			=> 'apihelp-wblinktitles-example-1',

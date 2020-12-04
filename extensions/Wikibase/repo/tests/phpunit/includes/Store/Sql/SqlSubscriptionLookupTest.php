@@ -3,7 +3,7 @@
 namespace Wikibase\Repo\Tests\Store\Sql;
 
 use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use Wikibase\DataModel\Entity\EntityId;
 use Wikibase\DataModel\Entity\ItemId;
 use Wikibase\DataModel\Entity\PropertyId;
@@ -20,7 +20,7 @@ use Wikibase\Repo\Store\Sql\SqlSubscriptionLookup;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class SqlSubscriptionLookupTest extends MediaWikiIntegrationTestCase {
+class SqlSubscriptionLookupTest extends MediaWikiTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -44,7 +44,7 @@ class SqlSubscriptionLookupTest extends MediaWikiIntegrationTestCase {
 
 		$this->insertSubscriptions( $subscriptions );
 
-		$lookup = new SqlSubscriptionLookup( MediaWikiServices::getInstance()->getDBLoadBalancer() );
+		$lookup = new \Wikibase\Repo\Store\Sql\SqlSubscriptionLookup( MediaWikiServices::getInstance()->getDBLoadBalancer() );
 
 		$subscriptions = $lookup->getSubscriptions( 'enwiki', [
 			new PropertyId( 'P1' ),

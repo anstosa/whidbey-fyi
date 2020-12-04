@@ -15,6 +15,7 @@ $cfg['file_list'] = array_merge(
 		'lib/config/WikibaseLib.default.php',
 		'lib/WikibaseLib.datatypes.php',
 		'lib/WikibaseLib.entitytypes.php',
+		'lib/WikibaseLib.php',
 		'repo/config/Wikibase.default.php',
 		'repo/config/Wikibase.searchindex.php',
 		'repo/Wikibase.i18n.alias.php',
@@ -23,6 +24,7 @@ $cfg['file_list'] = array_merge(
 		'repo/WikibaseRepo.datatypes.php',
 		'repo/WikibaseRepo.entitytypes.php',
 		'view/resources.php',
+		'view/WikibaseView.php',
 		'Wikibase.php',
 	]
 );
@@ -38,7 +40,6 @@ $cfg['directory_list'] = array_merge(
 		'repo/maintenance',
 		'lib/maintenance',
 		'view/src',
-		'lib/packages/wikibase/changes/src',
 	]
 );
 

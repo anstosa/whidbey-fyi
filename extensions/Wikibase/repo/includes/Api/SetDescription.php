@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Api;
 
 use ApiMain;
@@ -9,6 +7,7 @@ use Wikibase\DataModel\Entity\EntityDocument;
 use Wikibase\DataModel\Term\DescriptionsProvider;
 use Wikibase\Lib\Summary;
 use Wikibase\Repo\ChangeOp\ChangeOp;
+use Wikibase\Repo\ChangeOp\ChangeOpDescription;
 use Wikibase\Repo\ChangeOp\ChangeOps;
 use Wikibase\Repo\ChangeOp\FingerprintChangeOpFactory;
 use Wikibase\Repo\WikibaseRepo;
@@ -29,29 +28,31 @@ class SetDescription extends ModifyTerm {
 	 */
 	private $termChangeOpFactory;
 
+	/**
+	 * @param ApiMain $mainModule
+	 * @param string $moduleName
+	 * @param FingerprintChangeOpFactory $termChangeOpFactory
+	 */
 	public function __construct(
 		ApiMain $mainModule,
-		string $moduleName,
-		FingerprintChangeOpFactory $termChangeOpFactory,
-		bool $federatedPropertiesEnabled
+		$moduleName,
+		FingerprintChangeOpFactory $termChangeOpFactory
 	) {
-		parent::__construct( $mainModule, $moduleName, $federatedPropertiesEnabled );
+		parent::__construct( $mainModule, $moduleName );
 
 		$this->termChangeOpFactory = $termChangeOpFactory;
 	}
 
-	public static function factory( ApiMain $mainModule, string $moduleName ): self {
-		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
-		return new self(
-			$mainModule,
-			$moduleName,
-			$wikibaseRepo->getChangeOpFactoryProvider()
-				->getFingerprintChangeOpFactory(),
-			$wikibaseRepo->inFederatedPropertyMode()
-		);
-	}
-
-	protected function modifyEntity( EntityDocument $entity, ChangeOp $changeOp, array $preparedParameters ): Summary {
+	/**
+	 * @see ModifyEntity::modifyEntity
+	 *
+	 * @param EntityDocument &$entity
+	 * @param ChangeOp $changeOp
+	 * @param array $preparedParameters
+	 *
+	 * @return Summary
+	 */
+	protected function modifyEntity( EntityDocument &$entity, ChangeOp $changeOp, array $preparedParameters ) {
 		if ( !( $entity instanceof DescriptionsProvider ) ) {
 			$this->errorReporter->dieError( 'The given entity cannot contain descriptions', 'not-supported' );
 		}
@@ -74,7 +75,13 @@ class SetDescription extends ModifyTerm {
 		return $summary;
 	}
 
-	protected function getChangeOp( array $preparedParameters, EntityDocument $entity ): ChangeOp {
+	/**
+	 * @param array $preparedParameters
+	 * @param EntityDocument $entity
+	 *
+	 * @return ChangeOpDescription
+	 */
+	protected function getChangeOp( array $preparedParameters, EntityDocument $entity ) {
 		$description = "";
 		$language = $preparedParameters['language'];
 
@@ -96,7 +103,7 @@ class SetDescription extends ModifyTerm {
 	 *
 	 * @return string
 	 */
-	public function needsToken(): string {
+	public function needsToken() {
 		return 'csrf';
 	}
 
@@ -105,14 +112,14 @@ class SetDescription extends ModifyTerm {
 	 *
 	 * @return bool Always true.
 	 */
-	public function isWriteMode(): bool {
+	public function isWriteMode() {
 		return true;
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	protected function getExamplesMessages(): array {
+	protected function getExamplesMessages() {
 		return [
 			'action=wbsetdescription&id=Q42&language=en&value=An%20encyclopedia%20that%20everyone%20can%20edit'
 				=> 'apihelp-wbsetdescription-example-1',
@@ -124,7 +131,7 @@ class SetDescription extends ModifyTerm {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getAllowedParams(): array {
+	protected function getAllowedParams() {
 		return array_merge(
 			parent::getAllowedParams(),
 			[
@@ -135,7 +142,7 @@ class SetDescription extends ModifyTerm {
 		);
 	}
 
-	protected function getEntityTypesWithDescriptions(): array {
+	protected function getEntityTypesWithDescriptions() {
 		// TODO inject me
 		$entityFactory = WikibaseRepo::getDefaultInstance()->getEntityFactory();
 		$supportedEntityTypes = [];

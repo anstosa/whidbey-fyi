@@ -256,6 +256,7 @@ class BulkSubscriptionUpdater {
 			$entities[] = $row->$entityIdField;
 		}
 
+		// @phan-suppress-next-line PhanRedundantCondition
 		if ( isset( $row ) ) {
 			$continuation = [ $row->$entityIdField ];
 		}

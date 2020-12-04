@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Tests\Api;
 
 use ApiUsageException;
@@ -83,7 +81,7 @@ class SetReferenceTest extends WikibaseApiTestCase {
 	 *
 	 * @return Statement
 	 */
-	private function getNewStatement( array $references ): Statement {
+	private function getNewStatement( array $references = [] ) {
 		$store = WikibaseRepo::getDefaultInstance()->getEntityStore();
 		// Create a new empty item
 		$item = new Item();
@@ -166,6 +164,7 @@ class SetReferenceTest extends WikibaseApiTestCase {
 	}
 
 	public function testSettingIndex() {
+		/** @var Reference[] $references */
 		$references = [
 			new Reference( new SnakList( [ new PropertySomeValueSnak( self::$propertyIds[0] ) ] ) ),
 			new Reference( new SnakList( [ new PropertySomeValueSnak( self::$propertyIds[1] ) ] ) ),
@@ -191,7 +190,7 @@ class SetReferenceTest extends WikibaseApiTestCase {
 	 *
 	 * @return array Serialized reference
 	 */
-	protected function makeValidRequest( ?string $statementGuid, string $referenceHash, $reference, ?int $index = null ): array {
+	protected function makeValidRequest( $statementGuid, $referenceHash, $reference, $index = null ) {
 		$serializedReference = $this->serializeReference( $reference );
 		$reference = $this->unserializeReference( $reference );
 
@@ -246,11 +245,11 @@ class SetReferenceTest extends WikibaseApiTestCase {
 	}
 
 	protected function makeInvalidRequest(
-		string $statementGuid,
-		?string $referenceHash,
-		string $snaksJson,
-		string $snaksOrderJson,
-		string $expectedErrorCode
+		$statementGuid,
+		$referenceHash,
+		$snaksJson,
+		$snaksOrderJson,
+		$expectedErrorCode
 	) {
 		$params = $this->generateRequestParams(
 			$statementGuid,
@@ -278,7 +277,7 @@ class SetReferenceTest extends WikibaseApiTestCase {
 	 * @param Reference|array $reference
 	 * @return array
 	 */
-	protected function serializeReference( $reference ): array {
+	protected function serializeReference( $reference ) {
 		if ( $reference instanceof Reference ) {
 			$reference = $this->serializerFactory
 				->newReferenceSerializer()
@@ -291,9 +290,9 @@ class SetReferenceTest extends WikibaseApiTestCase {
 	 * Unserializes a serialized Reference object (if not unserialized already).
 	 *
 	 * @param array|Reference $reference
-	 * @return Reference
+	 * @return Reference Reference
 	 */
-	protected function unserializeReference( $reference ): Reference {
+	protected function unserializeReference( $reference ) {
 		if ( is_array( $reference ) ) {
 			$reference = $this->deserializerFactory
 				->newReferenceDeserializer()
@@ -314,12 +313,12 @@ class SetReferenceTest extends WikibaseApiTestCase {
 	 * @return array
 	 */
 	protected function generateRequestParams(
-		string $statementGuid,
-		string $snaksJson,
-		?string $snaksOrderJson = null,
-		?string $referenceHash = null,
-		?int $index = null
-	): array {
+		$statementGuid,
+		$snaksJson,
+		$snaksOrderJson = null,
+		$referenceHash = null,
+		$index = null
+	) {
 		$params = [
 			'action' => 'wbsetreference',
 			'statement' => $statementGuid,
@@ -344,7 +343,7 @@ class SetReferenceTest extends WikibaseApiTestCase {
 	/**
 	 * @dataProvider provideInvalidSerializations
 	 */
-	public function testInvalidSerialization( string $snaksSerialization ) {
+	public function testInvalidSerialization( $snaksSerialization ) {
 		$this->expectException( ApiUsageException::class );
 		$params = [
 			'action' => 'wbsetreference',
@@ -354,7 +353,7 @@ class SetReferenceTest extends WikibaseApiTestCase {
 		$this->doApiRequestWithToken( $params );
 	}
 
-	public function provideInvalidSerializations(): iterable {
+	public function provideInvalidSerializations() {
 		return [
 			[ '{
 				 "P813":[
@@ -400,7 +399,7 @@ class SetReferenceTest extends WikibaseApiTestCase {
 	/**
 	 * @dataProvider invalidRequestProvider
 	 */
-	public function testInvalidRequest( string $itemHandle, ?string $guid, string $referenceValue, string $referenceHash, string $error ) {
+	public function testInvalidRequest( $itemHandle, $guid, $referenceValue, $referenceHash, $error ) {
 		$itemId = new ItemId( EntityTestHelper::getId( $itemHandle ) );
 		$item = WikibaseRepo::getDefaultInstance()->getEntityLookup()->getEntity( $itemId );
 
@@ -438,7 +437,7 @@ class SetReferenceTest extends WikibaseApiTestCase {
 		}
 	}
 
-	public function invalidRequestProvider(): iterable {
+	public function invalidRequestProvider() {
 		return [
 			'bad guid 1' =>
 				[ 'Berlin', 'xyz', 'good', '', 'invalid-guid' ],

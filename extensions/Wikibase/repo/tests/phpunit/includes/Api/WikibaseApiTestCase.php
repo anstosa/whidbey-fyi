@@ -143,7 +143,7 @@ abstract class WikibaseApiTestCase extends ApiTestCase {
 		try {
 			$wikibaseRepo = WikibaseRepo::getDefaultInstance();
 			$idString = EntityTestHelper::getId( $handle );
-			$id = WikibaseRepo::getEntityIdParser()->parse( $idString );
+			$id = $wikibaseRepo->getEntityIdParser()->parse( $idString );
 			$title = $wikibaseRepo->getEntityTitleLookup()->getTitleForId( $id );
 		} catch ( OutOfBoundsException $ex ) {
 			$title = null;

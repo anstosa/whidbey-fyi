@@ -3,7 +3,6 @@
 namespace Wikibase\Repo\Tests\Validators;
 
 use InvalidArgumentException;
-use MediaWikiIntegrationTestCase;
 use Wikibase\Repo\Validators\RegexValidator;
 use Wikibase\Repo\Validators\UrlValidator;
 use Wikibase\Repo\Validators\ValidatorErrorLocalizer;
@@ -18,7 +17,7 @@ use Wikibase\Repo\Validators\ValidatorErrorLocalizer;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class UrlValidatorTest extends MediaWikiIntegrationTestCase {
+class UrlValidatorTest extends \MediaWikiTestCase {
 
 	/**
 	 * @dataProvider invalidConstructorArgumentProvider

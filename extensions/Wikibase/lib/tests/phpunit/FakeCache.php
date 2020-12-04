@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Lib\Tests;
 
 use Exception;
@@ -13,8 +11,6 @@ use Psr\SimpleCache\CacheInterface;
  * @license GPL-2.0-or-later
  */
 class FakeCache implements CacheInterface {
-
-	/** @var array */
 	private $contents = [];
 
 	public function get( $key, $default = null ) {

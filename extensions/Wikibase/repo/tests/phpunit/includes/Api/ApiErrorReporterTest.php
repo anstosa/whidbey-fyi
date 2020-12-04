@@ -7,7 +7,6 @@ use ApiMain;
 use ApiUsageException;
 use DataValues\IllegalValueException;
 use Language;
-use MediaWikiIntegrationTestCase;
 use Status;
 use ValueParsers\ParseException;
 use Wikibase\Repo\Api\ApiErrorReporter;
@@ -27,7 +26,7 @@ use Wikimedia\TestingAccessWrapper;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class ApiErrorReporterTest extends MediaWikiIntegrationTestCase {
+class ApiErrorReporterTest extends \MediaWikiTestCase {
 
 	protected function assertUsageException(
 		$info,

@@ -4,7 +4,7 @@ namespace Wikibase\View;
 
 use ExtensionRegistry;
 use MediaWiki\Hook\UnitTestsListHook;
-use MediaWiki\ResourceLoader\Hook\ResourceLoaderRegisterModulesHook;
+use MediaWiki\ResourceLoader\Hook\ResourceLoaderTestModulesHook;
 use ResourceLoader;
 
 /**
@@ -12,7 +12,10 @@ use ResourceLoader;
  *
  * @license GPL-2.0-or-later
  */
-final class ViewHooks implements UnitTestsListHook, ResourceLoaderRegisterModulesHook {
+final class ViewHooks implements
+	UnitTestsListHook,
+	ResourceLoaderTestModulesHook
+{
 
 	/**
 	 * Callback called after extension registration,
@@ -30,6 +33,7 @@ final class ViewHooks implements UnitTestsListHook, ResourceLoaderRegisterModule
 	/**
 	 * Register ResourceLoader modules with dynamic dependencies.
 	 *
+	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/ResourceLoaderTestModules
 	 * @param ResourceLoader $rl
 	 */
 	public function onResourceLoaderRegisterModules( ResourceLoader $rl ): void {
@@ -62,6 +66,20 @@ final class ViewHooks implements UnitTestsListHook, ResourceLoaderRegisterModule
 		}
 
 		$rl->register( $modules );
+	}
+
+	/**
+	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/ResourceLoaderTestModules
+	 *
+	 * @param array &$testModules
+	 * @param ResourceLoader $rl
+	 */
+	public function onResourceLoaderTestModules( array &$testModules, ResourceLoader $rl ): void {
+		$testModules['qunit'] = array_merge(
+			$testModules['qunit'],
+			require __DIR__ . '/../lib/resources.test.php',
+			require __DIR__ . '/../tests/qunit/resources.php'
+		);
 	}
 
 	/**

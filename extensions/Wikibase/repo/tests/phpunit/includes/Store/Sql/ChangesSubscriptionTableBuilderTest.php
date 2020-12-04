@@ -3,7 +3,6 @@
 namespace Wikibase\Repo\Tests\Store\Sql;
 
 use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
 use Onoi\MessageReporter\MessageReporter;
 use PHPUnit\Framework\MockObject\Matcher\Invocation;
 use Wikibase\DataModel\Entity\ItemId;
@@ -21,7 +20,7 @@ use Wikibase\Repo\WikibaseRepo;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class ChangesSubscriptionTableBuilderTest extends MediaWikiIntegrationTestCase {
+class ChangesSubscriptionTableBuilderTest extends \MediaWikiTestCase {
 
 	const TABLE_NAME = 'wb_changes_subscription';
 

@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Hooks;
 
 use Wikibase\Lib\WikibaseSettings;
@@ -11,10 +9,8 @@ use Wikibase\Lib\WikibaseSettings;
  */
 class FederatedPropertiesWikibaseRepoEntityTypesHookHandler {
 
-	/** @var bool */
 	private $federatedPropertiesEnabled;
 
-	/** @var array */
 	private $entityTypeDefs;
 
 	public function __construct( bool $federatedPropertiesEnabled, array $entityTypeDefs ) {
@@ -31,7 +27,7 @@ class FederatedPropertiesWikibaseRepoEntityTypesHookHandler {
 	 * @param array[] $entityTypeDefinitions
 	 */
 	public static function onWikibaseRepoEntityTypes( array &$entityTypeDefinitions ) {
-		self::factory()->doWikibaseRepoEntityTypes( $entityTypeDefinitions );
+		self::newFromGlobalState()->doWikibaseRepoEntityTypes( $entityTypeDefinitions );
 	}
 
 	public function doWikibaseRepoEntityTypes( array &$entityTypeDefinitions ) {
@@ -45,7 +41,7 @@ class FederatedPropertiesWikibaseRepoEntityTypesHookHandler {
 		);
 	}
 
-	private static function factory(): self {
+	private static function newFromGlobalState(): self {
 		return new self(
 			WikibaseSettings::getRepoSettings()->getSetting( 'federatedPropertiesEnabled' ),
 			require __DIR__ . '/../../WikibaseRepo.FederatedProperties.entitytypes.php'

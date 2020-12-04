@@ -4,7 +4,6 @@ namespace Wikibase\Client\Tests\Integration\Hooks;
 
 use HashSiteStore;
 use MediaWiki\HookContainer\HookContainer;
-use MediaWikiIntegrationTestCase;
 use ParserOutput;
 use Psr\Log\NullLogger;
 use Site;
@@ -31,7 +30,7 @@ use Wikibase\Lib\Tests\MockRepository;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class LangLinkHandlerTest extends MediaWikiIntegrationTestCase {
+class LangLinkHandlerTest extends \MediaWikiTestCase {
 
 	/**
 	 * @var MockRepository|null

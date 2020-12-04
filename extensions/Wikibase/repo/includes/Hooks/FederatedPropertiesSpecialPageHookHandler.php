@@ -1,7 +1,6 @@
 <?php
 
 declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Hooks;
 
 use MediaWiki\SpecialPage\Hook\SpecialPage_initListHook;
@@ -12,7 +11,6 @@ use Wikibase\Lib\WikibaseSettings;
  */
 class FederatedPropertiesSpecialPageHookHandler implements SpecialPage_initListHook {
 
-	/** @var bool */
 	private $isFederatedPropertiesEnabled;
 
 	public function __construct( bool $isFederatedpropertiesEnabled ) {
@@ -31,7 +29,7 @@ class FederatedPropertiesSpecialPageHookHandler implements SpecialPage_initListH
 		}
 	}
 
-	public static function factory(): self {
+	public static function newFromGlobalState(): self {
 		return new self( WikibaseSettings::getRepoSettings()->getSetting( 'federatedPropertiesEnabled' ) );
 	}
 }

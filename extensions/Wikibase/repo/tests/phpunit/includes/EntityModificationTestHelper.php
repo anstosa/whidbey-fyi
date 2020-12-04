@@ -46,7 +46,7 @@ class EntityModificationTestHelper {
 
 	public function __construct() {
 		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
-		$this->idParser = WikibaseRepo::getEntityIdParser();
+		$this->idParser = $wikibaseRepo->getEntityIdParser();
 		$this->serializer = $wikibaseRepo->getAllTypesEntitySerializer();
 		$this->deserializer = $wikibaseRepo->getInternalFormatEntityDeserializer();
 		$this->mockRepository = new MockRepository();

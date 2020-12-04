@@ -47,7 +47,10 @@ class ChangeOpFactoryProviderTest extends \PHPUnit\Framework\TestCase {
 		$entityId = new ItemId( 'Q2' );
 
 		$constraintProvider = new EntityConstraintProvider(
-			$this->mockProvider->getMockSiteLinkConflictLookup()
+			$this->mockProvider->getMockLabelDescriptionDuplicateDetector(),
+			$this->mockProvider->getMockSiteLinkConflictLookup(),
+			[],
+			0
 		);
 
 		return new ChangeOpFactoryProvider(

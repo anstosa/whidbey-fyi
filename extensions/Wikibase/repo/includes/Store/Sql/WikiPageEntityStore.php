@@ -65,7 +65,6 @@ class WikiPageEntityStore implements EntityStore {
 	 */
 	private $revisionStore;
 
-	/** @var EntitySource */
 	private $entitySource;
 
 	/**
@@ -524,15 +523,9 @@ class WikiPageEntityStore implements EntityStore {
 
 		$title = $this->getTitleForEntity( $id );
 
-		if (
-			$user->isLoggedIn() &&
-			$title &&
-			( $watch != $user->isWatched( $title, User::IGNORE_USER_RIGHTS ) )
-		) {
+		if ( $user->isLoggedIn() && $title && ( $watch != $user->isWatched( $title ) ) ) {
 			if ( $watch ) {
-				// Allow adding to watchlist even if user('s session) lacks 'editmywatchlist'
-				// (e.g. due to bot password or OAuth grants)
-				WatchAction::doWatch( $title, $user, User::IGNORE_USER_RIGHTS );
+				WatchAction::doWatch( $title, $user );
 			} else {
 				WatchAction::doUnwatch( $title, $user );
 			}
@@ -554,7 +547,7 @@ class WikiPageEntityStore implements EntityStore {
 		$this->assertCanStoreEntity( $id );
 
 		$title = $this->getTitleForEntity( $id );
-		return ( $title && $user->isWatched( $title, User::IGNORE_USER_RIGHTS ) );
+		return ( $title && $user->isWatched( $title ) );
 	}
 
 }

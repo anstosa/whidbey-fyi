@@ -4,7 +4,6 @@ namespace Wikibase\Repo\ChangeOp;
 
 /**
  * Counts distinct languages of changed parts in {@link ChangeOpResult} tree
- * @license GPL-2.0-or-later
  */
 class ChangedLanguagesCounter {
 

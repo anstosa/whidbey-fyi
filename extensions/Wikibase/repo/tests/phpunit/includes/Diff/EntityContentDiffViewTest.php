@@ -5,7 +5,6 @@ namespace Wikibase\Repo\Tests\Diff;
 use Content;
 use DerivativeContext;
 use Language;
-use MediaWikiIntegrationTestCase;
 use RequestContext;
 use Title;
 use Wikibase\DataModel\Entity\EntityRedirect;
@@ -24,7 +23,7 @@ use Wikibase\Repo\Diff\EntityContentDiffView;
  * @author Jeroen De Dauw < jeroendedauw@gmail.com >
  * @author Thiemo Kreuz
  */
-class EntityContentDiffViewTest extends MediaWikiIntegrationTestCase {
+class EntityContentDiffViewTest extends \MediaWikiTestCase {
 
 	public function testConstructor() {
 		new EntityContentDiffView( RequestContext::getMain() );
@@ -138,7 +137,7 @@ class EntityContentDiffViewTest extends MediaWikiIntegrationTestCase {
 		);
 
 		return [
-			'from empty' => [ $empty, $itemContent, $insTags ],
+			'from emtpy' => [ $empty, $itemContent, $insTags ],
 			'to empty' => [ $itemContent, $empty, $delTags ],
 			'changed' => [ $itemContent, $itemContent2, $changeTags ],
 			'to redirect' => [ $itemContent, $redirectContent, $toRedirTags ],
@@ -151,11 +150,9 @@ class EntityContentDiffViewTest extends MediaWikiIntegrationTestCase {
 	 * @dataProvider itemProvider
 	 */
 	public function testGenerateContentDiffBody( ItemContent $itemContent, ItemContent $itemContent2, array $matchers ) {
-		$diffView = $this->newDiffView();
-		$html = $diffView->generateContentDiffBody( $itemContent, $itemContent2 );
+		$html = $this->newDiffView()->generateContentDiffBody( $itemContent, $itemContent2 );
 
 		$this->assertIsString( $html );
-		$this->assertContains( 'wikibase.common', $diffView->getOutput()->getModuleStyles() );
 		foreach ( $matchers as $name => $matcher ) {
 			$this->assertStringContainsString( $matcher, $html, $name );
 		}

@@ -2,14 +2,16 @@
 
 namespace Wikibase\Repo\Rdf;
 
+use PageProps;
+use SiteList;
 use SplQueue;
 use Wikibase\DataModel\Entity\EntityDocument;
 use Wikibase\DataModel\Entity\EntityId;
 use Wikibase\DataModel\Entity\PropertyId;
 use Wikibase\DataModel\Services\Lookup\EntityLookup;
 use Wikibase\DataModel\Services\Lookup\PropertyDataTypeLookup;
+use Wikibase\Lib\Store\EntityTitleLookup;
 use Wikibase\Lib\Store\RevisionedUnresolvedRedirectException;
-use Wikibase\Repo\Content\EntityContentFactory;
 use Wikimedia\Purtle\RdfWriter;
 
 /**
@@ -75,8 +77,16 @@ class RdfBuilder implements EntityRdfBuilder, EntityMentionListener {
 	 */
 	private $valueSnakRdfBuilderFactory;
 
-	/** @var EntityContentFactory */
-	private $entityContentFactory;
+	/**
+	 * @var EntityTitleLookup
+	 */
+	private $titleLookup;
+
+	/**
+	 * Page properties handler, can be null if we don't need them.
+	 * @var PageProps|null
+	 */
+	private $pageProps;
 
 	/**
 	 * Entity-specific RDF builders to apply when building RDF for an entity.
@@ -85,6 +95,7 @@ class RdfBuilder implements EntityRdfBuilder, EntityMentionListener {
 	private $entityRdfBuilders;
 
 	/**
+	 * @param SiteList $sites
 	 * @param RdfVocabulary $vocabulary
 	 * @param ValueSnakRdfBuilderFactory $valueSnakRdfBuilderFactory
 	 * @param PropertyDataTypeLookup $propertyLookup
@@ -92,9 +103,10 @@ class RdfBuilder implements EntityRdfBuilder, EntityMentionListener {
 	 * @param int $flavor
 	 * @param RdfWriter $writer
 	 * @param DedupeBag $dedupeBag
-	 * @param EntityContentFactory $entityContentFactory
+	 * @param EntityTitleLookup $titleLookup
 	 */
 	public function __construct(
+		SiteList $sites,
 		RdfVocabulary $vocabulary,
 		ValueSnakRdfBuilderFactory $valueSnakRdfBuilderFactory,
 		PropertyDataTypeLookup $propertyLookup,
@@ -102,7 +114,7 @@ class RdfBuilder implements EntityRdfBuilder, EntityMentionListener {
 		$flavor,
 		RdfWriter $writer,
 		DedupeBag $dedupeBag,
-		EntityContentFactory $entityContentFactory
+		EntityTitleLookup $titleLookup
 	) {
 		$this->entitiesToOutput = new SplQueue();
 		$this->vocabulary = $vocabulary;
@@ -111,7 +123,7 @@ class RdfBuilder implements EntityRdfBuilder, EntityMentionListener {
 		$this->writer = $writer;
 		$this->produceWhat = $flavor;
 		$this->dedupeBag = $dedupeBag;
-		$this->entityContentFactory = $entityContentFactory;
+		$this->titleLookup = $titleLookup;
 
 		// XXX: move construction of sub-builders to a factory class.
 		$this->builders[] = $entityRdfBuilderFactory->getTermRdfBuilder( $vocabulary, $writer );
@@ -219,8 +231,8 @@ class RdfBuilder implements EntityRdfBuilder, EntityMentionListener {
 	 *
 	 * @return string[][]
 	 */
-	public function getPagePropertyDefs() {
-		return $this->vocabulary->getPagePropertyDefs();
+	public function getPageProperties() {
+		return $this->vocabulary->getPageProperties();
 	}
 
 	/**
@@ -321,39 +333,51 @@ class RdfBuilder implements EntityRdfBuilder, EntityMentionListener {
 	}
 
 	/**
-	 * Add page props information.
-	 * To ensure consistent data, this recalculates the page props from the entity content;
-	 * it does not actually query the page_props table.
+	 * Set page props handler
+	 * @param PageProps $pageProps
+	 * @return self
 	 */
-	public function addEntityPageProps( EntityDocument $entity ) {
-		if ( !$this->shouldProduce( RdfProducer::PRODUCE_PAGE_PROPS ) ) {
+	public function setPageProps( PageProps $pageProps ) {
+		$this->pageProps = $pageProps;
+		return $this;
+	}
+
+	/**
+	 * Add page props information
+	 * @param EntityId $entityId
+	 */
+	public function addEntityPageProps( EntityId $entityId ) {
+		if ( !$this->pageProps || !$this->shouldProduce( RdfProducer::PRODUCE_PAGE_PROPS ) ) {
 			return;
 		}
-		$pagePropertyDefs = $this->getPagePropertyDefs();
-		if ( !$pagePropertyDefs ) {
+		$title = $this->titleLookup->getTitleForId( $entityId );
+		$props = $this->getPageProperties();
+		if ( !$title || !$props ) {
 			return;
 		}
-		$content = $this->entityContentFactory->newFromEntity( $entity );
-		$entityPageProperties = $content->getEntityPageProperties();
-		if ( !$entityPageProperties ) {
+		$propValues = $this->pageProps->getProperties( $title, array_keys( $props ) );
+		if ( !$propValues ) {
+			return;
+		}
+		$entityProps = reset( $propValues );
+		if ( !$entityProps ) {
 			return;
 		}
 
-		$entityId = $entity->getId();
 		$entityRepositoryName = $this->vocabulary->getEntityRepositoryName( $entityId );
 		$entityLName = $this->vocabulary->getEntityLName( $entityId );
 
-		foreach ( $entityPageProperties as $name => $value ) {
-			if ( !isset( $pagePropertyDefs[$name]['name'] ) ) {
+		foreach ( $entityProps as $name => $value ) {
+			if ( !isset( $props[$name]['name'] ) ) {
 				continue;
 			}
 
-			if ( isset( $pagePropertyDefs[$name]['type'] ) ) {
-				settype( $value, $pagePropertyDefs[$name]['type'] );
+			if ( isset( $props[$name]['type'] ) ) {
+				settype( $value, $props[$name]['type'] );
 			}
 
 			$this->writer->about( $this->vocabulary->dataNamespaceNames[$entityRepositoryName], $entityLName )
-				->say( RdfVocabulary::NS_ONTOLOGY, $pagePropertyDefs[$name]['name'] )
+				->say( RdfVocabulary::NS_ONTOLOGY, $props[$name]['name'] )
 				->value( $value );
 		}
 	}

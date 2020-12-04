@@ -47,7 +47,7 @@ class PopulateChangesSubscription extends LoggedUpdateMaintenance {
 		}
 
 		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
-		$idParser = WikibaseRepo::getEntityIdParser();
+		$idParser = $wikibaseRepo->getEntityIdParser();
 		$startItemOption = $this->getOption( 'start-item' );
 
 		$startItem = $startItemOption === null ? null : $idParser->parse( $startItemOption );

@@ -38,14 +38,13 @@ class ItemPropertyIdHtmlLinkFormatter extends EntityIdLabelFormatter {
 	public function __construct(
 		LabelDescriptionLookup $labelDescriptionLookup,
 		EntityTitleLookup $entityTitleLookup,
-		LanguageNameLookup $languageNameLookup,
-		NonExistingEntityIdHtmlFormatter $nonExistingEntityIdHtmlFormatter
+		LanguageNameLookup $languageNameLookup
 	) {
 		parent::__construct( $labelDescriptionLookup );
 
 		$this->entityTitleLookup = $entityTitleLookup;
 		$this->languageFallbackIndicator = new LanguageFallbackIndicator( $languageNameLookup );
-		$this->nonExistingFormatter = $nonExistingEntityIdHtmlFormatter;
+		$this->nonExistingFormatter = new NonExistingEntityIdHtmlFormatter( 'wikibase-deletedentity-' );
 	}
 
 	/**

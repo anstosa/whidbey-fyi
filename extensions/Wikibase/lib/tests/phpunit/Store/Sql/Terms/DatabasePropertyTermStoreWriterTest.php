@@ -3,7 +3,7 @@
 namespace Wikibase\Lib\Tests\Store\Sql\Terms;
 
 use JobQueueGroup;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use WANObjectCache;
 use Wikibase\DataModel\Entity\PropertyId;
 use Wikibase\DataModel\Term\Fingerprint;
@@ -28,7 +28,7 @@ use Wikibase\Lib\WikibaseSettings;
  *
  * @license GPL-2.0-or-later
  */
-class DatabasePropertyTermStoreWriterTest extends MediaWikiIntegrationTestCase {
+class DatabasePropertyTermStoreWriterTest extends MediaWikiTestCase {
 
 	use DatabaseTermStoreWriterTestGetTermsTrait;
 

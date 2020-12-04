@@ -27,7 +27,7 @@ class SkinAfterPortletHandler implements SkinAfterPortletHook {
 		$this->repoItemLinkGenerator = $repoItemLinkGenerator;
 	}
 
-	public static function factory(): self {
+	public static function newFromGlobalState(): self {
 		$wikibaseClient = WikibaseClient::getDefaultInstance();
 
 		return new self(

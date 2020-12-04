@@ -3,7 +3,7 @@
 namespace Wikibase\Client\Tests\Integration\Hooks;
 
 use ExtensionRegistry;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use Title;
 use User;
 use Wikibase\Client\Hooks\EchoNotificationsHandlers;
@@ -23,7 +23,7 @@ use Wikibase\Lib\Tests\Changes\TestChanges;
  * @license GPL-2.0-or-later
  * @author Matěj Suchánek
  */
-class EchoNotificationsHandlersTest extends MediaWikiIntegrationTestCase {
+class EchoNotificationsHandlersTest extends MediaWikiTestCase {
 
 	/**
 	 * @var RepoLinker

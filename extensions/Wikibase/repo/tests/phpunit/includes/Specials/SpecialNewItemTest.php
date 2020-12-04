@@ -18,6 +18,7 @@ use Wikibase\Lib\Store\EntityNamespaceLookup;
 use Wikibase\Repo\Specials\SpecialNewItem;
 use Wikibase\Repo\Validators\TermValidatorFactory;
 use Wikibase\Repo\WikibaseRepo;
+use Wikimedia\Rdbms\IMaintainableDatabase;
 
 /**
  * @covers \Wikibase\Repo\Specials\SpecialNewItem
@@ -48,6 +49,7 @@ class SpecialNewItemTest extends SpecialNewEntityTestCase {
 
 		// @todo This list should be stored somewhere, DRY
 		$tables = [
+			'wb_terms',
 			'wbt_type',
 			'wbt_text',
 			'wbt_text_in_lang',
@@ -58,6 +60,22 @@ class SpecialNewItemTest extends SpecialNewEntityTestCase {
 		$this->tablesUsed = array_merge( $this->tablesUsed, $tables );
 
 		$this->siteStore = new HashSiteStore();
+	}
+
+	protected function getSchemaOverrides( IMaintainableDatabase $db ) {
+		return [
+			'scripts' => [
+				__DIR__ . '/../../../../sql/AddNormalizedTermsTablesDDL.sql',
+			],
+			'create' => [
+				'wbt_item_terms',
+				'wbt_property_terms',
+				'wbt_term_in_lang',
+				'wbt_text_in_lang',
+				'wbt_text',
+				'wbt_type',
+			],
+		];
 	}
 
 	protected function tearDown(): void {
@@ -249,7 +267,32 @@ class SpecialNewItemTest extends SpecialNewEntityTestCase {
 		];
 	}
 
-	public function testErrorBeingDisplayed_WhenItemWithTheSameLabelAndDescriptionInThisLanguageAlreadyExists() {
+	public function maxItemTermsMigrationStageProvider() {
+		return [
+			[ MIGRATION_OLD ],
+			[ MIGRATION_WRITE_BOTH ],
+			[ MIGRATION_WRITE_NEW ],
+			[ MIGRATION_NEW ]
+		];
+	}
+
+	/**
+	 * @dataProvider maxItemTermsMigrationStageProvider
+	 */
+	public function testErrorBeingDisplayed_WhenItemWithTheSameLabelAndDescriptionInThisLanguageAlreadyExists(
+		$maxItemTermsMigrationStage
+	) {
+		$settings = WikibaseRepo::getDefaultInstance()->getSettings();
+		$oldConfig = $settings->getSetting( 'tmpItemTermsMigrationStages' );
+		$settings->setSetting(
+			'tmpItemTermsMigrationStages',
+			[ 'max' => $maxItemTermsMigrationStage ]
+		);
+
+		if ( $maxItemTermsMigrationStage < MIGRATION_WRITE_NEW && $this->db->getType() === 'mysql' ) {
+			$this->markTestSkipped( 'MySQL doesn\'t support self-joins on temporary tables' );
+		}
+
 		$formData = [
 			SpecialNewItem::FIELD_LANG => 'en',
 			SpecialNewItem::FIELD_LABEL => 'label1',
@@ -261,6 +304,8 @@ class SpecialNewItemTest extends SpecialNewEntityTestCase {
 		list( $html ) = $this->executeSpecialPage( '', new FauxRequest( $formData, true ) );
 
 		$this->assertHtmlContainsErrorMessage( $html, '(wikibase-validator-label-with-description-conflict: label1, en, ' );
+
+		$settings->setSetting( 'tmpItemTermsMigrationStages', $oldConfig );
 	}
 
 	public function testErrorAboutNonExistentPageIsDisplayed_WhenSiteExistsButPageDoesNot() {
@@ -385,14 +430,14 @@ class SpecialNewItemTest extends SpecialNewEntityTestCase {
 	private function getValidatorMock() {
 		/** @var MockObject|ValueValidator $validatorMock */
 		$validatorMock = $this->createMock( ValueValidator::class );
-		$validatorMock->method( 'validate' )->willReturnCallback(
-			function ( $value ) {
+		$validatorMock->method( 'validate' )->will(
+			$this->returnCallback(
+				function ( $value ) {
 				if ( $value === 'TOO_LONG_ERROR' ) {
 					return Result::newError( [ Error::newError( 'This is the too long error', null, 'too-long' ) ] );
 				}
 				return Result::newSuccess();
-			}
-		);
+			 } ) );
 
 		return $validatorMock;
 	}

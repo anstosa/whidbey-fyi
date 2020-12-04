@@ -4,10 +4,14 @@ namespace Wikibase\Repo\Validators;
 
 use InvalidArgumentException;
 use ValueValidators\ValueValidator;
+use Wikibase\DataModel\Entity\EntityId;
 use Wikibase\DataModel\Entity\EntityIdParser;
+use Wikibase\DataModel\Entity\Int32EntityId;
 use Wikibase\DataModel\Entity\Item;
+use Wikibase\DataModel\Entity\ItemId;
 use Wikibase\DataModel\Entity\Property;
 use Wikibase\DataModel\Services\Lookup\TermLookup;
+use Wikibase\Repo\LabelDescriptionDuplicateDetector;
 use Wikibase\Repo\Store\TermsCollisionDetectorFactory;
 
 /**
@@ -34,6 +38,11 @@ class TermValidatorFactory {
 	private $idParser;
 
 	/**
+	 * @var LabelDescriptionDuplicateDetector
+	 */
+	private $duplicateDetector;
+
+	/**
 	 * @var TermsCollisionDetectorFactory
 	 */
 	private $termsCollisionDetectorFactory;
@@ -43,12 +52,21 @@ class TermValidatorFactory {
 	 */
 	private $termLookup;
 
+	/** @var array */
+	private $itemTermsMigrationStages;
+
+	/** @var int */
+	private $propertyTermsMigrationStage;
+
 	/**
 	 * @param int $maxLength The maximum length of terms.
 	 * @param string[] $languageCodes A list of valid language codes
 	 * @param EntityIdParser $idParser
+	 * @param LabelDescriptionDuplicateDetector $duplicateDetector
 	 * @param TermsCollisionDetectorFactory $termsCollisionDetectorFactory
 	 * @param TermLookup $termLookup
+	 * @param array $itemTermsMigrationStages
+	 * @param int $propertyTermsMigrationStage
 	 *
 	 * @throws InvalidArgumentException
 	 */
@@ -56,8 +74,11 @@ class TermValidatorFactory {
 		$maxLength,
 		array $languageCodes,
 		EntityIdParser $idParser,
+		LabelDescriptionDuplicateDetector $duplicateDetector,
 		TermsCollisionDetectorFactory $termsCollisionDetectorFactory,
-		TermLookup $termLookup
+		TermLookup $termLookup,
+		array $itemTermsMigrationStages,
+		int $propertyTermsMigrationStage
 	) {
 		if ( !is_int( $maxLength ) || $maxLength <= 0 ) {
 			throw new InvalidArgumentException( '$maxLength must be a positive integer.' );
@@ -66,18 +87,29 @@ class TermValidatorFactory {
 		$this->maxLength = $maxLength;
 		$this->languageCodes = $languageCodes;
 		$this->idParser = $idParser;
+		$this->duplicateDetector = $duplicateDetector;
 		$this->termsCollisionDetectorFactory = $termsCollisionDetectorFactory;
 		$this->termLookup = $termLookup;
+		$this->itemTermsMigrationStages = $itemTermsMigrationStages;
+		$this->propertyTermsMigrationStage = $propertyTermsMigrationStage;
 	}
 
 	/**
-	 * This function returns a fingerprint uniqueness validator that validates uniqueness in the term store.
+	 * Not to be confused with getFingerprintValidator(). This function returns fingerprint
+	 * uniqueness validator that validates uniqueness only in new store. While getFingerprintValidator()
+	 * returns Fingerprint validators to be applied on entire entity, including uniqueness checks in old store.
 	 */
 	public function getFingerprintUniquenessValidator( string $entityType ): ?ValueValidator {
 		if ( in_array( $entityType, [ Item::ENTITY_TYPE, Property::ENTITY_TYPE ] ) ) {
-			return new FingerprintUniquenessValidator(
+			$fingerprintUniquenessValidator = new FingerprintUniquenessValidator(
 				$this->termsCollisionDetectorFactory->getTermsCollisionDetector( $entityType ),
 				$this->termLookup
+			);
+
+			return new ByIdFingerprintUniquenessValidator(
+				$this->itemTermsMigrationStages,
+				$this->propertyTermsMigrationStage,
+				$fingerprintUniquenessValidator
 			);
 		}
 
@@ -85,16 +117,58 @@ class TermValidatorFactory {
 	}
 
 	/**
-	 * Returns a validator for checking distinctness of labels & descriptions
+	 * Returns a validator for checking an (updated) fingerprint.
+	 * May be used to apply global uniqueness checks.
 	 *
-	 * @note The validator provided here is intended to apply
+	 * @note The fingerprint validator provided here is intended to apply
 	 *       checks in ADDITION to the ones performed by the validators
 	 *       returned by the getLabelValidator() etc functions below.
 	 *
-	 * @return LabelDescriptionNotEqualValidator
+	 * @param string $entityType
+	 *
+	 * @return FingerprintValidator
 	 */
-	public function getLabelDescriptionNotEqualValidator() {
-		return new LabelDescriptionNotEqualValidator();
+	public function getFingerprintValidator( $entityType, EntityId $entityId ) {
+		$notEqualValidator = new LabelDescriptionNotEqualValidator();
+
+		//TODO: Make this configurable. Use a builder. Allow more types to register.
+
+		switch ( $entityType ) {
+			case Item::ENTITY_TYPE:
+				$itemValidators = [ $notEqualValidator ];
+
+				if ( !$entityId instanceof ItemId ) {
+					$entityIdClass = get_class( $entityId );
+					throw new InvalidArgumentException( "\$entityId can only be ItemId. {$entityIdClass} given" );
+				}
+
+				// Only validate label and description uniqueness in old store when we are actually still reading from it.
+				// Validation of fingerprint uniqueness in new store are differently done
+				// see ChangeOpFingerprintResult::validate
+				$entityNumericId = $entityId->getNumericId();
+				foreach ( $this->itemTermsMigrationStages as $maxId => $migrationStage ) {
+					if ( $maxId === 'max' ) {
+						$maxId = Int32EntityId::MAX;
+					} elseif ( !is_int( $maxId ) ) {
+						throw new InvalidArgumentException( "'{$maxId}' in tmpItemTermsMigrationStages is not integer" );
+					}
+
+					if ( $entityNumericId > $maxId ) {
+						continue;
+					}
+
+					if ( $migrationStage < MIGRATION_WRITE_NEW ) {
+						$itemValidators[] = new LabelDescriptionUniquenessValidator( $this->duplicateDetector );
+					}
+
+					break;
+				}
+
+				return new CompositeFingerprintValidator( $itemValidators );
+
+			default:
+				return $notEqualValidator;
+		}
 	}
 
 	/**
@@ -123,9 +197,11 @@ class TermValidatorFactory {
 	}
 
 	/**
+	 * @param string $entityType
+	 *
 	 * @return ValueValidator
 	 */
-	public function getAliasValidator() {
+	public function getAliasValidator( $entityType ) {
 		$validators = $this->getCommonTermValidators( 'alias-' );
 
 		return new CompositeValidator( $validators, true );

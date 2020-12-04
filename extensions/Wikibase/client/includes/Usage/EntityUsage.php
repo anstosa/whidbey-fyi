@@ -41,12 +41,9 @@ class EntityUsage {
 	const DESCRIPTION_USAGE = 'D';
 
 	/**
-	 * Usage flag indicating that the entity's local page name was used,
-	 * i.e. the title of the local (client) page linked to the entity.
+	 * Usage flag indicating that the entity's local page name was used.
 	 * This would be the case when linking a referenced entity to the
 	 * corresponding local wiki page.
-	 * This can be thought of as a special kind of sitelink usage,
-	 * specifically for the sitelink for the local wiki.
 	 */
 	const TITLE_USAGE = 'T';
 

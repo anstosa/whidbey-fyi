@@ -4,8 +4,7 @@
 			"ArmenBakkalian",
 			"Azniv Stepanian",
 			"Kareyac",
-			"Rajemian",
-			"Շահէն"
+			"Rajemian"
 		]
 	},
 	"wikibase-entity-item": "Նիւթ",
@@ -52,6 +51,5 @@
 	"wikibase-dispatchstats-oldest-change": "Հնագոյն",
 	"wikibase-dispatchstats-newest-change": "Նորագոյն",
 	"wikibase-dispatchstats-pos": "Դիրք",
-	"wikibase-listproperties-submit": "Գտնել",
-	"wikibase-federated-properties-edit-request-failed-notice-try-again": "Կրկին փորձէ"
+	"wikibase-listproperties-submit": "Գտնել"
 }

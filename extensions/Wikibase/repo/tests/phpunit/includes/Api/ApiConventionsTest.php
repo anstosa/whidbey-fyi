@@ -5,7 +5,6 @@ namespace Wikibase\Repo\Tests\Api;
 use ApiBase;
 use ApiMain;
 use FauxRequest;
-use MediaWikiIntegrationTestCase;
 use Message;
 use ReflectionMethod;
 
@@ -19,17 +18,21 @@ use ReflectionMethod;
  * @license GPL-2.0-or-later
  * @author Lucie-Aimée Kaffee
  */
-class ApiConventionsTest extends MediaWikiIntegrationTestCase {
+class ApiConventionsTest extends \MediaWikiTestCase {
 
 	public function wikibaseApiModuleProvider() {
+		$argList = [];
+
 		foreach ( $GLOBALS['wgAPIModules'] as $moduleName => $moduleClass ) {
 			// Make sure to only test Wikibase Api modules
 			// This works as long as Wikibase modules are always defined as a class name string.
 			// @todo adjust this if we ever define our api modules differently.
 			if ( is_string( $moduleClass ) && strpos( $moduleClass, 'Wikibase' ) !== false ) {
-				yield [ $moduleClass, $moduleName ];
+				$argList[] = [ $moduleClass, $moduleName ];
 			}
 		}
+
+		return $argList;
 	}
 
 	/**

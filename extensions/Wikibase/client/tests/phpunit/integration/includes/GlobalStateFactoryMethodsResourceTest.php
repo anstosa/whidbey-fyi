@@ -4,12 +4,12 @@ namespace Wikibase\Client\Tests\Integration;
 
 use ApiMain;
 use ApiQuery;
-use ApiTestContext;
-use FauxRequest;
+use IContextSource;
 use MediaWiki\Http\HttpRequestFactory;
 use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use RequestContext;
+use Traversable;
 use Wikibase\Client\Hooks\EchoNotificationsHandlers;
 use Wikibase\Client\Hooks\EchoSetupHookHandlers;
 use Wikibase\Client\Hooks\EditActionHookHandler;
@@ -29,7 +29,7 @@ use Wikimedia\TestingAccessWrapper;
  * @license GPL-2.0-or-later
  * @author Marius Hoch
  */
-class GlobalStateFactoryMethodsResourceTest extends MediaWikiIntegrationTestCase {
+class GlobalStateFactoryMethodsResourceTest extends MediaWikiTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -61,7 +61,7 @@ class GlobalStateFactoryMethodsResourceTest extends MediaWikiIntegrationTestCase
 		$this->assertTrue( true );
 	}
 
-	public function provideHookHandlerNames(): iterable {
+	public function provideHookHandlerNames(): Traversable {
 		foreach ( $this->getExtensionJson()['HookHandlers'] as $hookHandlerName => $specification ) {
 			yield [ $hookHandlerName ];
 		}
@@ -78,7 +78,7 @@ class GlobalStateFactoryMethodsResourceTest extends MediaWikiIntegrationTestCase
 		$this->assertTrue( true );
 	}
 
-	public function provideApiModuleListsAndNames(): iterable {
+	public function provideApiModuleListsAndNames(): Traversable {
 		foreach ( [ 'APIListModules', 'APIMetaModules', 'APIPropModules' ] as $moduleList ) {
 			foreach ( $this->getExtensionJson()[$moduleList] as $moduleName => $specification ) {
 				yield [ $moduleList, $moduleName ];
@@ -96,36 +96,36 @@ class GlobalStateFactoryMethodsResourceTest extends MediaWikiIntegrationTestCase
 		$this->assertTrue( true );
 	}
 
-	public function provideSpecialPageNames(): iterable {
+	public function provideSpecialPageNames(): Traversable {
 		foreach ( $this->getExtensionJson()['SpecialPages'] as $specialPageName => $specification ) {
 			yield [ $specialPageName ];
 		}
 	}
 
 	public function testEchoNotificationsHandlers() {
-		EchoNotificationsHandlers::factory();
+		EchoNotificationsHandlers::newFromGlobalState();
 		$this->assertTrue( true );
 	}
 
 	public function testEchoSetupHookHandlers() {
-		EchoSetupHookHandlers::factory();
+		EchoSetupHookHandlers::newFromGlobalState();
 		$this->assertTrue( true );
 	}
 
 	public function testEditActionHookHandler() {
-		EditActionHookHandler::factory( RequestContext::getMain() );
+		EditActionHookHandler::newFromGlobalState( RequestContext::getMain() );
 		$this->assertTrue( true );
 	}
 
 	public function testNoLangLinkHandler(): void {
 		TestingAccessWrapper::newFromClass( NoLangLinkHandler::class )
-			->factory();
+			->newFromGlobalState();
 		$this->assertTrue( true );
 	}
 
 	public function testShortDescHandler(): void {
 		TestingAccessWrapper::newFromClass( ShortDescHandler::class )
-			->factory();
+			->newFromGlobalState();
 		$this->assertTrue( true );
 	}
 
@@ -184,10 +184,13 @@ class GlobalStateFactoryMethodsResourceTest extends MediaWikiIntegrationTestCase
 	}
 
 	private function mockApiQuery(): ApiQuery {
-		$request = new FauxRequest();
-		$ctx = new ApiTestContext();
-		$ctx = $ctx->newTestContext( $request );
-		return new ApiQuery( new ApiMain( $ctx ), 'query' );
+		$apiMain = $this->createMock( ApiMain::class );
+		$apiMain->method( 'getContext' )
+			->willReturn( $this->createMock( IContextSource::class ) );
+		$apiQuery = $this->createMock( ApiQuery::class );
+		$apiQuery->method( 'getMain' )
+			->willReturn( $apiMain );
+		return $apiQuery;
 	}
 
 }

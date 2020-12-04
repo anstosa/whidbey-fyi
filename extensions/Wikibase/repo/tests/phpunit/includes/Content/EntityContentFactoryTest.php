@@ -5,7 +5,6 @@ namespace Wikibase\Repo\Tests\Content;
 use InvalidArgumentException;
 use MediaWiki\Interwiki\InterwikiLookup;
 use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
 use OutOfBoundsException;
 use Title;
 use Wikibase\DataAccess\EntitySource;
@@ -36,7 +35,7 @@ use Wikibase\Repo\WikibaseRepo;
  * @author Jeroen De Dauw < jeroendedauw@gmail.com >
  * @author Daniel Kinzler
  */
-class EntityContentFactoryTest extends MediaWikiIntegrationTestCase {
+class EntityContentFactoryTest extends \MediaWikiTestCase {
 
 	/**
 	 * @dataProvider contentModelsProvider
@@ -56,9 +55,13 @@ class EntityContentFactoryTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function contentModelsProvider() {
-		yield [ [], [] ];
-		yield [ [ 'Foo' => 'Bar' ], [] ];
-		yield [ WikibaseRepo::getDefaultInstance()->getContentModelMappings(), [] ];
+		$argLists = [];
+
+		$argLists[] = [ [], [] ];
+		$argLists[] = [ [ 'Foo' => 'Bar' ], [] ];
+		$argLists[] = [ WikibaseRepo::getDefaultInstance()->getContentModelMappings(), [] ];
+
+		return $argLists;
 	}
 
 	public function provideInvalidConstructorArguments() {

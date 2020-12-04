@@ -7,7 +7,6 @@ use ApiEditPage;
 use ApiModuleManager;
 use ApiQuery;
 use ApiQuerySiteinfo;
-use CentralIdLookup;
 use Content;
 use ContentHandler;
 use ExtensionRegistry;
@@ -32,28 +31,23 @@ use SkinTemplate;
 use StubUserLang;
 use Title;
 use User;
-use Wikibase\DataModel\Entity\Item;
-use Wikibase\DataModel\Entity\Property;
+use Wikibase\Lib\Changes\CentralIdLookupFactory;
 use Wikibase\Lib\Formatters\AutoCommentFormatter;
-use Wikibase\Lib\LibHooks;
 use Wikibase\Lib\ParserFunctions\CommaSeparatedList;
 use Wikibase\Lib\Store\EntityRevision;
 use Wikibase\Lib\Store\Sql\EntityChangeLookup;
 use Wikibase\Repo\Api\MetaDataBridgeConfig;
 use Wikibase\Repo\Content\EntityContent;
 use Wikibase\Repo\Content\EntityHandler;
-use Wikibase\Repo\Hooks\Helpers\OutputPageEntityViewChecker;
 use Wikibase\Repo\Hooks\InfoActionHookHandler;
 use Wikibase\Repo\Hooks\OutputPageEntityIdReader;
 use Wikibase\Repo\Hooks\SidebarBeforeOutputHookHandler;
-use Wikibase\Repo\Notifications\RepoEntityChange;
 use Wikibase\Repo\ParserOutput\PlaceholderEmittingEntityTermsView;
 use Wikibase\Repo\ParserOutput\TermboxFlag;
 use Wikibase\Repo\ParserOutput\TermboxVersionParserCacheValueRejector;
 use Wikibase\Repo\ParserOutput\TermboxView;
 use Wikibase\Repo\Store\Sql\DispatchStats;
 use Wikibase\Repo\Store\Sql\SqlSubscriptionLookup;
-use Wikibase\View\ViewHooks;
 use WikiPage;
 
 /**
@@ -84,20 +78,16 @@ final class RepoHooks {
 	 * @param Skin $skin
 	 */
 	public static function onBeforePageDisplayMobile( OutputPage $out, Skin $skin ) {
+		$title = $out->getTitle();
 		$repo = WikibaseRepo::getDefaultInstance();
 		$entityNamespaceLookup = $repo->getEntityNamespaceLookup();
-		$namespace = $out->getTitle()->getNamespace();
-		$isEntityTitle = $entityNamespaceLookup->isNamespaceWithEntities( $namespace );
+		$isEntityTitle = $entityNamespaceLookup->isNamespaceWithEntities( $title->getNamespace() );
+		$useNewTermbox = $repo->getSettings()->getSetting( 'termboxEnabled' );
 
 		if ( $isEntityTitle ) {
 			$out->addModules( 'wikibase.mobile' );
 
-			$useNewTermbox = $repo->getSettings()->getSetting( 'termboxEnabled' );
-			$entityType = $entityNamespaceLookup->getEntityType( $namespace );
-			$isEntityTypeWithTermbox = $entityType === Item::ENTITY_TYPE
-				|| $entityType === Property::ENTITY_TYPE;
-
-			if ( $useNewTermbox && $isEntityTypeWithTermbox ) {
+			if ( $useNewTermbox ) {
 				$out->addModules( 'wikibase.termbox' );
 				$out->addModuleStyles( [ 'wikibase.termbox.styles' ] );
 			}
@@ -156,6 +146,19 @@ final class RepoHooks {
 	 */
 	public static function registerUnitTests( array &$paths ) {
 		$paths[] = __DIR__ . '/../tests/phpunit/';
+	}
+
+	/**
+	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/ResourceLoaderTestModules
+	 *
+	 * @param array[] &$testModules
+	 * @param ResourceLoader $resourceLoader
+	 */
+	public static function registerQUnitTests( array &$testModules, ResourceLoader $resourceLoader ) {
+		$testModules['qunit'] = array_merge(
+			$testModules['qunit'],
+			require __DIR__ . '/../tests/qunit/resources.php'
+		);
 	}
 
 	/**
@@ -369,14 +372,12 @@ final class RepoHooks {
 		if ( $logType === null || ( $logType === 'delete' && $logAction === 'restore' ) ) {
 			$changeLookup = WikibaseRepo::getDefaultInstance()->getStore()->getEntityChangeLookup();
 
-			/** @var RepoEntityChange $change */
 			$change = $changeLookup->loadByRevisionId( $revId, EntityChangeLookup::FROM_MASTER );
-			'@phan-var RepoEntityChange $change';
 
 			if ( $change ) {
 				$changeStore = WikibaseRepo::getDefaultInstance()->getStore()->getChangeStore();
 
-				$centralIdLookup = CentralIdLookup::factoryNonLocal();
+				$centralIdLookup = ( new CentralIdLookupFactory() )->getCentralIdLookup();
 				if ( $centralIdLookup === null ) {
 					$centralUserId = 0;
 				} else {
@@ -404,10 +405,6 @@ final class RepoHooks {
 	 */
 	public static function onGetPreferences( User $user, array &$preferences ) {
 		$preferences['wb-acknowledgedcopyrightversion'] = [
-			'type' => 'api'
-		];
-
-		$preferences['wb-dismissleavingsitenotice'] = [
 			'type' => 'api'
 		];
 
@@ -493,9 +490,8 @@ final class RepoHooks {
 			if ( MediaWikiServices::getInstance()->getPermissionManager()
 					->quickUserCan( 'edit', $skinTemplate->getUser(), $title )
 			) {
-				$out = $skinTemplate->getOutput();
 				$request = $skinTemplate->getRequest();
-				$old = !$out->isRevisionCurrent()
+				$old = !$skinTemplate->isRevisionCurrent()
 					&& !$request->getCheck( 'diff' );
 
 				$restore = $request->getCheck( 'restore' );
@@ -505,7 +501,7 @@ final class RepoHooks {
 
 					$revid = $restore
 						? $request->getText( 'restore' )
-						: $out->getRevisionId();
+						: $skinTemplate->getRevisionId();
 
 					$rev = MediaWikiServices::getInstance()
 						->getRevisionLookup()
@@ -556,8 +552,8 @@ final class RepoHooks {
 	public static function onOutputPageBodyAttributes( OutputPage $out, Skin $skin, array &$bodyAttrs ) {
 		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
 		$outputPageEntityIdReader = new OutputPageEntityIdReader(
-			new OutputPageEntityViewChecker( $wikibaseRepo->getEntityContentFactory() ),
-			WikibaseRepo::getEntityIdParser()
+			$wikibaseRepo->getEntityContentFactory(),
+			$wikibaseRepo->getEntityIdParser()
 		);
 
 		$entityId = $outputPageEntityIdReader->getEntityIdFromOutputPage( $out );
@@ -840,7 +836,7 @@ final class RepoHooks {
 	 */
 	public static function onAPIQuerySiteInfoGeneralInfo( ApiQuerySiteinfo $api, array &$data ) {
 		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
-		$dataTypes = WikibaseRepo::getDataTypeFactory()->getTypes();
+		$dataTypes = $wikibaseRepo->getDataTypeFactory()->getTypes();
 		$propertyTypes = [];
 
 		foreach ( $dataTypes as $id => $type ) {
@@ -1158,18 +1154,6 @@ final class RepoHooks {
 		$parser->setFunctionHook(
 			CommaSeparatedList::NAME,
 			[ CommaSeparatedList::class, 'handle' ]
-		);
-	}
-
-	public static function onRegistration() {
-		global $wgResourceModules;
-
-		LibHooks::onRegistration();
-		ViewHooks::onRegistration();
-
-		$wgResourceModules = array_merge(
-			$wgResourceModules,
-			require __DIR__ . '/../resources/Resources.php'
 		);
 	}
 }

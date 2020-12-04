@@ -146,6 +146,8 @@ class Summary implements FormatableSummary {
 	}
 
 	/**
+	 * Set auto comment arguments.
+	 *
 	 * @param array $args Parts to be used in auto comment
 	 */
 	public function setAutoCommentArgs( array $args ) {
@@ -153,6 +155,8 @@ class Summary implements FormatableSummary {
 	}
 
 	/**
+	 * Set auto summary arguments.
+	 *
 	 * @param array $args Parts to be used in auto summary
 	 */
 	public function setAutoSummaryArgs( array $args ) {

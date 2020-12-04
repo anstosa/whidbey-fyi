@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Lib\Tests\Store;
 
 use Wikibase\Lib\Store\ChunkAccess;
@@ -14,10 +12,9 @@ use Wikibase\Lib\Store\ChunkAccess;
  */
 class MockChunkAccess implements ChunkAccess {
 
-	/** @var array */
 	protected $data;
 
-	public function __construct( array $data ) {
+	public function __construct( $data ) {
 		$this->data = $data;
 	}
 
@@ -32,7 +29,7 @@ class MockChunkAccess implements ChunkAccess {
 	 *
 	 * @return array the desired chunk of rows/objects
 	 */
-	public function loadChunk( $start, $size ): array {
+	public function loadChunk( $start, $size ) {
 		reset( $this->data );
 		do {
 			$rec = current( $this->data );
@@ -75,7 +72,7 @@ class MockChunkAccess implements ChunkAccess {
 	 *
 	 * @return int
 	 */
-	public function getRecordId( $rec ): int {
+	public function getRecordId( $rec ) {
 		return (int)$rec;
 	}
 

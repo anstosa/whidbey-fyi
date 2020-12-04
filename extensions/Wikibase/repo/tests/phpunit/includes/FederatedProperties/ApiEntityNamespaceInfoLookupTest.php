@@ -3,12 +3,12 @@
 declare( strict_types = 1 );
 namespace Wikibase\Repo\Tests\FederatedProperties;
 
+use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Wikibase\DataModel\Entity\Item;
 use Wikibase\DataModel\Entity\Property;
 use Wikibase\Repo\FederatedProperties\ApiEntityNamespaceInfoLookup;
 use Wikibase\Repo\FederatedProperties\GenericActionApiClient;
-use Wikibase\Repo\Tests\HttpResponseMockerTrait;
 use Wikibase\Repo\WikibaseRepo;
 
 /**
@@ -19,8 +19,6 @@ use Wikibase\Repo\WikibaseRepo;
  * @license GPL-2.0-or-later
  */
 class ApiEntityNamespaceInfoLookupTest extends TestCase {
-
-	use HttpResponseMockerTrait;
 
 	private $dataFiles = [
 		'query-siteinfo-namespaces-wikidata.json',
@@ -74,7 +72,7 @@ class ApiEntityNamespaceInfoLookupTest extends TestCase {
 		$client->expects( $this->any() )
 			->method( 'get' )
 			->willReturnCallback( function() use ( $responseDataFile ) {
-				return $this->newMockResponse( $this->data[$responseDataFile], 200 );
+				return new Response( 200, [], $this->data[$responseDataFile] );
 			} );
 		return $client;
 	}

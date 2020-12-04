@@ -1,13 +1,11 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\View;
 
 use Wikibase\DataModel\Entity\EntityDocument;
 use Wikibase\DataModel\Entity\EntityId;
 use Wikibase\DataModel\Term\FingerprintProvider;
-use Wikibase\Lib\TermLanguageFallbackChain;
+use Wikibase\Lib\LanguageFallbackChain;
 use Wikimedia\Assert\Assert;
 
 /**
@@ -17,11 +15,10 @@ use Wikimedia\Assert\Assert;
  */
 class FingerprintableEntityMetaTagsCreator implements EntityMetaTagsCreator {
 
-	/** @var TermLanguageFallbackChain */
-	private $termLanguageFallbackChain;
+	private $languageFallbackChain;
 
-	public function __construct( TermLanguageFallbackChain $termLanguageFallbackChain ) {
-		$this->termLanguageFallbackChain = $termLanguageFallbackChain;
+	public function __construct( LanguageFallbackChain $languageFallbackChain ) {
+		$this->languageFallbackChain = $languageFallbackChain;
 	}
 
 	/**
@@ -44,11 +41,16 @@ class FingerprintableEntityMetaTagsCreator implements EntityMetaTagsCreator {
 		return $metaTags;
 	}
 
-	private function getDescriptionText( FingerprintProvider $entity ): ?string {
+	/**
+	 * @param FingerprintProvider $entity
+	 *
+	 * @return string|null
+	 */
+	private function getDescriptionText( FingerprintProvider $entity ) {
 		$descriptions = $entity->getFingerprint()
 			->getDescriptions()
 			->toTextArray();
-		$preferred = $this->termLanguageFallbackChain->extractPreferredValue( $descriptions );
+		$preferred = $this->languageFallbackChain->extractPreferredValue( $descriptions );
 
 		if ( is_array( $preferred ) ) {
 			return $preferred['value'];
@@ -62,11 +64,11 @@ class FingerprintableEntityMetaTagsCreator implements EntityMetaTagsCreator {
 	 * @return string|null
 	 * @suppress PhanTypeMismatchDeclaredParam,PhanUndeclaredMethod Intersection type
 	 */
-	private function getTitleText( FingerprintProvider $entity ): ?string {
+	private function getTitleText( FingerprintProvider $entity ) {
 		$labels = $entity->getFingerprint()
 			->getLabels()
 			->toTextArray();
-		$preferred = $this->termLanguageFallbackChain->extractPreferredValue( $labels );
+		$preferred = $this->languageFallbackChain->extractPreferredValue( $labels );
 
 		if ( is_array( $preferred ) ) {
 			return $preferred['value'];

@@ -37,7 +37,7 @@ class ApiListEntityUsage extends ApiQueryGeneratorBase {
 		$this->repoLinker = $repoLinker;
 	}
 
-	public static function factory( ApiQuery $apiQuery, string $moduleName ): self {
+	public static function newFromGlobalState( ApiQuery $apiQuery, string $moduleName ): self {
 		return new self(
 			$apiQuery,
 			$moduleName,
@@ -136,7 +136,6 @@ class ApiListEntityUsage extends ApiQueryGeneratorBase {
 
 		}
 		if ( $entry ) {
-			// @phan-suppress-next-line PhanPossiblyUndeclaredVariable
 			$this->formatPageData( $row, $currentPageId, $entry, $result );
 		}
 	}

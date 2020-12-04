@@ -6,13 +6,15 @@ use InvalidArgumentException;
 use ValueValidators\ValueValidator;
 use Wikibase\DataModel\Entity\BasicEntityIdParser;
 use Wikibase\DataModel\Entity\Item;
+use Wikibase\DataModel\Entity\ItemId;
 use Wikibase\DataModel\Entity\Property;
 use Wikibase\DataModel\Services\Lookup\TermLookup;
 use Wikibase\DataModel\Term\Term;
 use Wikibase\DataModel\Term\TermList;
 use Wikibase\Repo\Store\TermsCollisionDetectorFactory;
-use Wikibase\Repo\Validators\FingerprintUniquenessValidator;
-use Wikibase\Repo\Validators\LabelDescriptionNotEqualValidator;
+use Wikibase\Repo\Tests\ChangeOp\ChangeOpTestMockProvider;
+use Wikibase\Repo\Validators\ByIdFingerprintUniquenessValidator;
+use Wikibase\Repo\Validators\FingerprintValidator;
 use Wikibase\Repo\Validators\TermValidatorFactory;
 
 /**
@@ -52,12 +54,17 @@ class TermValidatorFactoryTest extends \PHPUnit\Framework\TestCase {
 	 * @return TermValidatorFactory
 	 */
 	private function newFactory( $maxLength = self::MAX_LENGTH, array $languageCodes = [] ) {
+		$mockProvider = new ChangeOpTestMockProvider( $this );
+
 		return new TermValidatorFactory(
 			$maxLength,
 			$languageCodes,
 			new BasicEntityIdParser(),
+			$mockProvider->getMockLabelDescriptionDuplicateDetector(),
 			$this->createMock( TermsCollisionDetectorFactory::class ),
-			$this->createMock( TermLookup::class )
+			$this->createMock( TermLookup::class ),
+			[],
+			0
 		);
 	}
 
@@ -71,12 +78,12 @@ class TermValidatorFactoryTest extends \PHPUnit\Framework\TestCase {
 
 			'item is supported' => [
 				'entityType' => Item::ENTITY_TYPE,
-				'expectedValidatorType' => FingerprintUniquenessValidator::class
+				'expectedValidatorType' => ByIdFingerprintUniquenessValidator::class
 			],
 
 			'property is supported' => [
 				'entityType' => Property::ENTITY_TYPE,
-				'expectedValidatorType' => FingerprintUniquenessValidator::class
+				'expectedValidatorType' => ByIdFingerprintUniquenessValidator::class
 			]
 
 		];
@@ -95,20 +102,24 @@ class TermValidatorFactoryTest extends \PHPUnit\Framework\TestCase {
 		}
 	}
 
-	public function testGetLabelDescriptionNotEqualValidator() {
+	public function testGetFingerprintValidator() {
 		$builders = $this->newFactory();
 
-		$validator = $builders->getLabelDescriptionNotEqualValidator();
+		$validator = $builders->getFingerprintValidator(
+			Item::ENTITY_TYPE,
+			$this->createMock( ItemId::class )
+		);
 
-		$this->assertInstanceOf( LabelDescriptionNotEqualValidator::class, $validator );
+		$this->assertInstanceOf( FingerprintValidator::class, $validator );
 
 		$dupeTerms = new TermList( [ new Term( 'en', 'DUPE' ) ] );
 		$blaTerms = new TermList( [ new Term( 'en', 'bla' ) ] );
+		$q99 = new ItemId( 'Q99' );
 
-		$result = $validator->validateLabelAndDescription( $dupeTerms, $blaTerms );
+		$result = $validator->validateFingerprint( $dupeTerms, $blaTerms, $q99 );
 		$this->assertTrue( $result->isValid(), 'isValid(good)' );
 
-		$result = $validator->validateLabelAndDescription( $dupeTerms, $dupeTerms );
+		$result = $validator->validateFingerprint( $dupeTerms, $dupeTerms, $q99 );
 		$this->assertFalse( $result->isValid(), 'isValid(bad): label/description' );
 	}
 
@@ -136,7 +147,7 @@ class TermValidatorFactoryTest extends \PHPUnit\Framework\TestCase {
 		$result = $builders->getDescriptionValidator()->validate( $string );
 		$this->assertSame( $expected, $result->isValid() );
 
-		$result = $builders->getAliasValidator()->validate( $string );
+		$result = $builders->getAliasValidator( $entityType )->validate( $string );
 		$this->assertSame( $expected, $result->isValid() );
 	}
 

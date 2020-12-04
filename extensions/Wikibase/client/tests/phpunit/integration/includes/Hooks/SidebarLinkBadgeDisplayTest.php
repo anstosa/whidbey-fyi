@@ -3,7 +3,6 @@
 namespace Wikibase\Client\Tests\Integration\Hooks;
 
 use Language;
-use MediaWikiIntegrationTestCase;
 use Wikibase\Client\Hooks\SidebarLinkBadgeDisplay;
 use Wikibase\DataModel\Entity\ItemId;
 use Wikibase\DataModel\Services\Lookup\LabelDescriptionLookup;
@@ -18,7 +17,7 @@ use Wikibase\DataModel\Term\Term;
  *
  * @license GPL-2.0-or-later
  */
-class SidebarLinkBadgeDisplayTest extends MediaWikiIntegrationTestCase {
+class SidebarLinkBadgeDisplayTest extends \MediaWikiTestCase {
 
 	/**
 	 * @return LabelDescriptionLookup

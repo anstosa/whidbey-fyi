@@ -187,11 +187,13 @@ class DateFormatParserTest extends StringValueParserTest {
 			'9 de novembro de 1876',
 		];
 
-		yield from parent::invalidInputProvider();
+		$cases = parent::invalidInputProvider();
 
 		foreach ( $invalid as $value ) {
-			yield [ $value ];
+			$cases[] = [ $value ];
 		}
+
+		return $cases;
 	}
 
 	/**

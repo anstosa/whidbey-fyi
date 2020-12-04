@@ -33,6 +33,8 @@ class EditEntityActionTest extends ActionTestCase {
 
 		// Remove handlers for the "OutputPageParserOutput" hook
 		$this->mergeMwGlobalArrayValue( 'wgHooks', [ 'OutputPageParserOutput' => [] ] );
+
+		$this->overrideMwServices();
 	}
 
 	public function testActionForPage() {
@@ -109,9 +111,6 @@ class EditEntityActionTest extends ActionTestCase {
 				false, // post
 				null, // user
 				'/undo-success/', // htmlPattern: should be a success
-				[ // expectedProps
-					'moduleStyles' => [ 'wikibase.common' ],
-				],
 			],
 
 			[ //3: // undo form with legal undo and undoafter
@@ -124,9 +123,6 @@ class EditEntityActionTest extends ActionTestCase {
 				false, // post
 				null, // user
 				'/undo-success/', // htmlPattern: should be a success
-				[ // expectedProps
-					'moduleStyles' => [ 'wikibase.common' ],
-				],
 			],
 
 			[ //4: // undo form with illegal undo == undoafter
@@ -150,9 +146,6 @@ class EditEntityActionTest extends ActionTestCase {
 				false, // post
 				null, // user
 				'/undo-success/', // htmlPattern: should be a success
-				[ // expectedProps
-					'moduleStyles' => [ 'wikibase.common' ],
-				],
 			],
 
 			[ //6: // undo form with illegal undo
@@ -187,9 +180,6 @@ class EditEntityActionTest extends ActionTestCase {
 				false, // post
 				null, // user
 				'/class="diff/', // htmlPattern: should be a success and contain a diff (undo-success is not shown for restore)
-				[ // expectedProps
-					'moduleStyles' => [ 'wikibase.common' ],
-				],
 			],
 
 			[ //9: // restore form with illegal restore
@@ -306,9 +296,6 @@ class EditEntityActionTest extends ActionTestCase {
 			false, // post
 			null, // user
 			'/undo-success/', // htmlPattern: should be a success
-			[ // expectedProps
-				'moduleStyles' => [ 'wikibase.common' ],
-			],
 		];
 
 		return $cases;
@@ -694,11 +681,6 @@ class EditEntityActionTest extends ActionTestCase {
 					$this->assertNotSame( '', $act, $p );
 				} elseif ( $pattern === false ) {
 					$this->assertSame( '', $act, $p );
-				} elseif ( is_array( $pattern ) ) { // expected subset of actual
-					$this->assertIsArray( $act, $p );
-					foreach ( $pattern as $element ) {
-						$this->assertContains( $element, $act, $p );
-					}
 				} else {
 					$this->assertRegExp( $pattern, $act, $p );
 				}
@@ -868,7 +850,7 @@ class EditEntityActionTest extends ActionTestCase {
 
 		self::resetTestItem( $handle );
 
-		$this->mergeMwGlobalArrayValue( 'wgGroupPermissions', $permissions );
+		$this->applyPermissions( $permissions );
 
 		$page = $this->getTestItemPage( $handle );
 
@@ -909,5 +891,28 @@ class EditEntityActionTest extends ActionTestCase {
 			$this->user = $user;
 			ApiQueryInfo::resetTokenCache();
 		}
+	}
+
+	/**
+	 * @param array[] $permissions
+	 */
+	private function applyPermissions( array $permissions ) {
+		global $wgGroupPermissions;
+
+		if ( $permissions === [] ) {
+			return;
+		}
+
+		foreach ( $permissions as $group => $rights ) {
+			if ( !isset( $wgGroupPermissions[ $group ] ) ) {
+				$wgGroupPermissions[ $group ] = [];
+			}
+
+			$wgGroupPermissions[ $group ] = array_merge( $wgGroupPermissions[ $group ], $rights );
+		}
+
+		// reset rights cache
+		$this->user->clearInstanceCache();
+		$this->overrideMwServices();
 	}
 }

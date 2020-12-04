@@ -2,13 +2,13 @@
 
 namespace Wikibase\Lib\Tests\Store;
 
-use MediaWikiIntegrationTestCase;
-use Wikibase\DataAccess\NullPrefetchingTermLookup;
-use Wikibase\DataAccess\Tests\FakePrefetchingTermLookup;
+use MediaWikiTestCase;
 use Wikibase\DataModel\Entity\ItemId;
 use Wikibase\DataModel\Term\TermFallback;
+use Wikibase\Lib\LanguageFallbackChain;
+use Wikibase\Lib\Store\EntityTermLookup;
 use Wikibase\Lib\Store\LanguageFallbackLabelDescriptionLookup;
-use Wikibase\Lib\TermLanguageFallbackChain;
+use Wikibase\Lib\TermIndexEntry;
 
 /**
  * @covers \Wikibase\Lib\Store\LanguageFallbackLabelDescriptionLookup
@@ -20,7 +20,7 @@ use Wikibase\Lib\TermLanguageFallbackChain;
  * @author Katie Filbert < aude.wiki@gmail.com >
  * @author Marius Hoch < hoo@online.de >
  */
-class LanguageFallbackLabelDescriptionLookupTest extends MediaWikiIntegrationTestCase {
+class LanguageFallbackLabelDescriptionLookupTest extends MediaWikiTestCase {
 
 	public function testGetLabel() {
 		$termLookup = $this->getTermLookup();
@@ -55,7 +55,7 @@ class LanguageFallbackLabelDescriptionLookupTest extends MediaWikiIntegrationTes
 	}
 
 	public function testGetLabel_entityNotFound() {
-		$termLookup = new NullPrefetchingTermLookup();
+		$termLookup = $this->getTermLookup();
 		$fallbackChain = $this->getLanguageFallbackChain( 'zh' );
 
 		$labelDescriptionLookup = new LanguageFallbackLabelDescriptionLookup( $termLookup, $fallbackChain );
@@ -64,7 +64,7 @@ class LanguageFallbackLabelDescriptionLookupTest extends MediaWikiIntegrationTes
 	}
 
 	public function testGetDescription_entityNotFound() {
-		$termLookup = new NullPrefetchingTermLookup();
+		$termLookup = $this->getTermLookup();
 		$fallbackChain = $this->getLanguageFallbackChain( 'zh' );
 
 		$labelDescriptionLookup = new LanguageFallbackLabelDescriptionLookup( $termLookup, $fallbackChain );
@@ -93,10 +93,10 @@ class LanguageFallbackLabelDescriptionLookupTest extends MediaWikiIntegrationTes
 	/**
 	 * @param string $languageCode
 	 *
-	 * @return TermLanguageFallbackChain
+	 * @return LanguageFallbackChain
 	 */
 	private function getLanguageFallbackChain( $languageCode ) {
-		$languageFallbackChain = $this->getMockBuilder( TermLanguageFallbackChain::class )
+		$languageFallbackChain = $this->getMockBuilder( LanguageFallbackChain::class )
 			->disableOriginalConstructor()
 			->getMock();
 
@@ -124,6 +124,50 @@ class LanguageFallbackLabelDescriptionLookupTest extends MediaWikiIntegrationTes
 	}
 
 	private function getTermLookup() {
-		return new FakePrefetchingTermLookup();
+		return new EntityTermLookup( $this->getTermIndex() );
 	}
+
+	private function getTermIndex() {
+		$terms = [
+			new TermIndexEntry( [
+				'entityId' => new ItemId( 'Q116' ),
+				'termType' => 'label',
+				'termLanguage' => 'en',
+				'termText' => 'New York City'
+			] ),
+			new TermIndexEntry( [
+				'entityId' => new ItemId( 'Q116' ),
+				'termType' => 'label',
+				'termLanguage' => 'es',
+				'termText' => 'New York City'
+			] ),
+			new TermIndexEntry( [
+				'entityId' => new ItemId( 'Q116' ),
+				'termType' => 'description',
+				'termLanguage' => 'en',
+				'termText' => 'Big Apple'
+			] ),
+			new TermIndexEntry( [
+				'entityId' => new ItemId( 'Q117' ),
+				'termType' => 'label',
+				'termLanguage' => 'en',
+				'termText' => 'Berlin'
+			] ),
+			new TermIndexEntry( [
+				'entityId' => new ItemId( 'Q118' ),
+				'termType' => 'label',
+				'termLanguage' => 'zh-cn',
+				'termText' => '测试'
+			] ),
+			new TermIndexEntry( [
+				'entityId' => new ItemId( 'Q118' ),
+				'termType' => 'description',
+				'termLanguage' => 'zh-cn',
+				'termText' => 'zh-cn description'
+			] ),
+		];
+
+		return new MockTermIndex( $terms );
+	}
+
 }

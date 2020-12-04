@@ -4,6 +4,7 @@ namespace Wikibase\Client\Changes;
 
 use Hooks;
 use InvalidArgumentException;
+use LinkBatch;
 use Psr\Log\LoggerInterface;
 use SiteLookup;
 use Title;
@@ -142,18 +143,10 @@ class ChangeHandler {
 			]
 		);
 
-		// if no usages we can abort early
-		if ( $usagesPerPage === [] ) {
-			return;
-		}
-
 		// Run all updates on all affected pages
 		$titlesToUpdate = $this->getTitlesForUsages( $usagesPerPage );
 
-		// if no titles we can abort early
-		if ( $titlesToUpdate === [] ) {
-			return;
-		}
+		( new LinkBatch( $titlesToUpdate ) )->execute();
 
 		// NOTE: deduplicate
 		$titleBatchSignature = $this->getTitleBatchSignature( $titlesToUpdate );
@@ -236,13 +229,16 @@ class ChangeHandler {
 	 * @return Title[]
 	 */
 	private function getTitlesForUsages( $usagesPerPage ) {
-		$pageIds = [];
+		$titles = [];
 
 		foreach ( $usagesPerPage as $usages ) {
-			$pageIds[] = $usages->getPageId();
+			$title = $this->titleFactory->newFromID( $usages->getPageId() );
+			if ( $title ) {
+				$titles[] = $title;
+			}
 		}
 
-		return $this->titleFactory->newFromIDs( $pageIds );
+		return $titles;
 	}
 
 	/**

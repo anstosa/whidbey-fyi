@@ -3,7 +3,6 @@
 namespace Wikibase\Lib\Tests\Formatters;
 
 use DataValues\MonolingualTextValue;
-use MediaWikiIntegrationTestCase;
 use Wikibase\Lib\Formatters\MonolingualHtmlFormatter;
 use Wikibase\Lib\LanguageNameLookup;
 
@@ -18,7 +17,7 @@ use Wikibase\Lib\LanguageNameLookup;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class MonolingualHtmlFormatterTest extends MediaWikiIntegrationTestCase {
+class MonolingualHtmlFormatterTest extends \MediaWikiTestCase {
 
 	/**
 	 * @dataProvider monolingualHtmlFormatProvider

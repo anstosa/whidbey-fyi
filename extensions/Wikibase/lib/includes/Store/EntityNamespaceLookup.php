@@ -37,17 +37,12 @@ class EntityNamespaceLookup {
 	 * Returns a list of entity types pointing to the ids of the namespaces
 	 * in which they reside.
 	 *
+	 * @deprecated Use getEntityType() instead
+	 *
 	 * @return int[] Array mapping entity type strings to namespace IDs
 	 */
-	public function getEntityNamespaces(): array {
+	public function getEntityNamespaces() {
 		return $this->entityNamespaces;
-	}
-
-	/**
-	 * @return string[]
-	 */
-	public function getEntitySlots(): array {
-		return $this->entitySlots;
 	}
 
 	/**
@@ -112,14 +107,4 @@ class EntityNamespaceLookup {
 		return array_search( $ns, $this->entityNamespaces, true ) ?: null;
 	}
 
-	/**
-	 * @param EntityNamespaceLookup $nsLookup
-	 * @return EntityNamespaceLookup
-	 */
-	public function merge( EntityNamespaceLookup $nsLookup ): EntityNamespaceLookup {
-		return new self(
-			array_merge( $this->entityNamespaces, $nsLookup->getEntityNamespaces() ),
-			array_merge( $this->entitySlots, $nsLookup->getEntitySlots() )
-		);
-	}
 }

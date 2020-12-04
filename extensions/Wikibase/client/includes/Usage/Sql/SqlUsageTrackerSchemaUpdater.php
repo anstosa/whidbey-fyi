@@ -26,7 +26,7 @@ class SqlUsageTrackerSchemaUpdater implements LoadExtensionSchemaUpdatesHook {
 		$db = $updater->getDB();
 
 		if ( !$updater->tableExists( $table ) ) {
-			$script = $this->getScriptPath( 'entity_usage', $db->getType() );
+			$script = $this->getUpdateScriptPath( 'entity_usage', $db->getType() );
 			$updater->addExtensionTable( $table, $script );
 
 			// Register function for populating the table.
@@ -45,8 +45,13 @@ class SqlUsageTrackerSchemaUpdater implements LoadExtensionSchemaUpdatesHook {
 			$script = $this->getUpdateScriptPath( 'entity_usage-drop-entity_type', $db->getType() );
 			$updater->dropExtensionField( $table, 'eu_entity_type', $script );
 
-			$script = $this->getUpdateScriptPath( 'entity_usage-drop-touched', $db->getType() );
-			$updater->dropExtensionField( $table, 'eu_touched', $script );
+			if ( $db->getType() === 'sqlite' ) {
+				$script = $this->getUpdateScriptPath( 'entity_usage-drop-touched.sqlite', $db->getType() );
+				$updater->dropExtensionField( $table, 'eu_touched', $script );
+			} else {
+				$script = $this->getUpdateScriptPath( 'entity_usage-drop-touched', $db->getType() );
+				$updater->dropExtensionField( $table, 'eu_touched', $script );
+			}
 		}
 	}
 
@@ -76,24 +81,20 @@ class SqlUsageTrackerSchemaUpdater implements LoadExtensionSchemaUpdatesHook {
 	}
 
 	private function getUpdateScriptPath( $name, $type ) {
-		return $this->getScriptPath( 'archives/' . $name, $type );
-	}
-
-	private function getScriptPath( $name, $type ) {
-		$types = [
-			$type,
-			'mysql'
+		$extensions = [
+			'.sql',
+			'.' . $type . '.sql',
 		];
 
-		foreach ( $types as $type ) {
-			$path = __DIR__ . '/../../../sql/' . $type . '/' . $name . '.sql';
+		foreach ( $extensions as $ext ) {
+			$path = __DIR__ . '/../../../sql/' . $name . $ext;
 
 			if ( file_exists( $path ) ) {
 				return $path;
 			}
 		}
 
-		throw new MWException( "Could not find schema script '$name'" );
+		throw new MWException( "Could not find schema update script '$name'" );
 	}
 
 }

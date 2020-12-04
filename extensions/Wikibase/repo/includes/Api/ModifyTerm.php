@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Api;
 
 use Wikibase\Lib\Summary;
@@ -26,8 +24,8 @@ abstract class ModifyTerm extends ModifyEntity {
 	 *
 	 * @return Summary
 	 */
-	protected function createSummary( array $params ): Summary {
-		$set = isset( $params['value'] ) && strlen( $params['value'] ) > 0;
+	protected function createSummary( array $params ) {
+		$set = isset( $params['value'] ) && 0 < strlen( $params['value'] );
 
 		$summary = parent::createSummary( $params );
 		$summary->setAction( $set ? 'set' : 'remove' );
@@ -39,7 +37,7 @@ abstract class ModifyTerm extends ModifyEntity {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getAllowedParams(): array {
+	protected function getAllowedParams() {
 		return array_merge(
 			parent::getAllowedParams(),
 			[

@@ -1,16 +1,11 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Client\Usage\Sql;
 
 use ArrayIterator;
 use InvalidArgumentException;
-use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
 use MWException;
-use Psr\Log\LoggerInterface;
-use RuntimeException;
 use Traversable;
 use Wikibase\Client\Usage\EntityUsage;
 use Wikibase\Client\Usage\PageEntityUsages;
@@ -69,9 +64,6 @@ class EntityUsageTable {
 	 */
 	private $addUsagesBatchSize;
 
-	/** @var LoggerInterface */
-	private $logger;
-
 	/**
 	 * @param EntityIdParser $idParser
 	 * @param IDatabase $writeConnection
@@ -85,16 +77,20 @@ class EntityUsageTable {
 	public function __construct(
 		EntityIdParser $idParser,
 		IDatabase $writeConnection,
-		int $batchSize = 100,
-		?string $tableName = null,
-		int $addUsagesBatchSize = 500
+		$batchSize = 100,
+		$tableName = null,
+		$addUsagesBatchSize = 500
 	) {
-		if ( $batchSize < 1 ) {
+		if ( !is_int( $batchSize ) || $batchSize < 1 ) {
 			throw new InvalidArgumentException( '$batchSize must be an integer >= 1' );
 		}
 
-		if ( $addUsagesBatchSize < 1 ) {
+		if ( !is_int( $addUsagesBatchSize ) || $addUsagesBatchSize < 1 ) {
 			throw new InvalidArgumentException( '$addUsagesBatchSize must be an integer >= 1' );
+		}
+
+		if ( !is_string( $tableName ) && $tableName !== null ) {
+			throw new InvalidArgumentException( '$tableName must be a string or null' );
 		}
 
 		$this->idParser = $idParser;
@@ -106,7 +102,6 @@ class EntityUsageTable {
 		//TODO: Inject
 		$this->loadBalancerFactory = MediaWikiServices::getInstance()->getDBLoadBalancerFactory();
 		$this->readConnection = $this->loadBalancerFactory->getMainLB()->getConnection( DB_REPLICA );
-		$this->logger = LoggerFactory::getInstance( 'Wikibase' );
 	}
 
 	/**
@@ -117,7 +112,7 @@ class EntityUsageTable {
 	 * @throws DBUnexpectedError
 	 * @throws MWException
 	 */
-	private function getAffectedRowIds( int $pageId, array $usages ): array {
+	private function getAffectedRowIds( $pageId, array $usages ) {
 		$usageConditions = [];
 		$db = $this->writeConnection;
 
@@ -133,7 +128,7 @@ class EntityUsageTable {
 		$rowIds = [];
 		foreach ( array_chunk( $usageConditions, $this->batchSize ) as $usageConditionChunk ) {
 			$where = [
-				'eu_page_id' => $pageId,
+				'eu_page_id' => (int)$pageId,
 				$db->makeList( $usageConditionChunk, LIST_OR )
 			];
 
@@ -153,16 +148,8 @@ class EntityUsageTable {
 	 * @throws InvalidArgumentException
 	 * @return array[]
 	 */
-	private function makeUsageRows( int $pageId, array $usages ): array {
+	private function makeUsageRows( $pageId, array $usages ) {
 		$rows = [];
-
-		if ( $pageId < 1 ) {
-			$this->logger->warning( __METHOD__ . ': skipping invalid page ID {pageId} (T264929)', [
-				'pageId' => $pageId,
-				'exception' => new RuntimeException(),
-			] );
-			return [];
-		}
 
 		foreach ( $usages as $usage ) {
 			if ( !( $usage instanceof EntityUsage ) ) {
@@ -170,7 +157,7 @@ class EntityUsageTable {
 			}
 
 			$rows[] = [
-				'eu_page_id' => $pageId,
+				'eu_page_id' => (int)$pageId,
 				'eu_aspect' => $usage->getAspectKey(),
 				'eu_entity_id' => $usage->getEntityId()->getSerialization()
 			];
@@ -186,7 +173,7 @@ class EntityUsageTable {
 	 * @throws InvalidArgumentException
 	 * @return int The number of entries added
 	 */
-	public function addUsages( int $pageId, array $usages ): int {
+	public function addUsages( $pageId, array $usages ) {
 		if ( empty( $usages ) ) {
 			return 0;
 		}
@@ -216,7 +203,11 @@ class EntityUsageTable {
 	 * @throws InvalidArgumentException
 	 * @return EntityUsage[] EntityUsage identity string => EntityUsage
 	 */
-	public function queryUsages( int $pageId ): array {
+	public function queryUsages( $pageId ) {
+		if ( !is_int( $pageId ) ) {
+			throw new InvalidArgumentException( '$pageId must be an int.' );
+		}
+
 		$res = $this->readConnection->select(
 			$this->tableName,
 			[ 'eu_aspect', 'eu_entity_id' ],
@@ -232,7 +223,7 @@ class EntityUsageTable {
 	 *
 	 * @return string[]
 	 */
-	private function getEntityIdStrings( array $entityIds ): array {
+	private function getEntityIdStrings( array $entityIds ) {
 		return array_map( function( EntityId $id ) {
 			return $id->getSerialization();
 		}, $entityIds );
@@ -243,7 +234,7 @@ class EntityUsageTable {
 	 *
 	 * @return EntityUsage[]
 	 */
-	private function convertRowsToUsages( Traversable $rows ): array {
+	private function convertRowsToUsages( Traversable $rows ) {
 		$usages = [];
 
 		foreach ( $rows as $object ) {
@@ -271,7 +262,11 @@ class EntityUsageTable {
 	 * @throws InvalidArgumentException
 	 * @return EntityUsage[]
 	 */
-	public function pruneUsages( int $pageId ): array {
+	public function pruneUsages( $pageId ) {
+		if ( !is_int( $pageId ) ) {
+			throw new InvalidArgumentException( '$pageId must be an int.' );
+		}
+
 		$old = $this->queryUsages( $pageId );
 
 		$this->removeUsages( $pageId, $old );
@@ -285,7 +280,10 @@ class EntityUsageTable {
 	 *
 	 * @throws InvalidArgumentException
 	 */
-	public function removeUsages( int $pageId, array $usages ): void {
+	public function removeUsages( $pageId, array $usages ) {
+		if ( !is_int( $pageId ) ) {
+			throw new InvalidArgumentException( '$pageId must be an int.' );
+		}
 		if ( empty( $usages ) ) {
 			return;
 		}
@@ -347,20 +345,11 @@ class EntityUsageTable {
 	 *
 	 * @return PageEntityUsages[]
 	 */
-	private function foldRowsIntoPageEntityUsages( Traversable $rows ): array {
+	private function foldRowsIntoPageEntityUsages( Traversable $rows ) {
 		$usagesPerPage = [];
 
 		foreach ( $rows as $row ) {
 			$pageId = (int)$row->eu_page_id;
-
-			if ( $pageId < 1 ) {
-				$this->logger->warning( __METHOD__ . ': skipping invalid page ID {pageId} (T264929)', [
-					'pageId' => $pageId,
-					'row' => $row,
-					'exception' => new RuntimeException(),
-				] );
-				continue;
-			}
 
 			if ( isset( $usagesPerPage[$pageId] ) ) {
 				$pageEntityUsages = $usagesPerPage[$pageId];
@@ -387,7 +376,7 @@ class EntityUsageTable {
 	 *
 	 * @return EntityId[]
 	 */
-	public function getUnusedEntities( array $entityIds ): array {
+	public function getUnusedEntities( array $entityIds ) {
 		if ( empty( $entityIds ) ) {
 			return [];
 		}
@@ -411,7 +400,7 @@ class EntityUsageTable {
 	 *
 	 * @return string[]
 	 */
-	private function getUsedEntityIdStrings( array $idStrings ): array {
+	private function getUsedEntityIdStrings( array $idStrings ) {
 		// Note: We need to use one (sub)query per entity here, per T116404
 		$subQueries = $this->getUsedEntityIdStringsQueries( $idStrings );
 
@@ -435,7 +424,7 @@ class EntityUsageTable {
 	 *
 	 * @return string[]
 	 */
-	private function getUsedEntityIdStringsQueries( array $idStrings ): array {
+	private function getUsedEntityIdStringsQueries( array $idStrings ) {
 		$subQueries = [];
 
 		foreach ( $idStrings as $idString ) {
@@ -459,7 +448,7 @@ class EntityUsageTable {
 	 *
 	 * @return int[]
 	 */
-	private function getPrimaryKeys( array $where, string $method ): array {
+	private function getPrimaryKeys( array $where, $method ) {
 		$rowIds = $this->readConnection->selectFieldValues(
 			$this->tableName,
 			'eu_row_id',
@@ -474,7 +463,7 @@ class EntityUsageTable {
 	 * @param string[] $subQueries
 	 * @return string[]
 	 */
-	private function getUsedEntityIdStringsMySql( array $subQueries ): array {
+	private function getUsedEntityIdStringsMySql( array $subQueries ) {
 		$values = [];
 
 		// On MySQL we can UNION up queries and run them at once
@@ -495,8 +484,8 @@ class EntityUsageTable {
 	 * This can also be set in the constructor.
 	 * @param int $addUsagesBatchSize
 	 */
-	public function setAddUsagesBatchSize( int $addUsagesBatchSize ): void {
-		if ( $addUsagesBatchSize < 1 ) {
+	public function setAddUsagesBatchSize( $addUsagesBatchSize ) {
+		if ( !is_int( $addUsagesBatchSize ) || $addUsagesBatchSize < 1 ) {
 			throw new InvalidArgumentException( '$addUsagesBatchSize must be an integer >= 1' );
 		}
 

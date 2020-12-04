@@ -7,7 +7,6 @@ use ApiUsageException;
 use FauxRequest;
 use Language;
 use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
 use RequestContext;
 use Status;
 use Title;
@@ -40,7 +39,7 @@ use Wikimedia\TestingAccessWrapper;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class CreateRedirectTest extends MediaWikiIntegrationTestCase {
+class CreateRedirectTest extends \MediaWikiTestCase {
 
 	/**
 	 * @var MockRepository|null
@@ -203,7 +202,7 @@ class CreateRedirectTest extends MediaWikiIntegrationTestCase {
 
 	private function assertSuccess( $result ) {
 		$this->assertArrayHasKey( 'success', $result );
-		$this->assertSame( 1, $result['success'] );
+		$this->assertEquals( 1, $result['success'] );
 	}
 
 	public function setRedirectProvider_success() {

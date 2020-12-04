@@ -2,13 +2,8 @@
 
 namespace Wikibase\Lib\Tests;
 
-use IBufferingStatsdDataFactory;
 use MediaWiki\Http\HttpRequestFactory;
-use MediaWikiIntegrationTestCase;
-use Psr\Log\LoggerInterface;
-use Wikibase\Lib\StatsdRecordingSimpleCache;
-use Wikibase\Lib\TermFallbackCache\TermFallbackCacheServiceFactory;
-use Wikibase\Lib\TermFallbackCacheFactory;
+use MediaWikiTestCase;
 use Wikibase\Lib\WikibaseContentLanguages;
 use Wikibase\Lib\WikibaseSettings;
 use Wikimedia\Rdbms\ILoadBalancer;
@@ -23,7 +18,7 @@ use Wikimedia\Rdbms\LBFactory;
  * @license GPL-2.0-or-later
  * @author Marius Hoch
  */
-class GlobalStateFactoryMethodsResourceTest extends MediaWikiIntegrationTestCase {
+class GlobalStateFactoryMethodsResourceTest extends MediaWikiTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -59,32 +54,6 @@ class GlobalStateFactoryMethodsResourceTest extends MediaWikiIntegrationTestCase
 		}
 		WikibaseSettings::getRepoSettings();
 		$this->assertTrue( true );
-	}
-
-	/**
-	 * @dataProvider cacheTypeProvider
-	 */
-	public function testTermFallbackCacheFactory( $sharedCacheType ): void {
-		$logger = $this->createMock( LoggerInterface::class );
-		$factory = new TermFallbackCacheFactory(
-			$sharedCacheType,
-			$logger,
-			$this->createMock( IBufferingStatsdDataFactory::class ),
-			'secret',
-			new TermFallbackCacheServiceFactory(),
-			null
-		);
-		$this->assertInstanceOf( StatsdRecordingSimpleCache::class, $factory->getTermFallbackCache() );
-	}
-
-	public function cacheTypeProvider(): array {
-		return [
-			[ CACHE_ANYTHING ],
-			[ CACHE_NONE ],
-			[ CACHE_DB ],
-			[ CACHE_MEMCACHED ],
-			[ CACHE_ACCEL ],
-		];
 	}
 
 	private function disallowDBAccess() {

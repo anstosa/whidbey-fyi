@@ -24,12 +24,7 @@ use Wikibase\DataModel\SerializerFactory;
 use Wikibase\DataModel\Services\EntityId\EntityIdFormatter;
 use Wikibase\Lib\EntityTypeDefinitions as Def;
 use Wikibase\Lib\Formatters\LabelsProviderEntityIdHtmlLinkFormatter;
-use Wikibase\Lib\Store\LanguageFallbackLabelDescriptionLookup;
-use Wikibase\Lib\TermLanguageFallbackChain;
-use Wikibase\Repo\Api\CombinedEntitySearchHelper;
-use Wikibase\Repo\Api\EntityIdSearchHelper;
-use Wikibase\Repo\Api\EntityTermSearchHelper;
-use Wikibase\Repo\Api\PropertyDataTypeSearchHelper;
+use Wikibase\Lib\LanguageFallbackChain;
 use Wikibase\Repo\ChangeOp\Deserialization\ItemChangeOpDeserializer;
 use Wikibase\Repo\ChangeOp\Deserialization\PropertyChangeOpDeserializer;
 use Wikibase\Repo\Content\ItemContent;
@@ -60,7 +55,7 @@ return [
 		},
 		Def::VIEW_FACTORY_CALLBACK => function(
 			Language $language,
-			TermLanguageFallbackChain $fallbackChain,
+			LanguageFallbackChain $fallbackChain,
 			EntityDocument $entity
 		) {
 			$wikibaseRepo = WikibaseRepo::getDefaultInstance();
@@ -140,19 +135,27 @@ return [
 		},
 		Def::ENTITY_SEARCH_CALLBACK => function ( WebRequest $request ) {
 			$repo = WikibaseRepo::getDefaultInstance();
-
-			return new CombinedEntitySearchHelper(
+			$repoSettings = $repo->getSettings();
+			if ( !$repoSettings->getSetting( 'useTermsTableSearchFields' ) ) {
+					wfLogWarning(
+						'Using wb_terms table for wbsearchentities API action ' .
+						'but not using search-related fields of terms table. ' .
+						'This results in degraded search experience, ' .
+						'please enable the useTermsTableSearchFields setting.'
+					);
+			}
+			return new Wikibase\Repo\Api\CombinedEntitySearchHelper(
 					[
-						new EntityIdSearchHelper(
+						new Wikibase\Repo\Api\EntityIdSearchHelper(
 							$repo->getEntityLookup(),
-							WikibaseRepo::getEntityIdParser(),
-							new LanguageFallbackLabelDescriptionLookup(
+							$repo->getEntityIdParser(),
+							new Wikibase\Lib\Store\LanguageFallbackLabelDescriptionLookup(
 								$repo->getTermLookup(),
 								$repo->getLanguageFallbackChainFactory()->newFromLanguage( $repo->getUserLanguage() )
 							),
 							$repo->getEntityTypeToRepositoryMapping()
 						),
-						new EntityTermSearchHelper(
+						new Wikibase\Repo\Api\EntityTermSearchHelper(
 							$repo->newTermSearchInteractor( $repo->getUserLanguage()->getCode() )
 						)
 					]
@@ -188,7 +191,7 @@ return [
 		},
 		Def::VIEW_FACTORY_CALLBACK => function(
 			Language $language,
-			TermLanguageFallbackChain $fallbackChain,
+			LanguageFallbackChain $fallbackChain,
 			EntityDocument $entity
 		) {
 			$wikibaseRepo = WikibaseRepo::getDefaultInstance();
@@ -234,26 +237,34 @@ return [
 			return new PropertyRdfBuilder(
 				$vocabulary,
 				$writer,
-				WikibaseRepo::getDataTypeDefinitions()->getRdfDataTypes()
+				WikibaseRepo::getDefaultInstance()->getDataTypeDefinitions()->getRdfDataTypes()
 			);
 		},
 		Def::ENTITY_SEARCH_CALLBACK => function ( WebRequest $request ) {
 			$repo = WikibaseRepo::getDefaultInstance();
 			$repoSettings = $repo->getSettings();
+			if ( !$repoSettings->getSetting( 'useTermsTableSearchFields' ) ) {
+				wfLogWarning(
+					'Using wb_terms table for wbsearchentities API action ' .
+					'but not using search-related fields of terms table. ' .
+					'This results in degraded search experience, ' .
+					'please enable the useTermsTableSearchFields setting.'
+				);
+			}
 
-			return new PropertyDataTypeSearchHelper(
-				new CombinedEntitySearchHelper(
+			return new \Wikibase\Repo\Api\PropertyDataTypeSearchHelper(
+				new Wikibase\Repo\Api\CombinedEntitySearchHelper(
 					[
-						new EntityIdSearchHelper(
+						new Wikibase\Repo\Api\EntityIdSearchHelper(
 							$repo->getEntityLookup(),
-							WikibaseRepo::getEntityIdParser(),
-							new LanguageFallbackLabelDescriptionLookup(
+							$repo->getEntityIdParser(),
+							new Wikibase\Lib\Store\LanguageFallbackLabelDescriptionLookup(
 								$repo->getTermLookup(),
 								$repo->getLanguageFallbackChainFactory()->newFromLanguage( $repo->getUserLanguage() )
 							),
 							$repo->getEntityTypeToRepositoryMapping()
 						),
-						new EntityTermSearchHelper(
+						new Wikibase\Repo\Api\EntityTermSearchHelper(
 							$repo->newTermSearchInteractor( $repo->getUserLanguage()->getCode() )
 						)
 					]

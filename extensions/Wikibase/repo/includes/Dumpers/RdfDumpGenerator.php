@@ -4,15 +4,17 @@ namespace Wikibase\Repo\Dumpers;
 
 use InvalidArgumentException;
 use MWContentSerializationException;
+use PageProps;
+use SiteList;
 use Wikibase\DataModel\Entity\EntityId;
 use Wikibase\DataModel\Services\Entity\EntityPrefetcher;
 use Wikibase\DataModel\Services\Lookup\EntityLookupException;
 use Wikibase\DataModel\Services\Lookup\PropertyDataTypeLookup;
 use Wikibase\DataModel\Services\Lookup\RedirectResolvingEntityLookup;
 use Wikibase\Lib\Store\EntityRevisionLookup;
+use Wikibase\Lib\Store\EntityTitleLookup;
 use Wikibase\Lib\Store\RevisionedUnresolvedRedirectException;
 use Wikibase\Lib\Store\StorageException;
-use Wikibase\Repo\Content\EntityContentFactory;
 use Wikibase\Repo\Rdf\EntityRdfBuilderFactory;
 use Wikibase\Repo\Rdf\HashDedupeBag;
 use Wikibase\Repo\Rdf\RdfBuilder;
@@ -48,16 +50,28 @@ class RdfDumpGenerator extends DumpGenerator {
 	private $timestamp;
 
 	/**
+	 * @var PageProps
+	 */
+	private $pageProps;
+
+	/**
+	 * @var EntityTitleLookup
+	 */
+	private $titleLookup;
+
+	/**
 	 * @param resource             $out
 	 * @param EntityRevisionLookup $lookup Must not resolve redirects
 	 * @param RdfBuilder           $rdfBuilder
 	 * @param EntityPrefetcher     $entityPrefetcher
+	 * @param EntityTitleLookup $titleLookup
 	 */
 	public function __construct(
 		$out,
 		EntityRevisionLookup $lookup,
 		RdfBuilder $rdfBuilder,
-		EntityPrefetcher $entityPrefetcher
+		EntityPrefetcher $entityPrefetcher,
+		EntityTitleLookup $titleLookup
 	) {
 		parent::__construct( $out, $entityPrefetcher );
 
@@ -67,12 +81,17 @@ class RdfDumpGenerator extends DumpGenerator {
 
 		$this->rdfBuilder = $rdfBuilder;
 		$this->entityRevisionLookup = $lookup;
+		$this->titleLookup = $titleLookup;
 	}
 
 	/**
 	 * Do something before dumping data
 	 */
 	protected function preDump() {
+		$this->pageProps = PageProps::getInstance();
+		$this->pageProps->ensureCacheSize( $this->batchSize );
+		$this->rdfBuilder->setPageProps( $this->pageProps );
+
 		$this->rdfBuilder->startDocument();
 		$this->rdfBuilder->addDumpHeader( $this->timestamp );
 
@@ -88,6 +107,20 @@ class RdfDumpGenerator extends DumpGenerator {
 
 		$footer = $this->rdfBuilder->getRDF();
 		$this->writeToDump( $footer );
+	}
+
+	/**
+	 * Do something before dumping a batch of entities
+	 * @param EntityId[] $entities
+	 */
+	protected function preBatchDump( $entities ) {
+		parent::preBatchDump( $entities );
+		$titles = $this->titleLookup->getTitlesForIds( $entities );
+		$props = array_keys( $this->rdfBuilder->getPageProperties() );
+		// Prefetch page props
+		if ( $titles && $props ) {
+			$this->pageProps->getProperties( $titles, $props );
+		}
 	}
 
 	/**
@@ -113,7 +146,7 @@ class RdfDumpGenerator extends DumpGenerator {
 				$entityRevision->getTimestamp()
 			);
 
-			$this->rdfBuilder->addEntityPageProps( $entityRevision->getEntity() );
+			$this->rdfBuilder->addEntityPageProps( $entityRevision->getEntity()->getId() );
 
 			$this->rdfBuilder->addEntity(
 				$entityRevision->getEntity()
@@ -192,13 +225,14 @@ class RdfDumpGenerator extends DumpGenerator {
 	 * @param string                     $format
 	 * @param resource                   $output
 	 * @param string                     $flavor Either "full" or "truthy"
+	 * @param SiteList                   $sites
 	 * @param EntityRevisionLookup       $entityRevisionLookup
 	 * @param PropertyDataTypeLookup     $propertyLookup
 	 * @param ValueSnakRdfBuilderFactory $valueSnakRdfBuilderFactory
 	 * @param EntityRdfBuilderFactory    $entityRdfBuilderFactory
 	 * @param EntityPrefetcher           $entityPrefetcher
 	 * @param RdfVocabulary              $vocabulary
-	 * @param EntityContentFactory       $entityContentFactory
+	 * @param EntityTitleLookup $titleLookup
 	 * @param BNodeLabeler|null          $labeler
 	 *
 	 * @return static
@@ -208,13 +242,14 @@ class RdfDumpGenerator extends DumpGenerator {
 		$format,
 		$output,
 		$flavor,
+		SiteList $sites,
 		EntityRevisionLookup $entityRevisionLookup,
 		PropertyDataTypeLookup $propertyLookup,
 		ValueSnakRdfBuilderFactory $valueSnakRdfBuilderFactory,
 		EntityRdfBuilderFactory $entityRdfBuilderFactory,
 		EntityPrefetcher $entityPrefetcher,
 		RdfVocabulary $vocabulary,
-		EntityContentFactory $entityContentFactory,
+		EntityTitleLookup $titleLookup,
 		BNodeLabeler $labeler = null
 	) {
 		$rdfWriter = self::getRdfWriter( $format, $labeler );
@@ -223,6 +258,7 @@ class RdfDumpGenerator extends DumpGenerator {
 		}
 
 		$rdfBuilder = new RdfBuilder(
+			$sites,
 			$vocabulary,
 			$valueSnakRdfBuilderFactory,
 			$propertyLookup,
@@ -230,10 +266,10 @@ class RdfDumpGenerator extends DumpGenerator {
 			self::getFlavorFlags( $flavor ),
 			$rdfWriter,
 			new HashDedupeBag(),
-			$entityContentFactory
+			$titleLookup
 		);
 
-		return new self( $output, $entityRevisionLookup, $rdfBuilder, $entityPrefetcher );
+		return new self( $output, $entityRevisionLookup, $rdfBuilder, $entityPrefetcher, $titleLookup );
 	}
 
 }

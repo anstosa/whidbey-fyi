@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Tests\Api;
 
 use ApiUsageException;
@@ -35,7 +33,12 @@ class RemoveClaimsTest extends WikibaseApiTestCase {
 
 	private static $propertyId;
 
-	private function addStatementsAndSave( Item $item ): Item {
+	/**
+	 * @param Item $item
+	 *
+	 * @return Item
+	 */
+	private function addStatementsAndSave( Item $item ) {
 		$store = WikibaseRepo::getDefaultInstance()->getEntityStore();
 		$store->saveEntity( $item, '', $this->user, EDIT_NEW );
 
@@ -65,7 +68,7 @@ class RemoveClaimsTest extends WikibaseApiTestCase {
 	/**
 	 * @return Item[]
 	 */
-	public function itemProvider(): iterable {
+	public function itemProvider() {
 		$fingerprint = new Fingerprint();
 		$fingerprint->setLabel( 'en', 'kittens' );
 
@@ -140,7 +143,7 @@ class RemoveClaimsTest extends WikibaseApiTestCase {
 		$this->assertTrue( $obtainedItem->getStatements()->isEmpty() );
 	}
 
-	private function makeTheRequest( array $claimGuids ): void {
+	private function makeTheRequest( array $claimGuids ) {
 		$params = [
 			'action' => 'wbremoveclaims',
 			'claim' => implode( '|', $claimGuids ),
@@ -159,25 +162,32 @@ class RemoveClaimsTest extends WikibaseApiTestCase {
 		$this->assertArrayEquals( $claimGuids, $claims );
 	}
 
-	/** @dataProvider invalidClaimProvider */
-	public function testRemoveInvalidClaims( string $claimGuid ) {
+	/**
+	 * @dataProvider invalidClaimProvider
+	 */
+	public function testRemoveInvalidClaims( $claimGuids ) {
 		$params = [
 			'action' => 'wbremoveclaims',
-			'claim' => $claimGuid,
+			'claim' => is_array( $claimGuids ) ? implode( '|', $claimGuids ) : $claimGuids,
 		];
 
 		$this->expectException( ApiUsageException::class );
 		$this->doApiRequestWithToken( $params );
 	}
 
-	public function invalidClaimProvider(): iterable {
+	public function invalidClaimProvider() {
 		return [
 			[ 'xyz' ], //wrong guid
 			[ 'x$y$z' ], //wrong guid
 		];
 	}
 
-	private function getNewProperty( string $type ): Property {
+	/**
+	 * @param string $type
+	 *
+	 * @return Property
+	 */
+	private function getNewProperty( $type ) {
 		$property = Property::newFromType( $type );
 
 		$store = WikibaseRepo::getDefaultInstance()->getEntityStore();

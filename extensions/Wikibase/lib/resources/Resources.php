@@ -18,6 +18,11 @@ return call_user_func( function() {
 		'remoteExtPath' => 'Wikibase/lib/resources',
 	];
 
+	$wikibaseApiPaths = [
+		'localBasePath' => __DIR__ . '/wikibase-api/src',
+		'remoteExtPath' => 'Wikibase/lib/resources/wikibase-api/src',
+	];
+
 	$modules = [
 
 		'mw.config.values.wbSiteDetails' => $moduleTemplate + [
@@ -30,9 +35,57 @@ return call_user_func( function() {
 				);
 			},
 		],
+
 		'mw.config.values.wbRepo' => $moduleTemplate + [
 			'class' => RepoAccessModule::class,
 		],
+
+		'wikibase' => $moduleTemplate + [
+			'scripts' => [
+				'wikibase.js',
+			],
+			'targets' => [ 'desktop', 'mobile' ],
+		],
+
+		'wikibase.api.RepoApi' => $wikibaseApiPaths + [
+			'scripts' => [
+				'namespace.js',
+				'RepoApi.js',
+				'getLocationAgnosticMwApi.js',
+				'RepoApiError.js',
+			],
+			'dependencies' => [
+				'mediawiki.api',
+				'mediawiki.ForeignApi',
+			],
+			'messages' => [
+				'wikibase-error-unexpected',
+				'wikibase-error-unknown',
+				'wikibase-error-save-generic',
+				'wikibase-error-remove-generic',
+				'wikibase-error-save-timeout',
+				'wikibase-error-remove-timeout',
+				'wikibase-error-ui-no-external-page',
+				'wikibase-error-ui-edit-conflict',
+			],
+			'targets' => [
+				'desktop',
+				'mobile'
+			]
+		],
+
+		'wikibase.api.ValueCaller' => $wikibaseApiPaths + [
+			'scripts' => [
+				'namespace.js',
+				'ParseValueCaller.js',
+				'FormatValueCaller.js',
+			],
+			'dependencies' => [
+				'wikibase.api.RepoApi',
+				'dataValues.DataValue',
+			]
+		],
+
 	];
 
 	return $modules;

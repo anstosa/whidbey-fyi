@@ -7,14 +7,11 @@ use PHPUnit\Framework\TestCase;
 use Wikibase\DataModel\Entity\Item;
 use Wikibase\DataModel\Entity\ItemId;
 use Wikibase\DataModel\Term\TermList;
-use Wikibase\Lib\ContentLanguages;
+use Wikibase\Lib\LanguageFallbackChain;
 use Wikibase\Lib\LanguageFallbackChainFactory;
-use Wikibase\Lib\LanguageWithConversion;
 use Wikibase\Lib\Store\EntityRevision;
-use Wikibase\Lib\TermLanguageFallbackChain;
 use Wikibase\Repo\ParserOutput\TermboxView;
 use Wikibase\Repo\ParserOutput\TextInjector;
-use Wikibase\View\DummyLocalizedTextProvider;
 use Wikibase\View\EntityTermsView;
 use Wikibase\View\LocalizedTextProvider;
 use Wikibase\View\SpecialPageLinker;
@@ -67,14 +64,11 @@ class TermboxViewTest extends TestCase {
 			->willReturn( $markers );
 
 		$languageCode = 'en';
-		$stubContentLanguages = $this->createStub( ContentLanguages::class );
-		$stubContentLanguages->method( 'hasLanguage' )
-			->willReturn( true );
 		$fallbackChainFactory = $this->createMock( LanguageFallbackChainFactory::class );
 		$fallbackChainFactory->expects( $this->once() )
 			->method( 'newFromLanguageCode' )
 			->with( $languageCode )
-			->willReturn( new TermLanguageFallbackChain( [ LanguageWithConversion::factory( $languageCode ) ], $stubContentLanguages ) );
+			->willReturn( new LanguageFallbackChain( [ $languageCode ] ) );
 
 		$termbox = new TermboxView(
 			$fallbackChainFactory,
@@ -95,10 +89,7 @@ class TermboxViewTest extends TestCase {
 		$editLinkUrl = '/edit/Q42';
 		$response = 'termbox says hi';
 
-		$stubContentLanguages = $this->createStub( ContentLanguages::class );
-		$stubContentLanguages->method( 'hasLanguage' )
-			->willReturn( true );
-		$fallbackChain = new TermLanguageFallbackChain( [ LanguageWithConversion::factory( $language ) ], $stubContentLanguages );
+		$fallbackChain = new LanguageFallbackChain( [ $language ] );
 		$fallbackChainFactory = $this->createMock( LanguageFallbackChainFactory::class );
 		$fallbackChainFactory->expects( $this->once() )
 			->method( 'newFromLanguageCode' )
@@ -171,8 +162,12 @@ class TermboxViewTest extends TestCase {
 
 	public function testGetTitleHtml_returnsHtmlWithEntityId() {
 		$entityId = new ItemId( 'Q42' );
+		$decoratedIdSerialization = '( ' . $entityId->getSerialization() . ')';
 
-		$textProvider = new DummyLocalizedTextProvider();
+		$textProvider = $this->newLocalizedTextProvider();
+		$textProvider->method( 'get' )
+			->with( 'parentheses', [ $entityId->getSerialization() ] )
+			->willReturn( $decoratedIdSerialization );
 
 		$termbox = $this->newTermbox(
 			$this->newTermboxRenderer(),
@@ -181,7 +176,7 @@ class TermboxViewTest extends TestCase {
 		);
 
 		$this->assertSame(
-			'(parentheses: Q42)',
+			$decoratedIdSerialization,
 			$termbox->getTitleHtml( $entityId )
 		);
 	}

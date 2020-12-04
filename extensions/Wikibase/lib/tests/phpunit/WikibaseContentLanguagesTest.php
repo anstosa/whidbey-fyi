@@ -2,7 +2,7 @@
 
 namespace Wikibase\Lib\Tests;
 
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use OutOfRangeException;
 use Wikibase\Lib\ContentLanguages;
 use Wikibase\Lib\StaticContentLanguages;
@@ -15,7 +15,7 @@ use Wikibase\Lib\WikibaseContentLanguages;
  *
  * @license GPL-2.0-or-later
  */
-class WikibaseContentLanguagesTest extends MediaWikiIntegrationTestCase {
+class WikibaseContentLanguagesTest extends MediaWikiTestCase {
 
 	public function testGetContentLanguages() {
 		$test1Languages = new StaticContentLanguages( [ 'test1' ] );

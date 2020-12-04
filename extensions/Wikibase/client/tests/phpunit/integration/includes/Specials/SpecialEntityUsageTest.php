@@ -3,12 +3,9 @@
 namespace Wikibase\Client\Tests\Integration\Specials;
 
 use Language;
-use LanguageQqx;
-use MediaWiki\Languages\LanguageConverterFactory;
 use MediaWiki\MediaWikiServices;
 use SpecialPageTestBase;
 use Title;
-use TrivialLanguageConverter;
 use Wikibase\Client\Specials\SpecialEntityUsage;
 use Wikibase\Client\WikibaseClient;
 use Wikimedia\Rdbms\FakeResultWrapper;
@@ -57,26 +54,19 @@ class SpecialEntityUsageTest extends SpecialPageTestBase {
 		$idParser = WikibaseClient::getDefaultInstance()->getEntityIdParser();
 
 		$specialPage = $this->getMockBuilder( SpecialEntityUsage::class )
-			->setConstructorArgs( [ $idParser, $this->languageConverterFactory() ] )
-			->onlyMethods( [ 'reallyDoQuery' ] )
+			->setConstructorArgs( [ $idParser ] )
+			->setMethods( [ 'reallyDoQuery' ] )
 			->getMock();
 
-		$specialPage->method( 'reallyDoQuery' )
-			->willReturn( $this->reallyDoQueryMock() );
+		$specialPage->expects( $this->any() )
+			->method( 'reallyDoQuery' )
+			->will( $this->returnValue( $this->reallyDoQueryMock() ) );
 
 		return $specialPage;
 	}
 
-	private function languageConverterFactory(): LanguageConverterFactory {
-		$languageConverterFactory = $this
-			->getMockBuilder( LanguageConverterFactory::class )
-			->disableOriginalConstructor()
-			->onlyMethods( [ 'getLanguageConverter' ] )
-			->getMock();
-		$languageConverterFactory->method( 'getLanguageConverter' )
-			->willReturn( new TrivialLanguageConverter( new LanguageQqx() ) );
-
-		return $languageConverterFactory;
+	public function testNewFromGlobalState() {
+		$this->assertInstanceOf( SpecialEntityUsage::class, SpecialEntityUsage::newFromGlobalState() );
 	}
 
 	public function testExecuteWithValidParam() {
@@ -119,7 +109,7 @@ class SpecialEntityUsageTest extends SpecialPageTestBase {
 		$this->addReallyDoQueryData();
 
 		$wikibaseClient = WikibaseClient::getDefaultInstance();
-		$special = new SpecialEntityUsage( $wikibaseClient->getEntityIdParser(), $this->languageConverterFactory() );
+		$special = new SpecialEntityUsage( $wikibaseClient->getEntityIdParser() );
 		$special->prepareParams( 'Q3' );
 		$res = $special->reallyDoQuery( 50 );
 		$values = [];

@@ -49,7 +49,7 @@ class UpdateUnits extends Maintenance {
 
 	/**
 	 * Should we silence the error output for tests?
-	 * @var bool
+	 * @var boolean
 	 */
 	public $silent;
 
@@ -182,6 +182,7 @@ class UpdateUnits extends Maintenance {
 	}
 
 	/**
+	 * Set base URI
 	 * @param string $uri
 	 */
 	public function setBaseUri( $uri ) {

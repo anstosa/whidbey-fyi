@@ -2,7 +2,7 @@
 
 namespace Wikibase\Repo\Tests\Store\Sql;
 
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use Wikibase\DataModel\Entity\EntityDocument;
 use Wikibase\DataModel\Entity\EntityId;
 use Wikibase\DataModel\Entity\EntityRedirect;
@@ -30,7 +30,7 @@ use Wikibase\Repo\WikibaseRepo;
  * @author Daniel Kinzler
  * @author Marius Hoch
  */
-class SqlEntityIdPagerTest extends MediaWikiIntegrationTestCase {
+class SqlEntityIdPagerTest extends MediaWikiTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -91,8 +91,7 @@ class SqlEntityIdPagerTest extends MediaWikiIntegrationTestCase {
 			'page_random' => 0,
 			'page_latest' => 0,
 			'page_len' => 1,
-			'page_is_redirect' => $isRedirect ? 1 : 0,
-			'page_touched' => $this->db->timestamp(),
+			'page_is_redirect' => $isRedirect ? 1 : 0
 		];
 	}
 

@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Tests\Api;
 
 use ApiUsageException;
@@ -34,7 +32,7 @@ class LinkTitlesTest extends WikibaseApiTestCase {
 		self::$hasSetup = true;
 	}
 
-	public function provideLinkTitles(): iterable {
+	public function provideLinkTitles() {
 		return [
 			[ //0 add nowiki as fromsite
 				'p' => [ 'tosite' => 'nnwiki', 'totitle' => 'Oslo', 'fromsite' => 'nowiki', 'fromtitle' => 'Oslo' ],
@@ -54,7 +52,7 @@ class LinkTitlesTest extends WikibaseApiTestCase {
 	/**
 	 * @dataProvider provideLinkTitles
 	 */
-	public function testLinkTitles( array $params, array $expected ): void {
+	public function testLinkTitles( $params, $expected ) {
 		// -- set any defaults ------------------------------------
 		$params['action'] = 'wblinktitles';
 
@@ -87,7 +85,7 @@ class LinkTitlesTest extends WikibaseApiTestCase {
 		}
 	}
 
-	public function provideLinkTitleExceptions(): iterable {
+	public function provideLinkTitleExceptions() {
 		return [
 			'notoken' => [
 				'p' => [
@@ -223,7 +221,7 @@ class LinkTitlesTest extends WikibaseApiTestCase {
 	/**
 	 * @dataProvider provideLinkTitleExceptions
 	 */
-	public function testLinkTitlesExceptions( array $params, array $expected, bool $token = true ) {
+	public function testLinkTitlesExceptions( $params, $expected, $token = true ) {
 		// -- set any defaults ------------------------------------
 		$params['action'] = 'wblinktitles';
 		$this->doTestQueryExceptions( $params, $expected['exception'], null, $token );

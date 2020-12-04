@@ -123,6 +123,11 @@ class DispatchingSnakFormatterTest extends \PHPUnit\Framework\TestCase {
 		);
 
 		return [
+			'format must be a string' => [
+				17,
+				[],
+				[],
+			],
 			'snak types must be strings' => [
 				SnakFormatter::FORMAT_PLAIN,
 				[ 17 => $formatter ],

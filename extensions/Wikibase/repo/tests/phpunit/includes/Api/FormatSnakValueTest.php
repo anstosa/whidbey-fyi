@@ -178,7 +178,7 @@ class FormatSnakValueTest extends ApiTestCase {
 					[ 'lang' => 'de-ch' ], // fallback
 					null,
 					'/^<a title="[^"]*' . $idString . '" href="[^"]+' . $idString .
-					'" lang="en">George Washington<\/a>' . '&nbsp;' .
+					'" lang="en">George Washington<\/a>' .
 					'<sup class="wb-language-fallback-indicator">[^<>]+<\/sup>$/',
 				];
 			} ],
@@ -294,27 +294,28 @@ class FormatSnakValueTest extends ApiTestCase {
 	}
 
 	public function provideInvalidParameters() {
-		yield 'FORMAT_TYPE_MISMATCH' => [ [
+		$valueFormatAndDataTypeMismatch = [
 			'action' => 'wbformatvalue',
 			'generate' => SnakFormatter::FORMAT_HTML,
+			'datatype' => 'wikibase-entityid',
 			'datavalue' => '{"type":"wikibase-entityid", "value": {"id":"Q10-F3"}}',
 			'datatype' => 'wikibase-item',
-			'options' => json_encode( [ 'lang' => 'qqx' ] ),
-		] ];
+			'options' => json_encode( [ 'lang' => 'qqx' ] )
+		];
 
-		yield 'BAD_DATA_VALUE_FORMAT' => [ [
+		$badDataValueFormat = [
 			'action' => 'wbformatvalue',
 			'generate' => SnakFormatter::FORMAT_HTML,
+			'datatype' => 'wikibase-entityid',
 			'datavalue' => '{"type":"wikibase-entityid", "value": {"id":"X10-F3"}}',
 			'datatype' => 'wikibase-item',
-			'options' => json_encode( [ 'lang' => 'qqx' ] ),
-		] ];
+			'options' => json_encode( [ 'lang' => 'qqx' ] )
+		];
 
-		yield 'TYPE_UNKNOWN' => [ [
-			'action' => 'wbformatvalue',
-			'generate' => SnakFormatter::FORMAT_PLAIN,
-			'datavalue' => '{"type":"unknown", "value": "123"}',
-		] ];
+		return [
+			'FORMAT_TYPE_MISMATCH' => [ $valueFormatAndDataTypeMismatch ],
+			'BAD_DATA_VALUE_FORMAT' => [ $badDataValueFormat ]
+		];
 	}
 
 	/**

@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\View\Template;
 
 use Message;
@@ -17,7 +15,6 @@ use Message;
  */
 class Template extends Message {
 
-	/** @var TemplateRegistry */
 	protected $templateRegistry;
 
 	/**
@@ -41,14 +38,17 @@ class Template extends Message {
 	 *
 	 * @return string template
 	 */
-	protected function fetchMessage(): string {
+	protected function fetchMessage() {
 		if ( !isset( $this->message ) ) {
 			$this->message = $this->templateRegistry->getTemplate( $this->key );
 		}
 		return $this->message;
 	}
 
-	public function render(): string {
+	/**
+	 * @return string
+	 */
+	public function render() {
 		// Use plain() to prevent replacing {{...}}:
 		return $this->plain();
 	}

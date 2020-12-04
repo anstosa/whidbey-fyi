@@ -380,7 +380,7 @@ return call_user_func( function() {
 				return $factory->buildEntityValidators();
 			},
 			'parser-factory-callback' => function ( ParserOptions $options ) {
-				$entityIdParser = WikibaseRepo::getEntityIdParser();
+				$entityIdParser = WikibaseRepo::getDefaultInstance()->getEntityIdParser();
 				return new EntityIdValueParser( $entityIdParser );
 			},
 			'formatter-factory-callback' => function( $format, FormatterOptions $options ) {
@@ -413,10 +413,10 @@ return call_user_func( function() {
 				if ( $snakFormat->getBaseFormat( $format ) === SnakFormatter::FORMAT_HTML ) {
 					$logger = LoggerFactory::getInstance( 'Wikibase.NewItemIdFormatter' );
 					try {
-						return new EntityIdValueFormatter( $factory->newItemIdHtmlLinkFormatter( $options ) );
+						return new EntityIdValueFormatter( $factory->newItemPropertyIdHtmlLinkFormatter( $options ) );
 					} catch ( \Exception $e ) {
 						$logger->error(
-							"Failed to construct ItemPropertyIdHtmlLinkFormatter: {exception_message}",
+							"Failed to construct ItemIdHtmlLinkFormatter: {exception_message}",
 							[
 								'exception' => $e,
 							]
@@ -445,7 +445,7 @@ return call_user_func( function() {
 				if ( $snakFormat->getBaseFormat( $format ) === SnakFormatter::FORMAT_HTML ) {
 					$logger = LoggerFactory::getInstance( 'Wikibase.NewPropertyIdFormatter' );
 					try {
-						return new EntityIdValueFormatter( $factory->newPropertyIdHtmlLinkFormatter( $options ) );
+						return new EntityIdValueFormatter( $factory->newItemPropertyIdHtmlLinkFormatter( $options ) );
 					} catch ( \Exception $e ) {
 						$logger->error(
 							"Failed to construct ItemPropertyIdHtmlLinkFormatter: {exception_message}",

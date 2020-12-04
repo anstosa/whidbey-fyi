@@ -2,7 +2,6 @@
 
 namespace Wikibase\Repo\Tests\Store;
 
-use MediaWikiIntegrationTestCase;
 use Wikibase\Repo\Store\IdGenerator;
 use Wikibase\Repo\WikibaseRepo;
 
@@ -17,7 +16,7 @@ use Wikibase\Repo\WikibaseRepo;
  * @license GPL-2.0-or-later
  * @author Jeroen De Dauw < jeroendedauw@gmail.com >
  */
-class IdGeneratorTest extends MediaWikiIntegrationTestCase {
+class IdGeneratorTest extends \MediaWikiTestCase {
 
 	public function testGetNewId() {
 		$generator = WikibaseRepo::getDefaultInstance()->newIdGenerator();

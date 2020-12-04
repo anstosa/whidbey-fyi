@@ -3,7 +3,6 @@
 namespace Wikibase\Repo\Tests\UpdateRepo;
 
 use HashSiteStore;
-use MediaWikiIntegrationTestCase;
 use NullStatsdDataFactory;
 use Psr\Log\NullLogger;
 use Site;
@@ -34,7 +33,7 @@ use Wikibase\Repo\UpdateRepo\UpdateRepoOnDeleteJob;
  * @license GPL-2.0-or-later
  * @author Marius Hoch < hoo@online.de >
  */
-class UpdateRepoOnDeleteJobTest extends MediaWikiIntegrationTestCase {
+class UpdateRepoOnDeleteJobTest extends \MediaWikiTestCase {
 
 	public function testGetSummary() {
 		$job = new UpdateRepoOnDeleteJob(

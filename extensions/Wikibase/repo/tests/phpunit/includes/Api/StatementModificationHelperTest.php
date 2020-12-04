@@ -4,7 +4,6 @@ namespace Wikibase\Repo\Tests\Api;
 
 use ApiMain;
 use DataValues\StringValue;
-use MediaWikiIntegrationTestCase;
 use RuntimeException;
 use ValueValidators\Result;
 use Wikibase\DataModel\Entity\EntityDocument;
@@ -32,7 +31,7 @@ use Wikibase\Repo\WikibaseRepo;
  * @license GPL-2.0-or-later
  * @author Tobias Gritschacher < tobias.gritschacher@wikimedia.de >
  */
-class StatementModificationHelperTest extends MediaWikiIntegrationTestCase {
+class StatementModificationHelperTest extends \MediaWikiTestCase {
 
 	public function testValidGetEntityIdFromString() {
 		$validEntityIdString = 'q55';
@@ -81,7 +80,7 @@ class StatementModificationHelperTest extends MediaWikiIntegrationTestCase {
 
 		$modificationHelper = new StatementModificationHelper(
 			$wikibaseRepo->getSnakFactory(),
-			WikibaseRepo::getEntityIdParser(),
+			$wikibaseRepo->getEntityIdParser(),
 			$wikibaseRepo->getStatementGuidValidator(),
 			$apiHelperFactory->getErrorReporter( $apiMain )
 		);
@@ -97,8 +96,7 @@ class StatementModificationHelperTest extends MediaWikiIntegrationTestCase {
 			},
 			function ( $module ) use ( $apiHelperFactory ) {
 				return $apiHelperFactory->getEntitySavingHelper( $module );
-			},
-			false
+			}
 		);
 	}
 

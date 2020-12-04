@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Lib\Store\Sql\Terms;
 
 /**
@@ -10,10 +8,7 @@ namespace Wikibase\Lib\Store\Sql\Terms;
  * @license GPL-2.0-or-later
  */
 class InMemoryTypeIdsStore implements TypeIdsAcquirer, TypeIdsResolver, TypeIdsLookup {
-
-	/** @var int[] */
 	private $types = [];
-	/** @var int */
 	private $lastId = 0;
 
 	public function acquireTypeIds( array $types ): array {

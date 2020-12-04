@@ -2,7 +2,6 @@
 
 namespace Wikibase\Client\Tests\Integration\Store\Sql;
 
-use MediaWikiIntegrationTestCase;
 use Onoi\MessageReporter\MessageReporter;
 use PHPUnit\Framework\MockObject\Matcher\Invocation;
 use Wikibase\Client\Store\Sql\BulkSubscriptionUpdater;
@@ -25,7 +24,7 @@ use Wikimedia\Rdbms\SessionConsistentConnectionManager;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class BulkSubscriptionUpdaterTest extends MediaWikiIntegrationTestCase {
+class BulkSubscriptionUpdaterTest extends \MediaWikiTestCase {
 
 	protected function setUp(): void {
 		if ( !WikibaseSettings::isRepoEnabled() ) {

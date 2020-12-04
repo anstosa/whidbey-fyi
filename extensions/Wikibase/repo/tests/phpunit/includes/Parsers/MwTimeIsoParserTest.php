@@ -122,6 +122,8 @@ class MwTimeIsoParserTest extends StringValueParserTest {
 		$gregorian = 'http://www.wikidata.org/entity/Q1985727';
 		$julian = 'http://www.wikidata.org/entity/Q1985786';
 
+		$argLists = [];
+
 		$valid = [
 			// + dates
 			'13 billion years CE' =>
@@ -260,18 +262,20 @@ class MwTimeIsoParserTest extends StringValueParserTest {
 			$precision = $expected[1];
 			$calendarModel = $expected[2] ?? $gregorian;
 
-			yield [
+			$argLists[] = [
 				(string)$value,
 				new TimeValue( $timestamp, 0, 0, 0, $precision, $calendarModel )
 			];
 		}
+
+		return $argLists;
 	}
 
 	/**
 	 * @inheritDoc
 	 */
 	public function invalidInputProvider() {
-		yield from parent::invalidInputProvider();
+		$argLists = parent::invalidInputProvider();
 
 		$invalid = [
 			//These are just wrong!
@@ -289,8 +293,10 @@ class MwTimeIsoParserTest extends StringValueParserTest {
 		];
 
 		foreach ( $invalid as $value ) {
-			yield [ $value ];
+			$argLists[] = [ $value ];
 		}
+
+		return $argLists;
 	}
 
 }

@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Api;
 
 use ApiBase;
@@ -15,7 +13,6 @@ use Wikibase\DataModel\Services\Statement\StatementGuidValidator;
 use Wikibase\DataModel\Statement\StatementList;
 use Wikibase\DataModel\Statement\StatementListProvider;
 use Wikibase\Repo\StatementRankSerializer;
-use Wikibase\Repo\WikibaseRepo;
 
 /**
  * API module for getting claims.
@@ -70,7 +67,7 @@ class GetClaims extends ApiBase {
 	 */
 	public function __construct(
 		ApiMain $mainModule,
-		string $moduleName,
+		$moduleName,
 		StatementGuidValidator $guidValidator,
 		StatementGuidParser $guidParser,
 		EntityIdParser $idParser,
@@ -88,34 +85,10 @@ class GetClaims extends ApiBase {
 		$this->entityLoadingHelper = $entityLoadingHelperInstantiator( $this );
 	}
 
-	public static function factory(
-		ApiMain $mainModule,
-		string $moduleName,
-		EntityIdParser $entityIdParser
-	): self {
-		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
-		$apiHelperFactory = $wikibaseRepo->getApiHelperFactory( $mainModule->getContext() );
-
-		return new self(
-			$mainModule,
-			$moduleName,
-			$wikibaseRepo->getStatementGuidValidator(),
-			$wikibaseRepo->getStatementGuidParser(),
-			$entityIdParser,
-			$apiHelperFactory->getErrorReporter( $mainModule ),
-			function ( $module ) use ( $apiHelperFactory ) {
-				return $apiHelperFactory->getResultBuilder( $module );
-			},
-			function ( $module ) use ( $apiHelperFactory ) {
-				return $apiHelperFactory->getEntityLoadingHelper( $module );
-			}
-		);
-	}
-
 	/**
 	 * @inheritDoc
 	 */
-	public function execute(): void {
+	public function execute() {
 		$this->getMain()->setCacheMode( 'public' );
 
 		$params = $this->extractRequestParams();
@@ -136,7 +109,7 @@ class GetClaims extends ApiBase {
 		$this->resultBuilder->addStatements( $statements, null, $params['props'] );
 	}
 
-	private function validateParameters( array $params ): void {
+	private function validateParameters( array $params ) {
 		if ( !isset( $params['entity'] ) && !isset( $params['claim'] ) ) {
 			$this->errorReporter->dieError(
 				'Either the entity parameter or the claim parameter need to be set',
@@ -145,7 +118,13 @@ class GetClaims extends ApiBase {
 		}
 	}
 
-	private function getStatements( EntityDocument $entity, ?string $guid ): StatementList {
+	/**
+	 * @param EntityDocument $entity
+	 * @param string|null $guid
+	 *
+	 * @return StatementList
+	 */
+	private function getStatements( EntityDocument $entity, $guid = null ) {
 		if ( !( $entity instanceof StatementListProvider ) ) {
 			return new StatementList();
 		}
@@ -160,7 +139,7 @@ class GetClaims extends ApiBase {
 		return new StatementList( $statement === null ? [] : $statement );
 	}
 
-	private function newRequestParamsBasedFilter(): GetClaimsStatementFilter {
+	private function newRequestParamsBasedFilter() {
 		return new GetClaimsStatementFilter(
 			$this->idParser,
 			$this->errorReporter,
@@ -178,7 +157,7 @@ class GetClaims extends ApiBase {
 	 * First element is a prefixed entity id string.
 	 * Second element is either null or a statements GUID.
 	 */
-	private function getIdentifiers( array $params ): array {
+	private function getIdentifiers( array $params ) {
 		$guid = null;
 
 		if ( isset( $params['claim'] ) ) {
@@ -198,7 +177,7 @@ class GetClaims extends ApiBase {
 		return [ $idString, $guid ];
 	}
 
-	private function getEntityIdFromStatementGuid( string $guid ): string {
+	private function getEntityIdFromStatementGuid( $guid ) {
 		if ( $this->guidValidator->validateFormat( $guid ) === false ) {
 			$this->errorReporter->dieError( 'Invalid claim guid', 'invalid-guid' );
 		}
@@ -209,7 +188,7 @@ class GetClaims extends ApiBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getAllowedParams(): array {
+	protected function getAllowedParams() {
 		return [
 			'entity' => [
 				self::PARAM_TYPE => 'string',
@@ -236,7 +215,7 @@ class GetClaims extends ApiBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getExamplesMessages(): array {
+	protected function getExamplesMessages() {
 		return [
 			"action=wbgetclaims&entity=Q42" =>
 				"apihelp-wbgetclaims-example-1",

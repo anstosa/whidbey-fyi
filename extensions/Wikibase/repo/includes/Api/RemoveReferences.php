@@ -1,19 +1,15 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Api;
 
 use ApiBase;
 use ApiMain;
-use Wikibase\DataModel\Entity\EntityIdParser;
 use Wikibase\DataModel\Services\Statement\StatementGuidParser;
 use Wikibase\DataModel\Statement\Statement;
 use Wikibase\Repo\ChangeOp\ChangeOp;
 use Wikibase\Repo\ChangeOp\ChangeOpException;
 use Wikibase\Repo\ChangeOp\ChangeOps;
 use Wikibase\Repo\ChangeOp\StatementChangeOpFactory;
-use Wikibase\Repo\WikibaseRepo;
 
 /**
  * API module for removing one or more references of the same statement.
@@ -24,8 +20,6 @@ use Wikibase\Repo\WikibaseRepo;
  */
 class RemoveReferences extends ApiBase {
 
-	use FederatedPropertyApiValidatorTrait;
-
 	/**
 	 * @var StatementChangeOpFactory
 	 */
@@ -34,7 +28,7 @@ class RemoveReferences extends ApiBase {
 	/**
 	 * @var ApiErrorReporter
 	 */
-	protected $errorReporter;
+	private $errorReporter;
 
 	/**
 	 * @var StatementModificationHelper
@@ -56,16 +50,25 @@ class RemoveReferences extends ApiBase {
 	 */
 	private $entitySavingHelper;
 
+	/**
+	 * @param ApiMain $mainModule
+	 * @param string $moduleName
+	 * @param ApiErrorReporter $errorReporter
+	 * @param StatementChangeOpFactory $statementChangeOpFactory
+	 * @param StatementModificationHelper $modificationHelper
+	 * @param StatementGuidParser $guidParser
+	 * @param callable $resultBuilderInstantiator
+	 * @param callable $entitySavingHelperInstantiator
+	 */
 	public function __construct(
 		ApiMain $mainModule,
-		string $moduleName,
+		$moduleName,
 		ApiErrorReporter $errorReporter,
 		StatementChangeOpFactory $statementChangeOpFactory,
 		StatementModificationHelper $modificationHelper,
 		StatementGuidParser $guidParser,
 		callable $resultBuilderInstantiator,
-		callable $entitySavingHelperInstantiator,
-		bool $federatedPropertiesEnabled
+		callable $entitySavingHelperInstantiator
 	) {
 		parent::__construct( $mainModule, $moduleName );
 
@@ -75,54 +78,17 @@ class RemoveReferences extends ApiBase {
 		$this->guidParser = $guidParser;
 		$this->resultBuilder = $resultBuilderInstantiator( $this );
 		$this->entitySavingHelper = $entitySavingHelperInstantiator( $this );
-		$this->federatedPropertiesEnabled = $federatedPropertiesEnabled;
-	}
-
-	public static function factory(
-		ApiMain $mainModule,
-		string $moduleName,
-		EntityIdParser $entityIdParser
-	): self {
-		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
-		$apiHelperFactory = $wikibaseRepo->getApiHelperFactory( $mainModule->getContext() );
-		$changeOpFactoryProvider = $wikibaseRepo->getChangeOpFactoryProvider();
-
-		$modificationHelper = new StatementModificationHelper(
-			$wikibaseRepo->getSnakFactory(),
-			$entityIdParser,
-			$wikibaseRepo->getStatementGuidValidator(),
-			$apiHelperFactory->getErrorReporter( $mainModule )
-		);
-
-		return new self(
-			$mainModule,
-			$moduleName,
-			$apiHelperFactory->getErrorReporter( $mainModule ),
-			$changeOpFactoryProvider->getStatementChangeOpFactory(),
-			$modificationHelper,
-			$wikibaseRepo->getStatementGuidParser(),
-			function ( $module ) use ( $apiHelperFactory ) {
-				return $apiHelperFactory->getResultBuilder( $module );
-			},
-			function ( $module ) use ( $apiHelperFactory ) {
-				return $apiHelperFactory->getEntitySavingHelper( $module );
-			},
-			$wikibaseRepo->inFederatedPropertyMode()
-		);
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public function execute(): void {
+	public function execute() {
 		$params = $this->extractRequestParams();
 		$this->validateParameters( $params );
 
 		$guid = $params['statement'];
 		$entityId = $this->guidParser->parse( $guid )->getEntityId();
-
-		$this->validateAlteringEntityById( $entityId );
-
 		$entity = $this->entitySavingHelper->loadEntity( $entityId );
 		$summary = $this->modificationHelper->createSummary( $params, $this );
 
@@ -151,7 +117,10 @@ class RemoveReferences extends ApiBase {
 		$this->resultBuilder->markSuccess();
 	}
 
-	private function validateParameters( array $params ): void {
+	/**
+	 * @param array $params
+	 */
+	private function validateParameters( array $params ) {
 		if ( !( $this->modificationHelper->validateStatementGuid( $params['statement'] ) ) ) {
 			$this->errorReporter->dieError( 'Invalid claim guid', 'invalid-guid' );
 		}
@@ -163,7 +132,7 @@ class RemoveReferences extends ApiBase {
 	 *
 	 * @return ChangeOp[]
 	 */
-	private function getChangeOps( string $guid, array $referenceHashes ): array {
+	private function getChangeOps( $guid, array $referenceHashes ) {
 		$changeOps = [];
 
 		foreach ( $referenceHashes as $referenceHash ) {
@@ -179,7 +148,7 @@ class RemoveReferences extends ApiBase {
 	 *
 	 * @return string[]
 	 */
-	private function getReferenceHashesFromParams( array $params, Statement $statement ): array {
+	private function getReferenceHashesFromParams( array $params, Statement $statement ) {
 		$references = $statement->getReferences();
 		$hashes = [];
 
@@ -196,7 +165,7 @@ class RemoveReferences extends ApiBase {
 	/**
 	 * @inheritDoc
 	 */
-	public function isWriteMode(): bool {
+	public function isWriteMode() {
 		return true;
 	}
 
@@ -205,14 +174,14 @@ class RemoveReferences extends ApiBase {
 	 *
 	 * @return string
 	 */
-	public function needsToken(): string {
+	public function needsToken() {
 		return 'csrf';
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	protected function getAllowedParams(): array {
+	protected function getAllowedParams() {
 		return array_merge(
 			[
 				'statement' => [
@@ -244,7 +213,7 @@ class RemoveReferences extends ApiBase {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getExamplesMessages(): array {
+	protected function getExamplesMessages() {
 		return [
 			'action=wbremovereferences&statement=Q42$D8404CDA-25E4-4334-AF13-A3290BCD9C0F'
 				. '&references=455481eeac76e6a8af71a6b493c073d54788e7e9&token=foobar'

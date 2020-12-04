@@ -2,13 +2,14 @@
 
 namespace Wikibase\Repo\Tests\Store\Sql\Terms;
 
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use Wikibase\DataModel\Entity\ItemId;
 use Wikibase\DataModel\Entity\PropertyId;
 use Wikibase\Lib\Store\Sql\Terms\StaticTypeIdsStore;
 use Wikibase\Lib\Store\Sql\Terms\TypeIdsLookup;
 use Wikibase\Lib\Tests\Store\Sql\Terms\Util\FakeLoadBalancer;
 use Wikibase\Repo\Store\Sql\Terms\DatabaseTermsCollisionDetector;
+use Wikimedia\Rdbms\IMaintainableDatabase;
 
 /**
  * @covers \Wikibase\Repo\Store\Sql\Terms\DatabaseTermsCollisionDetector
@@ -18,7 +19,7 @@ use Wikibase\Repo\Store\Sql\Terms\DatabaseTermsCollisionDetector;
  *
  * @license GPL-2.0-or-later
  */
-class DatabaseTermsCollisionDetectorTest extends MediaWikiIntegrationTestCase {
+class DatabaseTermsCollisionDetectorTest extends MediaWikiTestCase {
 
 	private const TYPE_LABEL = 1;
 	private const TYPE_DESCRIPTION = 2;
@@ -64,7 +65,24 @@ class DatabaseTermsCollisionDetectorTest extends MediaWikiIntegrationTestCase {
 			'label' => self::TYPE_LABEL,
 			'description' => self::TYPE_DESCRIPTION
 		] );
-		$this->setUpTerms();
+	}
+
+	protected function getSchemaOverrides( IMaintainableDatabase $db ) {
+		return [
+			'scripts' => [ $this->getSqlFileAbsolutePath() ],
+			'create' => [
+				'wbt_item_terms',
+				'wbt_property_terms',
+				'wbt_term_in_lang',
+				'wbt_text_in_lang',
+				'wbt_text',
+				'wbt_type',
+			],
+		];
+	}
+
+	private function getSqlFileAbsolutePath() {
+		return __DIR__ . '/../../../../../../sql/AddNormalizedTermsTablesDDL.sql';
 	}
 
 	/**
@@ -73,15 +91,6 @@ class DatabaseTermsCollisionDetectorTest extends MediaWikiIntegrationTestCase {
 	 * description => [ en => [ 'foo', 'bar' ], de => [ 'foo', 'bar' ] ]
 	 */
 	private function setUpTerms() {
-		$this->db->truncate( [
-				'wbt_text',
-				'wbt_type',
-				'wbt_text_in_lang',
-				'wbt_term_in_lang',
-				'wbt_property_terms',
-				'wbt_item_terms'
-			]
-		);
 		// text records
 		$this->db->insert( 'wbt_text',
 			[ 'wbx_text' => 'foo' ] );
@@ -142,6 +151,7 @@ class DatabaseTermsCollisionDetectorTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGivenPropertyLabelTest_whenCollisionExists_returnsCollidingProperyId() {
+		$this->setUpTerms();
 		$this->db->insert( 'wbt_property_terms', [
 			[ 'wbpt_term_in_lang_id' => $this->enBarLabelTermInLangId, 'wbpt_property_id' => 1 ],
 			[ 'wbpt_term_in_lang_id' => $this->deFooLabelTermInLangId, 'wbpt_property_id' => 1 ],
@@ -159,6 +169,7 @@ class DatabaseTermsCollisionDetectorTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGivenPropertyLabelTest_whenNoCollisionsExists_returnsNull() {
+		$this->setUpTerms();
 		$this->db->insert( 'wbt_property_terms', [
 			[ 'wbpt_term_in_lang_id' => $this->deFooLabelTermInLangId, 'wbpt_property_id' => 1 ],
 			[ 'wbpt_term_in_lang_id' => $this->enBarLabelTermInLangId, 'wbpt_property_id' => 2 ]
@@ -174,6 +185,7 @@ class DatabaseTermsCollisionDetectorTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGivenItemLabelTest_whenCollisionExists_returnsCollidingProperyId() {
+		$this->setUpTerms();
 		$this->db->insert( 'wbt_item_terms', [
 			[ 'wbit_term_in_lang_id' => $this->enBarLabelTermInLangId, 'wbit_item_id' => 1 ],
 			[ 'wbit_term_in_lang_id' => $this->deFooLabelTermInLangId, 'wbit_item_id' => 1 ],
@@ -191,6 +203,7 @@ class DatabaseTermsCollisionDetectorTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGivenItemLabelTest_whenNoCollisionsExists_returnsNull() {
+		$this->setUpTerms();
 		$this->db->insert( 'wbt_item_terms', [
 			[ 'wbit_term_in_lang_id' => $this->deFooLabelTermInLangId, 'wbit_item_id' => 1 ],
 			[ 'wbit_term_in_lang_id' => $this->enBarLabelTermInLangId, 'wbit_item_id' => 2 ]
@@ -206,6 +219,7 @@ class DatabaseTermsCollisionDetectorTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGivenPropertyLabelDescriptionTest_whenCollisionExists_returnsCollidingProperyId() {
+		$this->setUpTerms();
 		$this->db->insert( 'wbt_property_terms', [
 			// labels
 			[ 'wbpt_term_in_lang_id' => $this->enBarLabelTermInLangId, 'wbpt_property_id' => 1 ],
@@ -236,6 +250,7 @@ class DatabaseTermsCollisionDetectorTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGivenPropertyLabelDescriptionTest_whenNoCollisionsExists_returnsNull() {
+		$this->setUpTerms();
 		$this->db->insert( 'wbt_property_terms', [
 			// labels
 			[ 'wbpt_term_in_lang_id' => $this->enBarLabelTermInLangId, 'wbpt_property_id' => 1 ],
@@ -263,6 +278,7 @@ class DatabaseTermsCollisionDetectorTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGivenItemLabelDescriptionTest_whenCollisionExists_returnsCollidingProperyId() {
+		$this->setUpTerms();
 		$this->db->insert( 'wbt_item_terms', [
 			// labels
 			[ 'wbit_term_in_lang_id' => $this->enBarLabelTermInLangId, 'wbit_item_id' => 1 ],
@@ -293,6 +309,7 @@ class DatabaseTermsCollisionDetectorTest extends MediaWikiIntegrationTestCase {
 	}
 
 	public function testGivenItemLabelDescriptionTest_whenNoCollisionsExists_returnsNull() {
+		$this->setUpTerms();
 		$this->db->insert( 'wbt_item_terms', [
 			// labels
 			[ 'wbit_term_in_lang_id' => $this->enBarLabelTermInLangId, 'wbit_item_id' => 1 ],

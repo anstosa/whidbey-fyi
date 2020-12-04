@@ -114,7 +114,11 @@ class StatementModificationHelper {
 		try {
 			$snak = $this->snakFactory->newSnak( $propertyId, $params['snaktype'], $valueData );
 			return $snak;
-		} catch ( InvalidArgumentException | OutOfBoundsException | PropertyDataTypeLookupException $ex ) {
+		} catch ( InvalidArgumentException $ex ) {
+			$this->errorReporter->dieException( $ex, 'invalid-snak' );
+		} catch ( OutOfBoundsException $ex ) {
+			$this->errorReporter->dieException( $ex, 'invalid-snak' );
+		} catch ( PropertyDataTypeLookupException $ex ) {
 			$this->errorReporter->dieException( $ex, 'invalid-snak' );
 		}
 

@@ -4,6 +4,7 @@ namespace Wikibase\Repo\Validators;
 
 use ValueValidators\Result;
 use Wikibase\DataModel\Entity\EntityDocument;
+use Wikibase\DataModel\Entity\EntityId;
 use Wikibase\DataModel\Term\DescriptionsProvider;
 use Wikibase\DataModel\Term\LabelsProvider;
 use Wikibase\DataModel\Term\TermList;
@@ -12,7 +13,7 @@ use Wikibase\DataModel\Term\TermList;
  * @license GPL-2.0-or-later
  * @author Greta Doci
  */
-class LabelDescriptionNotEqualValidator implements EntityValidator {
+class LabelDescriptionNotEqualValidator implements EntityValidator, FingerprintValidator {
 
 	/**
 	 * @see EntityValidator::validate()
@@ -34,15 +35,19 @@ class LabelDescriptionNotEqualValidator implements EntityValidator {
 	}
 
 	/**
+	 * @see FingerprintValidator::validateFingerprint()
+	 *
 	 * @param TermList $labels
 	 * @param TermList $descriptions
+	 * @param EntityId $entityId
 	 * @param string[]|null $languageCodes
 	 *
 	 * @return Result
 	 */
-	public function validateLabelAndDescription(
+	public function validateFingerprint(
 		TermList $labels,
 		TermList $descriptions,
+		EntityId $entityId,
 		array $languageCodes = null
 	) {
 		$labels = $labels->toTextArray();

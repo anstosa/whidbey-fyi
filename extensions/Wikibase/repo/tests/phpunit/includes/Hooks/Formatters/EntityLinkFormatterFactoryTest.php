@@ -3,7 +3,6 @@
 namespace Wikibase\Repo\Tests\Hooks\Formatters;
 
 use Language;
-use MediaWikiIntegrationTestCase;
 use Wikibase\Lib\Store\EntityTitleTextLookup;
 use Wikibase\Repo\Hooks\Formatters\DefaultEntityLinkFormatter;
 use Wikibase\Repo\Hooks\Formatters\EntityLinkFormatterFactory;
@@ -17,7 +16,7 @@ use Wikimedia\Assert\ParameterTypeException;
  *
  * @license GPL-2.0-or-later
  */
-class EntityLinkFormatterFactoryTest extends MediaWikiIntegrationTestCase {
+class EntityLinkFormatterFactoryTest extends \MediaWikiTestCase {
 
 	public function testGivenEntityTypeWithRegisteredCallback_returnsCallbackResult() {
 		$factory = new EntityLinkFormatterFactory( Language::factory( 'en' ), $this->getEntityTitleTextLookup(), [

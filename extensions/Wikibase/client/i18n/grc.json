@@ -1,11 +1,10 @@
 {
 	"@metadata": {
 		"authors": [
-			"Gts-tg",
-			"PastelKos"
+			"Gts-tg"
 		]
 	},
-	"tooltip-t-wikibase": "Σύνδεσμος πρὸς συναπτόμενο ἀντικείμενο ἀποθετηρίου δεδομένων",
+	"tooltip-t-wikibase": "Σύνδεσμος πρὸς συναπτόμενο ἄντικείμενο ἀποθετηρίου δεδομένων",
 	"wikibase-comment-update": "{{WBREPONAME}} ἀντικείμενο μεταβλήθην",
 	"wikibase-dataitem": "{{WBREPONAME}} ἀντικείμενον",
 	"wikibase-editlinks": "Μεταγράφειν συνδέσμους",

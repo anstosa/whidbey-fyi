@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Repo\Tests\ChangeOp;
 
 use Wikibase\DataModel\Entity\EntityDocument;
@@ -17,13 +15,14 @@ use Wikibase\DataModel\Statement\StatementListProvider;
  */
 class StatementListProviderDummy implements EntityDocument, StatementListProvider {
 
-	/** @var ItemId */
 	private $id;
 
-	/** @var StatementList */
 	private $statements;
 
-	public function __construct( string $id ) {
+	/**
+	 * @param string $id
+	 */
+	public function __construct( $id ) {
 		$this->id = new ItemId( $id );
 		$this->statements = new StatementList();
 	}

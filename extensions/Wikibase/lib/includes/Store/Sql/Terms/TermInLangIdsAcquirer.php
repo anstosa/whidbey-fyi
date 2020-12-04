@@ -5,7 +5,6 @@ namespace Wikibase\Lib\Store\Sql\Terms;
 /**
  * Consumers acquire ids for stored terms to be used to link
  * entities to these terms.
- * @license GPL-2.0-or-later
  */
 interface TermInLangIdsAcquirer {
 

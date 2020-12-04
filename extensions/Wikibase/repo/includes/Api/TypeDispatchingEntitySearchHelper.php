@@ -8,7 +8,6 @@ use Wikibase\Lib\Interactors\TermSearchResult;
 /**
  * EntitySearchHelper implementation which uses entity configuration to
  * instantiate the specific handler.
- * @license GPL-2.0-or-later
  */
 class TypeDispatchingEntitySearchHelper implements EntitySearchHelper {
 

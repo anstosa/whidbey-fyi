@@ -30,14 +30,8 @@ class ViewEntityActionTest extends ActionTestCase {
 		// NOTE: use a language here for which we actually have labels etc
 		$this->setUserLang( 'de' );
 
-		// Remove handlers for the "OutputPageParserOutput" and "DifferenceEngineViewHeader" hooks
-		$this->mergeMwGlobalArrayValue(
-			'wgHooks',
-			[
-				'OutputPageParserOutput' => [],
-				'DifferenceEngineViewHeader' => []
-			]
-		);
+		// Remove handlers for the "OutputPageParserOutput" hook
+		$this->mergeMwGlobalArrayValue( 'wgHooks', [ 'OutputPageParserOutput' => [] ] );
 	}
 
 	public function testActionForPage() {
@@ -112,10 +106,9 @@ class ViewEntityActionTest extends ActionTestCase {
 
 		$this->assertStringContainsString( 'diff-currentversion-title', $output->getHTML(), 'is diff view' );
 		$this->assertNotEditable( $output );
-		$this->assertNotHasLinkAlternate( $output );
 	}
 
-	public function testShowOldRevision_hasNoEditOrAlternateLinks() {
+	public function testShowOldRevision_hasNoEditLinks() {
 		$page = $this->getTestItemPage( 'Berlin' );
 
 		$latest = $page->getRevisionRecord();
@@ -130,17 +123,15 @@ class ViewEntityActionTest extends ActionTestCase {
 		$output = $this->executeViewAction( $page, $params );
 
 		$this->assertNotEditable( $output );
-		$this->assertNotHasLinkAlternate( $output );
 	}
 
-	public function testShowPrintableVersion_hasNoEditOrAlternateLinks() {
+	public function testShowPrintableVersion_hasNoEditLinks() {
 		$page = $this->getTestItemPage( 'Berlin' );
 		$requestParams = [ 'printable' => 'yes' ];
 
 		$output = $this->executeViewAction( $page, $requestParams );
 
 		$this->assertNotEditable( $output );
-		$this->assertNotHasLinkAlternate( $output );
 	}
 
 	public function testShowNonExistingRevision() {
@@ -191,17 +182,6 @@ class ViewEntityActionTest extends ActionTestCase {
 		$this->assertEquals( 404, $response->getStatusCode(), "response code" );
 	}
 
-	public function testLinkHeaders() {
-		$this->setMwGlobals( 'wgLanguageCode', 'qqx' );
-		$page = $this->getTestItemPage( 'Berlin' );
-		$itemId = $page->getTitle()->getText();
-		WikibaseRepo::getDefaultInstance()->getSettings()->setSetting( 'entityDataFormats', [ 'json', 'turtle', 'html' ] );
-
-		$output = $this->executeViewAction( $page, [] );
-		$this->assertHasLinkAlternate( $output, $itemId, 'json', 'application/json' );
-		$this->assertHasLinkAlternate( $output, $itemId, 'ttl', 'text/turtle' );
-	}
-
 	private function assertEditable( OutputPage $output ) {
 		$jsConfigVars = $output->getJSVars();
 
@@ -223,17 +203,6 @@ class ViewEntityActionTest extends ActionTestCase {
 		$jsConfigVars = $output->getJsConfigVars();
 		$this->assertArrayHasKey( 'wbIsEditView', $jsConfigVars );
 		$this->assertFalse( $jsConfigVars['wbIsEditView'], 'wbIsEditView is disabled' );
-	}
-
-	private function assertHasLinkAlternate( OutputPage $output, string $itemId, string $ext, string $mime ) {
-		$this->assertStringContainsString(
-			"Special:EntityData/$itemId.$ext>; rel=\"alternate\"; type=\"$mime\"",
-			$output->getLinkHeader()
-		);
-	}
-
-	private function assertNotHasLinkAlternate( OutputPage $output ) {
-		$this->assertStringNotContainsString( 'rel="alternate"', $output->getLinkHeader() );
 	}
 
 }

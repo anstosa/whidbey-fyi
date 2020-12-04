@@ -3,7 +3,7 @@
 namespace Wikibase\Client\Tests\Integration\Usage;
 
 use MediaWiki\MediaWikiServices;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use Title;
 use Wikibase\Client\Usage\EntityUsage;
 use Wikibase\Client\WikibaseClient;
@@ -22,7 +22,7 @@ use WikitextContent;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class UsageTrackingIntegrationTest extends MediaWikiIntegrationTestCase {
+class UsageTrackingIntegrationTest extends MediaWikiTestCase {
 
 	/**
 	 * @var Title

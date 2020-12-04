@@ -41,12 +41,12 @@ class ChangeNotifier {
 	 * @param ChangeTransmitter[] $changeTransmitters
 	 * @param CentralIdLookup|null $centralIdLookup CentralIdLookup, or null if
 	 *   this repository is not connected to a central user system,
-	 *   see CentralIdLookup::factoryNonLocal.
+	 *   @see Wikibase\Lib\Changes\CentralIdLookupFactory.
 	 */
 	public function __construct(
 		EntityChangeFactory $changeFactory,
 		array $changeTransmitters,
-		?CentralIdLookup $centralIdLookup
+		CentralIdLookup $centralIdLookup = null
 	) {
 		Assert::parameterElementType(
 			ChangeTransmitter::class,
@@ -77,9 +77,7 @@ class ChangeNotifier {
 			return null;
 		}
 
-		/** @var RepoEntityChange $change */
 		$change = $this->changeFactory->newFromUpdate( EntityChange::REMOVE, $content->getEntity() );
-		'@phan-var RepoEntityChange $change';
 		$change->setTimestamp( $timestamp );
 		$change->setMetadataFromUser(
 			$user,
@@ -109,9 +107,7 @@ class ChangeNotifier {
 			return null;
 		}
 
-		/** @var RepoEntityChange $change */
 		$change = $this->changeFactory->newFromUpdate( EntityChange::RESTORE, null, $content->getEntity() );
-		'@phan-var RepoEntityChange $change';
 
 		$change->setRevisionInfo(
 			$revisionRecord,
@@ -154,9 +150,7 @@ class ChangeNotifier {
 			return null;
 		}
 
-		/** @var RepoEntityChange $change */
 		$change = $this->changeFactory->newFromUpdate( EntityChange::ADD, null, $content->getEntity() );
-		'@phan-var RepoEntityChange $change';
 		$change->setRevisionInfo(
 			$revisionRecord,
 			$this->getCentralUserId( User::newFromIdentity( $revisionRecord->getUser() ) )
@@ -227,7 +221,7 @@ class ChangeNotifier {
 	 * @param EntityContent $oldContent
 	 * @param EntityContent $newContent
 	 *
-	 * @return RepoEntityChange|null
+	 * @return EntityChange|null
 	 */
 	private function getChangeForModification( EntityContent $oldContent, EntityContent $newContent ) {
 		$oldEntity = $oldContent->isRedirect() ? null : $oldContent->getEntity();
@@ -247,9 +241,7 @@ class ChangeNotifier {
 			$action = EntityChange::UPDATE;
 		}
 
-		/** @var RepoEntityChange $change */
 		$change = $this->changeFactory->newFromUpdate( $action, $oldEntity, $newEntity );
-		'@phan-var RepoEntityChange $change';
 		return $change;
 	}
 

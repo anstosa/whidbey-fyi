@@ -134,15 +134,7 @@ class MultipleEntitySourceServicesTest extends TestCase {
 
 		$services = new MultipleEntitySourceServices(
 			new EntitySourceDefinitions( [
-				new EntitySource(
-					'items',
-					'itemdb',
-					[ 'item' => [ 'namespaceId' => 100, 'slot' => 'main' ] ],
-					'',
-					'',
-					'',
-					''
-				)
+				new EntitySource( 'items', 'itemdb', [ 'item' => [ 'namespaceId' => 100, 'slot' => 'main' ] ], '', '', '', '' )
 			], $entityTypeDefinitions ),
 			new GenericServices( $entityTypeDefinitions, [], [] ),
 			[ 'items' => $itemServices ]
@@ -164,15 +156,7 @@ class MultipleEntitySourceServicesTest extends TestCase {
 
 		$services = new MultipleEntitySourceServices(
 			new EntitySourceDefinitions( [
-				new EntitySource(
-					'items',
-					'itemdb',
-					[ 'item' => [ 'namespaceId' => 100, 'slot' => 'main' ] ],
-					'',
-					'',
-					'',
-					''
-				)
+				new EntitySource( 'items', 'itemdb', [ 'item' => [ 'namespaceId' => 100, 'slot' => 'main' ] ], '', '', '', '' )
 			], $entityTypeDefinitions ),
 			new GenericServices( $entityTypeDefinitions, [], [] ),
 			[ 'items' => $itemServices ]
@@ -224,15 +208,7 @@ class MultipleEntitySourceServicesTest extends TestCase {
 
 		$services = new MultipleEntitySourceServices(
 			new EntitySourceDefinitions( [
-				new EntitySource(
-					'items',
-					'itemdb',
-					[ 'item' => [ 'namespaceId' => 100, 'slot' => 'main' ] ],
-					'',
-					'',
-					'',
-					''
-				)
+				new EntitySource( 'items', 'itemdb', [ 'item' => [ 'namespaceId' => 100, 'slot' => 'main' ] ], '', '', '', '' )
 			], $entityTypeDefinitions ),
 			new GenericServices( $entityTypeDefinitions, [], [] ),
 			[ 'items' => $itemServices ]
@@ -265,15 +241,7 @@ class MultipleEntitySourceServicesTest extends TestCase {
 		$entityTypeDefinitions = new EntityTypeDefinitions( [] );
 		$services = new MultipleEntitySourceServices(
 			new EntitySourceDefinitions( [
-				new EntitySource(
-					'items',
-					'itemdb',
-					[ 'item' => [ 'namespaceId' => 100, 'slot' => 'main' ] ],
-					'',
-					'',
-					'',
-					''
-				),
+				new EntitySource( 'items', 'itemdb', [ 'item' => [ 'namespaceId' => 100, 'slot' => 'main' ] ], '', '', '', '' ),
 			], $entityTypeDefinitions ),
 			new GenericServices( $entityTypeDefinitions, [], [] ),
 			[]
@@ -340,24 +308,8 @@ class MultipleEntitySourceServicesTest extends TestCase {
 		$entityTypeDefinitions = new EntityTypeDefinitions( [] );
 		return new MultipleEntitySourceServices(
 			new EntitySourceDefinitions( [
-				new EntitySource(
-					'items',
-					'itemdb',
-					[ 'item' => [ 'namespaceId' => 100, 'slot' => 'main' ] ],
-					'',
-					'',
-					'',
-					''
-				),
-				new EntitySource(
-					'props',
-					'propb',
-					[ 'property' => [ 'namespaceId' => 200, 'slot' => 'main' ] ],
-					'',
-					'prop',
-					'prop',
-					'props'
-				),
+				new EntitySource( 'items', 'itemdb', [ 'item' => [ 'namespaceId' => 100, 'slot' => 'main' ] ], '', '', '', '' ),
+				new EntitySource( 'props', 'propb', [ 'property' => [ 'namespaceId' => 200, 'slot' => 'main' ] ], '', 'prop', 'prop', 'props' ),
 			], $entityTypeDefinitions ),
 			new GenericServices( $entityTypeDefinitions, [], [] ),
 			$perSourceServices

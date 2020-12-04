@@ -5,7 +5,6 @@ namespace Wikibase\Repo\Tests\Api;
 use ApiBase;
 use ApiUsageException;
 use Exception;
-use MediaWikiIntegrationTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Wikibase\DataModel\Entity\EntityDocument;
 use Wikibase\DataModel\Entity\EntityId;
@@ -30,7 +29,7 @@ use Wikibase\Repo\Api\EntityLoadingHelper;
  * @author Addshore
  * @author Daniel Kinzler
  */
-class EntityLoadingHelperTest extends MediaWikiIntegrationTestCase {
+class EntityLoadingHelperTest extends \MediaWikiTestCase {
 
 	/**
 	 * @param array $params
@@ -104,7 +103,7 @@ class EntityLoadingHelperTest extends MediaWikiIntegrationTestCase {
 		}
 
 		// TODO: Remove the deprecated dieError when it is not used any more.
-		$dieWithErrorCodeMethods = $this->logicalOr( 'dieWithError', 'dieError', 'dieStatus' );
+		$dieWithErrorCodeMethods = $this->logicalOr( 'dieWithError', 'dieError' );
 
 		if ( $expectedErrorCode ) {
 			$mock->expects( $this->once() )

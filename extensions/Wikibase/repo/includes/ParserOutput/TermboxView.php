@@ -29,15 +29,14 @@ class TermboxView implements CacheableEntityTermsView {
 
 	public const CACHE_VERSION = 2;
 
-	/** @var LanguageFallbackChainFactory */
 	private $fallbackChainFactory;
-	/** @var TermboxRenderer */
 	private $renderer;
-	/** @var SpecialPageLinker */
 	private $specialPageLinker;
-	/** @var TextInjector */
 	private $textInjector;
-	/** @var LocalizedTextProvider */
+
+	/**
+	 * @var LocalizedTextProvider
+	 */
 	private $textProvider;
 
 	public function __construct(
@@ -65,7 +64,9 @@ class TermboxView implements CacheableEntityTermsView {
 	}
 
 	public function getTitleHtml( EntityId $entityId = null ) {
-		return $this->textProvider->getEscaped( 'parentheses', [ $entityId->getSerialization() ] );
+		return htmlspecialchars(
+			$this->textProvider->get( 'parentheses', [ $entityId->getSerialization() ] )
+		);
 	}
 
 	/**

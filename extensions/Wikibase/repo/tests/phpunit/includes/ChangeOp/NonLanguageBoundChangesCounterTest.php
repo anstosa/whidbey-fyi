@@ -12,7 +12,6 @@ use Wikibase\Repo\ChangeOp\NonLanguageBoundChangesCounter;
  *
  * @group Wikibase
  * @group ChangeOp
- * @license GPL-2.0-or-later
  */
 class NonLanguageBoundChangesCounterTest extends \PHPUnit\Framework\TestCase {
 

@@ -33,27 +33,16 @@ class SpecialEntityPage extends SpecialWikibasePage {
 	 */
 	private $entityTitleLookup;
 
-	/**
-	 * @var string[]
-	 */
-	private $allowedQueryParameters;
-
 	public function __construct( EntityIdParser $entityIdParser, EntityTitleLookup $entityTitleLookup ) {
 		parent::__construct( 'EntityPage' );
 
 		$this->entityIdParser = $entityIdParser;
 		$this->entityTitleLookup = $entityTitleLookup;
-		$this->allowedQueryParameters = [
-			'action',
-			'revision',
-		];
 	}
 
-	public static function factory(
-		EntityIdParser $entityIdParser
-	): self {
+	public static function newFromGlobalState(): self {
 		return new self(
-			$entityIdParser,
+			WikibaseRepo::getDefaultInstance()->getEntityIdParser(),
 			WikibaseRepo::getDefaultInstance()->getEntityTitleLookup()
 		);
 	}
@@ -87,9 +76,7 @@ class SpecialEntityPage extends SpecialWikibasePage {
 			throw new HttpError( 400, $this->msg( 'wikibase-entitypage-bad-id', $id ) );
 		}
 
-		$params = $this->getRequest()->getValues( ...$this->allowedQueryParameters );
-
-		$this->getOutput()->redirect( $title->getFullURL( $params ), 301 );
+		$this->getOutput()->redirect( $title->getFullURL(), 301 );
 	}
 
 }

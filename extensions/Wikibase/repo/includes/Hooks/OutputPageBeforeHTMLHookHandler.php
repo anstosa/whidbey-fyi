@@ -2,12 +2,10 @@
 
 namespace Wikibase\Repo\Hooks;
 
-use MediaWiki\Hook\OutputPageBeforeHTMLHook;
 use MediaWiki\MediaWikiServices;
 use OutputPage;
 use Wikibase\DataModel\Entity\EntityDocument;
 use Wikibase\DataModel\Entity\EntityId;
-use Wikibase\DataModel\Entity\EntityIdParser;
 use Wikibase\Lib\ContentLanguages;
 use Wikibase\Lib\EntityFactory;
 use Wikibase\Lib\LanguageNameLookup;
@@ -16,7 +14,6 @@ use Wikibase\Lib\Store\EntityRevisionLookup;
 use Wikibase\Lib\UserLanguageLookup;
 use Wikibase\Repo\BabelUserLanguageLookup;
 use Wikibase\Repo\Hooks\Helpers\OutputPageEditability;
-use Wikibase\Repo\Hooks\Helpers\OutputPageEntityViewChecker;
 use Wikibase\Repo\Hooks\Helpers\OutputPageRevisionIdReader;
 use Wikibase\Repo\Hooks\Helpers\UserPreferredContentLanguagesLookup;
 use Wikibase\Repo\MediaWikiLanguageDirectionalityLookup;
@@ -39,7 +36,7 @@ use Wikibase\View\ToolbarEditSectionGenerator;
  * @license GPL-2.0-or-later
  * @author Marius Hoch < hoo@online.de >
  */
-class OutputPageBeforeHTMLHookHandler implements OutputPageBeforeHTMLHook {
+class OutputPageBeforeHTMLHookHandler {
 
 	/**
 	 * @var TemplateFactory
@@ -96,11 +93,6 @@ class OutputPageBeforeHTMLHookHandler implements OutputPageBeforeHTMLHook {
 	 */
 	private $userPreferredTermsLanguages;
 
-	/**
-	 * @var OutputPageEntityViewChecker
-	 */
-	private $entityViewChecker;
-
 	public function __construct(
 		TemplateFactory $templateFactory,
 		UserLanguageLookup $userLanguageLookup,
@@ -112,8 +104,7 @@ class OutputPageBeforeHTMLHookHandler implements OutputPageBeforeHTMLHook {
 		$cookiePrefix,
 		OutputPageEditability $editability,
 		$isExternallyRendered,
-		UserPreferredContentLanguagesLookup $userPreferredTermsLanguages,
-		OutputPageEntityViewChecker $entityViewChecker
+		UserPreferredContentLanguagesLookup $userPreferredTermsLanguages
 	) {
 		$this->templateFactory = $templateFactory;
 		$this->userLanguageLookup = $userLanguageLookup;
@@ -126,21 +117,17 @@ class OutputPageBeforeHTMLHookHandler implements OutputPageBeforeHTMLHook {
 		$this->isExternallyRendered = $isExternallyRendered;
 		$this->editability = $editability;
 		$this->userPreferredTermsLanguages = $userPreferredTermsLanguages;
-		$this->entityViewChecker = $entityViewChecker;
 	}
 
 	/**
 	 * @return self
 	 */
-	public static function factory(
-		EntityIdParser $entityIdParser
-	): self {
+	public static function newFromGlobalState() {
 		global $wgLang, $wgCookiePrefix;
 
 		$wikibaseRepo = WikibaseRepo::getDefaultInstance();
 		$termLanguages = $wikibaseRepo->getTermsLanguages();
 		$babelUserLanguageLookup = new BabelUserLanguageLookup();
-		$entityViewChecker = new OutputPageEntityViewChecker( $wikibaseRepo->getEntityContentFactory() );
 
 		return new self(
 			TemplateFactory::getDefaultInstance(),
@@ -149,8 +136,8 @@ class OutputPageBeforeHTMLHookHandler implements OutputPageBeforeHTMLHook {
 			$wikibaseRepo->getEntityRevisionLookup(),
 			new LanguageNameLookup( $wgLang->getCode() ),
 			new OutputPageEntityIdReader(
-				$entityViewChecker,
-				$entityIdParser
+				$wikibaseRepo->getEntityContentFactory(),
+				$wikibaseRepo->getEntityIdParser()
 			),
 			$wikibaseRepo->getEntityFactory(),
 			$wgCookiePrefix,
@@ -160,8 +147,7 @@ class OutputPageBeforeHTMLHookHandler implements OutputPageBeforeHTMLHook {
 				$termLanguages,
 				$babelUserLanguageLookup,
 				MediaWikiServices::getInstance()->getContentLanguage()->getCode()
-			),
-			$entityViewChecker
+			)
 		);
 	}
 
@@ -173,8 +159,16 @@ class OutputPageBeforeHTMLHookHandler implements OutputPageBeforeHTMLHook {
 	 * @param OutputPage $out
 	 * @param string &$html the HTML to mangle
 	 */
-	public function onOutputPageBeforeHTML( $out, &$html ): void {
-		if ( !$this->entityViewChecker->hasEntityView( $out ) ) {
+	public static function onOutputPageBeforeHTML( OutputPage $out, &$html ) {
+		self::newFromGlobalState()->doOutputPageBeforeHTML( $out, $html );
+	}
+
+	/**
+	 * @param OutputPage $out
+	 * @param string &$html
+	 */
+	public function doOutputPageBeforeHTML( OutputPage $out, &$html ) {
+		if ( !$out->isArticle() ) {
 			return;
 		}
 

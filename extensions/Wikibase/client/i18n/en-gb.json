@@ -1,7 +1,6 @@
 {
 	"@metadata": {
 		"authors": [
-			"Bjh21",
 			"Chase me ladies, I'm the Cavalry",
 			"Felicilijonas",
 			"Pierpao",
@@ -16,6 +15,5 @@
 	"wikibase-rc-hide-wikidata": "$1 {{WBREPONAME}}",
 	"wikibase-rc-wikibase-edit-letter": "WD",
 	"wikibase-rc-wikibase-edit-title": "{{WBREPONAME}} edit",
-	"wikibase-error-serialize-error": "Failed to serialise data",
-	"wikibase-client-data-bridge-license-heading": "Usage and licence"
+	"wikibase-error-serialize-error": "Failed to serialise data"
 }

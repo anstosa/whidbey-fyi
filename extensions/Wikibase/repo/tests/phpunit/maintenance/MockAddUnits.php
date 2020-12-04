@@ -30,6 +30,7 @@ class MockAddUnits extends AddUnitConversions {
 	}
 
 	/**
+	 * Set unit converter.
 	 * @param UnitConverter $uc
 	 */
 	public function setUnitConverter( UnitConverter $uc ) {

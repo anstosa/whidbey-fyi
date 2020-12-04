@@ -261,7 +261,7 @@ class SqlUsageTracker implements UsageTracker, UsageLookup {
 	 *
 	 * @param int $pageId
 	 *
-	 * @return EntityUsage[] EntityUsage identity string => EntityUsage
+	 * @return EntityUsage[]
 	 * @throws UsageTrackerException
 	 */
 	public function getUsagesForPage( $pageId ) {

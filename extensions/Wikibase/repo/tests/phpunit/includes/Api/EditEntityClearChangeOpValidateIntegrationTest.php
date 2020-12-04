@@ -3,7 +3,6 @@
 namespace Wikibase\Repo\Tests\Api;
 
 use ApiUsageException;
-use MediaWikiIntegrationTestCase;
 use ReflectionClass;
 use RuntimeException;
 use ValueValidators\Error;
@@ -32,7 +31,7 @@ use Wikibase\Repo\WikibaseRepo;
  *
  * @license GPL-2.0-or-later
  */
-class EditEntityClearChangeOpValidateIntegrationTest extends MediaWikiIntegrationTestCase {
+class EditEntityClearChangeOpValidateIntegrationTest extends \MediaWikiTestCase {
 
 	public function testGivenNotClearedEntity_validateReturnsSuccess() {
 		$item = $this->newItem();
@@ -124,10 +123,10 @@ class EditEntityClearChangeOpValidateIntegrationTest extends MediaWikiIntegratio
 			'test',
 			$wikibaseRepo->getTermsLanguages(),
 			$wikibaseRepo->getEntityRevisionLookup( Store::LOOKUP_CACHING_DISABLED ),
-			WikibaseRepo::getEntityIdParser(),
+			$wikibaseRepo->getEntityIdParser(),
 			$wikibaseRepo->getEntityFactory(),
 			$wikibaseRepo->getExternalFormatStatementDeserializer(),
-			WikibaseRepo::getDataTypeDefinitions()->getTypeIds(),
+			$wikibaseRepo->getDataTypeDefinitions()->getTypeIds(),
 			$changeOpFactoryProvider->getFingerprintChangeOpFactory(),
 			$changeOpFactoryProvider->getStatementChangeOpFactory(),
 			$changeOpFactoryProvider->getSiteLinkChangeOpFactory(),
@@ -136,8 +135,7 @@ class EditEntityClearChangeOpValidateIntegrationTest extends MediaWikiIntegratio
 				new ChangedLanguagesCollector(),
 				new ChangedLanguagesCounter(),
 				new NonLanguageBoundChangesCounter()
-			),
-			false
+			)
 		);
 	}
 

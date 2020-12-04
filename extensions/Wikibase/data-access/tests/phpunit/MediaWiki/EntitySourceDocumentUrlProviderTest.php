@@ -3,7 +3,6 @@
 namespace Wikibase\DataAccess\Tests\MediaWiki;
 
 use MediaWiki\Interwiki\InterwikiLookup;
-use MediaWikiIntegrationTestCase;
 use Wikibase\DataAccess\EntitySource;
 use Wikibase\DataAccess\EntitySourceDefinitions;
 use Wikibase\DataAccess\MediaWiki\EntitySourceDocumentUrlProvider;
@@ -16,7 +15,7 @@ use Wikibase\Lib\EntityTypeDefinitions;
  *
  * @license GPL-2.0-or-later
  */
-class EntitySourceDocumentUrlProviderTest extends MediaWikiIntegrationTestCase {
+class EntitySourceDocumentUrlProviderTest extends \MediaWikiTestCase {
 
 	public function testGivenLocalWikiSource_urlOfLocalWikiIsUsed() {
 		$this->setService( 'InterwikiLookup', $this->createMock( InterwikiLookup::class ) );

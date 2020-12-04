@@ -55,12 +55,12 @@ class PropertyHandler extends EntityHandler {
 	private $labelLookupFactory;
 
 	/**
-	 * @var EntityTermStoreWriter
+	 * @var EntityTermStoreWriter[]
 	 */
-	private $entityTermStoreWriter;
+	private $entityTermStoreWriters;
 
 	/**
-	 * @param EntityTermStoreWriter $entityTermStoreWriter
+	 * @param EntityTermStoreWriter[] $entityTermStoreWriters
 	 * @param EntityContentDataCodec $contentCodec
 	 * @param EntityConstraintProvider $constraintProvider
 	 * @param ValidatorErrorLocalizer $errorLocalizer
@@ -73,7 +73,7 @@ class PropertyHandler extends EntityHandler {
 	 * @param callable|null $legacyExportFormatDetector
 	 */
 	public function __construct(
-		EntityTermStoreWriter $entityTermStoreWriter,
+		array $entityTermStoreWriters,
 		EntityContentDataCodec $contentCodec,
 		EntityConstraintProvider $constraintProvider,
 		ValidatorErrorLocalizer $errorLocalizer,
@@ -100,7 +100,7 @@ class PropertyHandler extends EntityHandler {
 		$this->labelLookupFactory = $labelLookupFactory;
 		$this->infoStore = $infoStore;
 		$this->propertyInfoBuilder = $propertyInfoBuilder;
-		$this->entityTermStoreWriter = $entityTermStoreWriter;
+		$this->entityTermStoreWriters = $entityTermStoreWriters;
 	}
 
 	/**
@@ -160,15 +160,19 @@ class PropertyHandler extends EntityHandler {
 		);
 
 		if ( $content->isRedirect() ) {
-			$updates[] = new DataUpdateAdapter(
-				[ $this->entityTermStoreWriter, 'deleteTermsOfEntity' ],
-				$id
-			);
+			foreach ( $this->entityTermStoreWriters as $termStoreWriter ) {
+				$updates[] = new DataUpdateAdapter(
+					[ $termStoreWriter, 'deleteTermsOfEntity' ],
+					$id
+				);
+			}
 		} else {
-			$updates[] = new DataUpdateAdapter(
-				[ $this->entityTermStoreWriter, 'saveTermsOfEntity' ],
-				$property
-			);
+			foreach ( $this->entityTermStoreWriters as $termStoreWriter ) {
+				$updates[] = new DataUpdateAdapter(
+					[ $termStoreWriter, 'saveTermsOfEntity' ],
+					$property
+				);
+			}
 		}
 
 		return $updates;
@@ -184,11 +188,13 @@ class PropertyHandler extends EntityHandler {
 			$id
 		);
 
-		// Unregister the entity from the term store.
-		$updates[] = new DataUpdateAdapter(
-			[ $this->entityTermStoreWriter, 'deleteTermsOfEntity' ],
-			$id
-		);
+		// Unregister the entity from the terms table.
+		foreach ( $this->entityTermStoreWriters as $termStoreWriter ) {
+			$updates[] = new DataUpdateAdapter(
+				[ $termStoreWriter, 'deleteTermsOfEntity' ],
+				$id
+			);
+		}
 
 		return $updates;
 	}

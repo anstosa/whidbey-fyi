@@ -51,15 +51,12 @@
 		 * @param {HTMLElement} input Search box node
 		 */
 		function removeSuggestionContext( input ) {
-			var context = $( input ).data( 'suggestionsContext' );
+			var context = $.data( input, 'suggestionsContext' );
 
-			if ( context && !context._wbDisabled ) {
+			if ( context ) {
 				// Native fetch() updates/re-sets the data attribute with the suggestion context.
 				context.config.fetch = function () {};
-				// Flag as disabled so we don't keep overwriting `fetch`, but don't
-				// delete context completely, in case there are some requests still
-				// in-flight. T105637
-				context._wbDisabled = true;
+				$.removeData( input, 'suggestionsContext' );
 			}
 		}
 
@@ -118,7 +115,7 @@
 		// before. However, this will require triggering the entity selector's API call and waiting
 		// for its response.
 
-		$( '#searchButton' ).on( 'click keydown', function ( event ) {
+		$( '#searchGoButton' ).on( 'click keydown', function ( event ) {
 			if ( !$input.data( 'entityselector' ) ) {
 				return;
 			}

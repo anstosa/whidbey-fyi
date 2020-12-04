@@ -3,7 +3,6 @@
 namespace Wikibase\Lib\Tests\Store;
 
 use HashBagOStuff;
-use MediaWikiIntegrationTestCase;
 use Wikibase\DataModel\Entity\ItemId;
 use Wikibase\DataModel\Entity\PropertyId;
 use Wikibase\DataModel\Services\Term\PropertyLabelResolver;
@@ -19,7 +18,7 @@ use Wikibase\Lib\TermIndexEntry;
  * @license GPL-2.0-or-later
  * @author Daniel Kinzler
  */
-class MatchingTermsLookupPropertyLabelResolverTest extends MediaWikiIntegrationTestCase {
+class MatchingTermsLookupPropertyLabelResolverTest extends \MediaWikiTestCase {
 
 	/**
 	 * @param string $lang

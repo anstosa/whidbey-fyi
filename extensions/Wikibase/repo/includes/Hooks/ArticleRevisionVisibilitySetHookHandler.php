@@ -8,6 +8,7 @@ use IJobSpecification;
 use JobQueueGroup;
 use JobSpecification;
 use MediaWiki\Hook\ArticleRevisionVisibilitySetHook;
+use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionLookup;
 use MediaWiki\Revision\RevisionRecord;
 use Title;
@@ -56,6 +57,11 @@ class ArticleRevisionVisibilitySetHookHandler implements ArticleRevisionVisibili
 	private $localClientDatabases;
 
 	/**
+	 * @var bool
+	 */
+	private $propagateChangeVisibility;
+
+	/**
 	 * @var int
 	 */
 	private $clientRCMaxAge;
@@ -77,6 +83,7 @@ class ArticleRevisionVisibilitySetHookHandler implements ArticleRevisionVisibili
 		TitleFactory $titleFactory,
 		array $localClientDatabases,
 		callable $jobQueueGroupFactory,
+		bool $propagateChangeVisibility,
 		int $clientRCMaxAge,
 		int $jobBatchSize
 	) {
@@ -86,20 +93,22 @@ class ArticleRevisionVisibilitySetHookHandler implements ArticleRevisionVisibili
 		$this->titleFactory = $titleFactory;
 		$this->localClientDatabases = $localClientDatabases;
 		$this->jobQueueGroupFactory = $jobQueueGroupFactory;
+		$this->propagateChangeVisibility = $propagateChangeVisibility;
 		$this->clientRCMaxAge = $clientRCMaxAge;
 		$this->jobBatchSize = $jobBatchSize;
 	}
 
-	public static function factory( RevisionLookup $revisionLookup, TitleFactory $titleFactory ) {
+	public static function newFromGlobalState() {
 		$wbRepo = WikibaseRepo::getDefaultInstance();
 
 		return new self(
-			$revisionLookup,
+			MediaWikiServices::getInstance()->getRevisionLookup(),
 			$wbRepo->getEntityContentFactory(),
-			$wbRepo->getLocalEntityNamespaceLookup(),
-			$titleFactory,
+			$wbRepo->getEntityNamespaceLookup(),
+			new TitleFactory(),
 			$wbRepo->getSettings()->getSetting( 'localClientDatabases' ),
 			'JobQueueGroup::singleton',
+			$wbRepo->getSettings()->getSetting( 'propagateChangeVisibility' ),
 			$wbRepo->getSettings()->getSetting( 'changeVisibilityNotificationClientRCMaxAge' ),
 			$wbRepo->getSettings()->getSetting( 'changeVisibilityNotificationJobBatchSize' )
 		);
@@ -111,10 +120,9 @@ class ArticleRevisionVisibilitySetHookHandler implements ArticleRevisionVisibili
 	 * @param int[][] $visibilityChangeMap
 	 */
 	public function onArticleRevisionVisibilitySet( $title, $ids, $visibilityChangeMap ): void {
-		if ( $this->localClientDatabases === [] ) {
+		if ( !$this->propagateChangeVisibility ) {
 			return;
 		}
-
 		// Check if $title is in a wikibase namespace
 		if ( !$this->entityNamespaceLookup->isEntityNamespace( $title->getNamespace() ) ) {
 			return;
@@ -209,7 +217,8 @@ class ArticleRevisionVisibilitySetHookHandler implements ArticleRevisionVisibili
 		return new RepoRevisionIdentifier(
 			$entityId->getSerialization(),
 			$revision->getTimestamp(),
-			$revision->getId()
+			$revision->getId(),
+			$revision->getParentId()
 		);
 	}
 

@@ -3,7 +3,6 @@
 namespace Wikibase\Repo\Tests\Store;
 
 use HashBagOStuff;
-use MediaWikiIntegrationTestCase;
 use WANObjectCache;
 use Wikibase\DataModel\Entity\Property;
 use Wikibase\DataModel\Entity\PropertyId;
@@ -28,7 +27,7 @@ use Wikibase\Lib\Store\Sql\PropertyInfoTable;
  *
  * @license GPL-2.0-or-later
  */
-class CachingPropertyInfoTest extends MediaWikiIntegrationTestCase {
+class CachingPropertyInfoTest extends \MediaWikiTestCase {
 
 	protected function setUp(): void {
 		parent::setUp();

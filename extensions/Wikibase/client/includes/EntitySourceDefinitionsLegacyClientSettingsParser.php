@@ -52,7 +52,6 @@ class EntitySourceDefinitionsLegacyClientSettingsParser {
 				'slot' => $slot,
 			];
 		}
-
 		$sources[] = new EntitySource(
 			'local',
 			$localDatabaseName,

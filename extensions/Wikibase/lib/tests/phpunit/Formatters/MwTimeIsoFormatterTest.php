@@ -3,7 +3,7 @@
 namespace Wikibase\Lib\Tests\Formatters;
 
 use DataValues\TimeValue;
-use MediaWikiIntegrationTestCase;
+use MediaWikiTestCase;
 use ValueFormatters\FormatterOptions;
 use ValueFormatters\ValueFormatter;
 use Wikibase\Lib\Formatters\MwTimeIsoFormatter;
@@ -17,7 +17,7 @@ use Wikibase\Lib\Formatters\MwTimeIsoFormatter;
  *
  * @license GPL-2.0-or-later
  */
-class MwTimeIsoFormatterTest extends MediaWikiIntegrationTestCase {
+class MwTimeIsoFormatterTest extends MediaWikiTestCase {
 
 	public function formatProvider() {
 		$gregorian = 'http://www.wikidata.org/entity/Q1985727';
@@ -525,13 +525,15 @@ class MwTimeIsoFormatterTest extends MediaWikiIntegrationTestCase {
 			],
 		];
 
+		$argLists = [];
+
 		foreach ( $tests as $args ) {
 			$timestamp = $args[0];
 			$precision = $args[1];
 			$expected = $args[2] ?? $timestamp;
 			$languageCode = $args[3] ?? 'en';
 
-			yield [
+			$argLists[] = [
 				$expected,
 				new TimeValue( $timestamp, 0, 0, 0, $precision, $gregorian ),
 				$languageCode
@@ -549,7 +551,7 @@ class MwTimeIsoFormatterTest extends MediaWikiIntegrationTestCase {
 		];
 
 		foreach ( $languageCodes as $languageCode ) {
-			yield [
+			$argLists[] = [
 				'3333',
 				new TimeValue(
 					'+0000000000003333-01-01T00:00:00Z',
@@ -560,6 +562,8 @@ class MwTimeIsoFormatterTest extends MediaWikiIntegrationTestCase {
 				$languageCode
 			];
 		}
+
+		return $argLists;
 	}
 
 	/**

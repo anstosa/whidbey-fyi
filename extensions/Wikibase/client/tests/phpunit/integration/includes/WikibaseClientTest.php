@@ -40,13 +40,14 @@ use Wikibase\Lib\EntityTypeDefinitions;
 use Wikibase\Lib\Formatters\WikibaseSnakFormatterBuilders;
 use Wikibase\Lib\Formatters\WikibaseValueFormatterBuilders;
 use Wikibase\Lib\Interactors\TermSearchInteractor;
+use Wikibase\Lib\LanguageFallbackChain;
 use Wikibase\Lib\LanguageFallbackChainFactory;
 use Wikibase\Lib\SettingsArray;
 use Wikibase\Lib\Store\LanguageFallbackLabelDescriptionLookupFactory;
+use Wikibase\Lib\Store\MatchingTermsLookupPropertyLabelResolver;
 use Wikibase\Lib\Store\PropertyOrderProvider;
 use Wikibase\Lib\Store\Sql\Terms\CachedDatabasePropertyLabelResolver;
 use Wikibase\Lib\StringNormalizer;
-use Wikibase\Lib\TermLanguageFallbackChain;
 use Wikimedia\Rdbms\ILoadBalancer;
 use Wikimedia\Rdbms\LBFactory;
 use Wikimedia\TestingAccessWrapper;
@@ -354,7 +355,7 @@ class WikibaseClientTest extends MediaWikiIntegrationTestCase {
 	public function testGetRecentChangeFactory() {
 		$settings = new SettingsArray( WikibaseClient::getDefaultInstance()->getSettings()->getArrayCopy() );
 
-		$settings->setSetting( 'itemAndPropertySourceName', 'localrepo' );
+		$settings->setSetting( 'localEntitySourceName', 'localrepo' );
 
 		$entityTypeDefinitions = new EntityTypeDefinitions( [] );
 		$wikibaseClient = new WikibaseClient(
@@ -428,7 +429,7 @@ class WikibaseClientTest extends MediaWikiIntegrationTestCase {
 		$lang = Language::factory( 'de' );
 		$fallbackChain = $this->getWikibaseClient()->getDataAccessLanguageFallbackChain( $lang );
 
-		$this->assertInstanceOf( TermLanguageFallbackChain::class, $fallbackChain );
+		$this->assertInstanceOf( LanguageFallbackChain::class, $fallbackChain );
 		// "de" falls back to "en"
 		$this->assertCount( 2, $fallbackChain->getFetchLanguageCodes() );
 	}
@@ -446,7 +447,7 @@ class WikibaseClientTest extends MediaWikiIntegrationTestCase {
 	public function testGetDatabaseDomainNameOfLocalRepo() {
 		$settings = new SettingsArray( WikibaseClient::getDefaultInstance()->getSettings()->getArrayCopy() );
 
-		$settings->setSetting( 'itemAndPropertySourceName', 'localrepo' );
+		$settings->setSetting( 'localEntitySourceName', 'localrepo' );
 
 		$entityTypeDefinitions = new EntityTypeDefinitions( [] );
 		$wikibaseClient = new WikibaseClient(
@@ -482,11 +483,30 @@ class WikibaseClientTest extends MediaWikiIntegrationTestCase {
 		$this->assertEquals( 'repodb', $wikibaseClient->getDatabaseDomainNameOfLocalRepo() );
 	}
 
-	public function testGetPropertyLabelResolver() {
+	/**
+	 * @dataProvider getPropertyLabelResolverClassPerMigrationStage
+	 */
+	public function testGetPropertyLabelResolver_newSchemaMigrationStage(
+		$migrationStage,
+		$propertyResolverClassName
+	) {
+		$settings = clone WikibaseClient::getDefaultInstance()->getSettings();
+		$settings->setSetting( 'tmpPropertyTermsMigrationStage', $migrationStage );
+
+		$wikibaseClient = $this->getWikibaseClient( $settings );
 		$this->assertInstanceOf(
-			CachedDatabasePropertyLabelResolver::class,
-			$this->getWikibaseClient()->getPropertyLabelResolver()
+			$propertyResolverClassName,
+			$wikibaseClient->getPropertyLabelResolver()
 		);
+	}
+
+	public function getPropertyLabelResolverClassPerMigrationStage() {
+		return [
+			[ MIGRATION_OLD, MatchingTermsLookupPropertyLabelResolver::class ],
+			[ MIGRATION_WRITE_BOTH, MatchingTermsLookupPropertyLabelResolver::class ],
+			[ MIGRATION_WRITE_NEW, CachedDatabasePropertyLabelResolver::class ],
+			[ MIGRATION_NEW, CachedDatabasePropertyLabelResolver::class ]
+		];
 	}
 
 	/**
@@ -495,7 +515,7 @@ class WikibaseClientTest extends MediaWikiIntegrationTestCase {
 	private function getWikibaseClient( SettingsArray $settings = null ) {
 		if ( $settings === null ) {
 			$settings = WikibaseClient::getDefaultInstance()->getSettings();
-			$settings->setSetting( 'itemAndPropertySourceName', 'test' );
+			$settings->setSetting( 'localEntitySourceName', 'test' );
 		}
 		return new WikibaseClient(
 			new SettingsArray( $settings->getArrayCopy() ),

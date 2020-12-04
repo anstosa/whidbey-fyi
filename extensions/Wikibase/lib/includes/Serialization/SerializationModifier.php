@@ -22,7 +22,7 @@ class SerializationModifier {
 	 *         null
 	 *         'foo/*'
 	 *         'root/entities/*\/statement/references/*\/snaks/*'
-	 * @param callable $callback
+	 * @param callback $callback
 	 *  Callback accepts 1 parameter which is the element to touch
 	 *  Callback should return the altered element
 	 *

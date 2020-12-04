@@ -9,7 +9,6 @@ use DataValues\StringValue;
 use ExtensionRegistry;
 use GeoData\Coord;
 use GeoData\CoordinatesOutput;
-use MediaWikiIntegrationTestCase;
 use ParserOutput;
 use Wikibase\DataModel\Entity\ItemId;
 use Wikibase\DataModel\Entity\PropertyId;
@@ -32,7 +31,7 @@ use Wikimedia\TestingAccessWrapper;
  * @license GPL-2.0-or-later
  * @author Katie Filbert < aude.wiki@gmail.com >
  */
-class GeoDataDataUpdaterTest extends MediaWikiIntegrationTestCase {
+class GeoDataDataUpdaterTest extends \MediaWikiTestCase {
 
 	private function willSkipTests() {
 		return !ExtensionRegistry::getInstance()->isLoaded( 'GeoData' );
@@ -232,7 +231,6 @@ class GeoDataDataUpdaterTest extends MediaWikiIntegrationTestCase {
 		$coord->primary = true;
 
 		$coordinatesOutput->addPrimary( $coord );
-		$coordinatesOutput->setToParserOutput( $parserOutput );
 
 		$updater = $this->getUpdaterWithStatements( [ 'P625', 'P10' ] );
 		$updater->updateParserOutput( $parserOutput );

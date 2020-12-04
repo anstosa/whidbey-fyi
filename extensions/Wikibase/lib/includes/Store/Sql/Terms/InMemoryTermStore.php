@@ -1,7 +1,5 @@
 <?php
 
-declare( strict_types = 1 );
-
 namespace Wikibase\Lib\Store\Sql\Terms;
 
 /**
@@ -9,9 +7,7 @@ namespace Wikibase\Lib\Store\Sql\Terms;
  */
 class InMemoryTermStore implements TermInLangIdsAcquirer, TermInLangIdsResolver, TermStoreCleaner {
 
-	/** @var int[][][] */
 	private $terms = [];
-	/** @var int */
 	private $lastId = 0;
 
 	public function acquireTermInLangIds( array $termsArray, $callback = null ): array {

@@ -7,7 +7,6 @@ namespace Wikibase\Lib;
  *
  * @author Adrian Heine <adrian.heine@wikimedia.de>
  * @author Marius Hoch < hoo@online.de >
- * @license GPL-2.0-or-later
  */
 interface ContentLanguages {
 

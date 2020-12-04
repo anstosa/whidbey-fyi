@@ -7,30 +7,25 @@ use Liuggio\StatsdClient\Factory\StatsdDataFactoryInterface;
 use MediaWiki\Http\HttpRequestFactory;
 use Psr\Log\LoggerInterface;
 use Wikibase\DataModel\Entity\EntityId;
+use Wikibase\Lib\LanguageFallbackChain;
 use Wikibase\Lib\LanguageWithConversion;
-use Wikibase\Lib\TermLanguageFallbackChain;
 
 /**
  * @license GPL-2.0-or-later
  */
 class TermboxRemoteRenderer implements TermboxRenderer {
 
-	/** @var HttpRequestFactory */
 	private $requestFactory;
-	/** @var string */
 	private $ssrServerUrl;
-	/** @var LoggerInterface */
 	private $logger;
-	/** @var StatsdDataFactoryInterface */
 	private $stats;
 
-	/** @var int|float */
 	private $ssrServerTimeout;
-	public const HTTP_STATUS_OK = 200;
+	/* public */ const HTTP_STATUS_OK = 200;
 
 	public function __construct(
 		HttpRequestFactory $requestFactory,
-		string $ssrServerUrl,
+		$ssrServerUrl,
 		$ssrServerTimeout,
 		LoggerInterface $logger,
 		StatsdDataFactoryInterface $stats
@@ -46,7 +41,7 @@ class TermboxRemoteRenderer implements TermboxRenderer {
 	/**
 	 * @inheritDoc
 	 */
-	public function getContent( EntityId $entityId, $revision, $language, $editLink, TermLanguageFallbackChain $preferredLanguages ) {
+	public function getContent( EntityId $entityId, $revision, $language, $editLink, LanguageFallbackChain $preferredLanguages ) {
 		try {
 			$request = $this->requestFactory->create(
 				$this->formatUrl( $entityId, $revision, $language, $editLink, $preferredLanguages ),
@@ -66,7 +61,7 @@ class TermboxRemoteRenderer implements TermboxRenderer {
 			if ( $status === 0 ) {
 				$this->reportFailureOfRequest( 'Request failed with status 0. Usually this means network failure or timeout' );
 			} else {
-				$this->logger->notice(
+				$this->logger->error(
 					'{class}: encountered a bad response from the remote renderer',
 					[
 						'class' => __CLASS__,
@@ -96,18 +91,12 @@ class TermboxRemoteRenderer implements TermboxRenderer {
 		$this->stats->increment( 'wikibase.view.TermboxRemoteRenderer.requestError' );
 	}
 
-	private function formatUrl( EntityId $entityId, $revision, $language, $editLink, TermLanguageFallbackChain $preferredLanguages ) {
+	private function formatUrl( EntityId $entityId, $revision, $language, $editLink, LanguageFallbackChain $preferredLanguages ) {
 		return $this->ssrServerUrl . '?' .
 			http_build_query( $this->getRequestParams( $entityId, $revision, $language, $editLink, $preferredLanguages ) );
 	}
 
-	private function getRequestParams(
-		EntityId $entityId,
-		$revision,
-		$language,
-		$editLink,
-		TermLanguageFallbackChain $preferredLanguages
-	) {
+	private function getRequestParams( EntityId $entityId, $revision, $language, $editLink, LanguageFallbackChain $preferredLanguages ) {
 		return [
 			'entity' => $entityId->getSerialization(),
 			'revision' => $revision,
@@ -117,7 +106,7 @@ class TermboxRemoteRenderer implements TermboxRenderer {
 		];
 	}
 
-	private function getLanguageCodes( TermLanguageFallbackChain $preferredLanguages ) {
+	private function getLanguageCodes( LanguageFallbackChain $preferredLanguages ) {
 		return array_map( function ( LanguageWithConversion $language ) {
 			return $language->getLanguageCode();
 		}, $preferredLanguages->getFallbackChain() );
