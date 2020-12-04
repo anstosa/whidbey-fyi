@@ -141,12 +141,8 @@ $wgJobRunRate = 1;
 
 # Editor
 # $wgDefaultUserOptions['visualeditor-editor'] = "visualeditor";
-# $wgVisualEditorUseSingleEditTab = true;
+$wgVisualEditorUseSingleEditTab = true;
 $wgEnableRestAPI = true;
-$wgVirtualRestConfig['modules']['parasoid'] = array(
-	'url' => 'http://localhost/rest.php',
-	'domain' => 'localhost'
-);
 
 
 
