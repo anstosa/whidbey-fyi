@@ -132,6 +132,8 @@ $wgDiff3 = "/usr/bin/diff3";
 $wgDefaultSkin = "Vector";
 $wgMFDefaultSkinClass = 'SkinMinerva'; // use Minerva skin (You need to download and install it separately, otherwise you'll get an exception)
 
+$wgJobRunRate = 1;
+
 # Maps
 // $egMapsDefaultService = 'googlemaps3';
 // $egMapsGMaps3Controls = [
