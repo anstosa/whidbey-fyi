@@ -147,6 +147,9 @@ $egMapsDefaultGeoService = 'google';
 $egMapsGMaps3ApiKey = getenv('GOOGLE_API_KEY');
 $egMapsDistanceUnit = 'mi';
 
+# SMW
+$smwgConfigFileDir = "/app";
+
 # Enabled skins.
 # The following skins were automatically enabled:
 wfLoadSkin( 'Vector' );
