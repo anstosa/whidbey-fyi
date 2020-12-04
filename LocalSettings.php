@@ -132,7 +132,17 @@ $wgDiff3 = "/usr/bin/diff3";
 $wgDefaultSkin = "Vector";
 $wgMFDefaultSkinClass = 'SkinMinerva'; // use Minerva skin (You need to download and install it separately, otherwise you'll get an exception)
 
+# Jobs
 $wgJobRunRate = 1;
+
+# Editor
+$wgDefaultUserOptions['visualeditor-editor'] = "visualeditor";
+$wgVisualEditorUseSingleEditTab = true;
+$wgVisualEditorEnableDiffPageBetaFeature = true;
+
+
+# Permissions
+$wgGroupPermissions['user']['writeapi'] = true;
 
 # Maps
 // $egMapsDefaultService = 'googlemaps3';
