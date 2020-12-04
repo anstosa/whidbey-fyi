@@ -140,8 +140,8 @@ $wgMFDefaultSkinClass = 'SkinMinerva'; // use Minerva skin (You need to download
 $wgJobRunRate = 1;
 
 # Editor
-$wgDefaultUserOptions['visualeditor-editor'] = "visualeditor";
-$wgVisualEditorUseSingleEditTab = true;
+# $wgDefaultUserOptions['visualeditor-editor'] = "visualeditor";
+# $wgVisualEditorUseSingleEditTab = true;
 
 
 # Permissions
