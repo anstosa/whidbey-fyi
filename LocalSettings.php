@@ -42,6 +42,9 @@ $wgServer = "https://wiki.whidbey.fyi";
 ## The URL path to static resources (images, scripts, etc.)
 $wgResourceBasePath = $wgScriptPath;
 
+# Infobox templates
+$wgUseInstantCommons = true;
+
 ## The URL paths to the logo.  Make sure you change this from the default,
 ## or else you'll overwrite your logo when you upgrade!
 $wgLogos = ['1x' => "$wgResourceBasePath/images/Logo.png"];
@@ -201,6 +204,7 @@ wfLoadExtension('SecureLinkFixer');
 wfLoadExtension('SpamBlacklist');
 wfLoadExtension('SyntaxHighlight_GeSHi');
 wfLoadExtension('TemplateData');
+wfLoadExtension('TemplateStyles');
 wfLoadExtension('TextExtracts');
 wfLoadExtension('TitleBlacklist');
 wfLoadExtension('VisualEditor');
