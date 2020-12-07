@@ -98,7 +98,7 @@ $wgImageMagickConvertCommand = "/usr/bin/convert";
 $wgFileExtensions = array_merge(
 	$wgFileExtensions,
 	[
-		'pdf', 'ppt', 'doc', 'docx', 'xls', 'xlsx', 'geojson'
+		'pdf', 'ppt', 'doc', 'docx', 'xls', 'xlsx', 'json'
 	]
 );
 
