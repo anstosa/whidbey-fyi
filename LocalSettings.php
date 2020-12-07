@@ -95,6 +95,12 @@ $wgEnableUploads = true;
 $wgGenerateThumbnailOnParse = true;
 $wgUseImageMagick = true;
 $wgImageMagickConvertCommand = "/usr/bin/convert";
+$wgFileExtensions = array_merge(
+	$wgFileExtensions,
+	[
+		'pdf', 'ppt', 'doc', 'docx', 'xls', 'xlsx', 'geojson'
+	]
+);
 
 # InstantCommons allows wiki to use images from https://commons.wikimedia.org
 $wgUseInstantCommons = false;
