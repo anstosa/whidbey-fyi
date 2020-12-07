@@ -167,6 +167,11 @@ $egMapsDistanceUnit = 'mi';
 # SMW
 $smwgConfigFileDir = "/app";
 
+# AWS
+$wgAWSRegion = 'us-west-2';
+$wgAWSBucketName = "images.wiki.whidbey.fyi";
+$wgAWSBucketDomain = '$1';
+
 # Enabled skins.
 # The following skins were automatically enabled:
 wfLoadSkin('Vector');
@@ -177,6 +182,7 @@ wfLoadSkin('MinervaNeue');
 # wfLoadExtension( 'ExtensionName' );
 # to LocalSettings.php. Check specific extension documentation for more details.
 # The following extensions were automatically enabled:
+wfLoadExtension('AWS');
 wfLoadExtension('Bootstrap');
 wfLoadExtension('CategoryTree');
 wfLoadExtension('Cite');
