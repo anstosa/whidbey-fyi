@@ -1,9 +1,11 @@
 {
+  "minimum-stability": "dev",
+  "prefer-stable": true,
   "require": {
     "ext-apcu": "*",
     "mediawiki/chameleon-skin": "~3.0",
     "mediawiki/maps": "~7.0",
     "mediawiki/semantic-media-wiki": "^3.2",
     "wikimedia/css-sanitizer": "^2.0"
- }
+  }
 }

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f301855ea7dd4e0eb07157415923ba9e",
+    "content-hash": "14c93f82fa739751fd9a512cc83aebae",
     "packages": [
         {
             "name": "composer/installers",
@@ -131,10 +131,6 @@
                 "zend",
                 "zikula"
             ],
-            "support": {
-                "issues": "https://github.com/composer/installers/issues",
-                "source": "https://github.com/composer/installers/tree/v1.9.0"
-            },
             "funding": [
                 {
                     "url": "https://packagist.com",
@@ -206,11 +202,6 @@
                 "validation",
                 "versioning"
             ],
-            "support": {
-                "irc": "irc://irc.freenode.org/composer",
-                "issues": "https://github.com/composer/semver/issues",
-                "source": "https://github.com/composer/semver/tree/1.5.1"
-            },
             "time": "2020-01-13T12:06:48+00:00"
         },
         {
@@ -257,10 +248,6 @@
                 }
             ],
             "description": "Convert CSS stylesheets between left-to-right and right-to-left.",
-            "support": {
-                "issues": "https://github.com/cssjanus/php-cssjanus/issues",
-                "source": "https://github.com/cssjanus/php-cssjanus/tree/v1.3.0"
-            },
             "time": "2019-05-10T23:50:10+00:00"
         },
         {
@@ -325,11 +312,6 @@
                 "valuevalidators",
                 "wikidata"
             ],
-            "support": {
-                "irc": "irc://irc.freenode.net/wikidata",
-                "issues": "https://github.com/DataValues/Common/issues",
-                "source": "https://github.com/DataValues/Common/tree/0.4.3"
-            },
             "time": "2019-06-28T14:23:34+00:00"
         },
         {
@@ -393,10 +375,6 @@
                 "wikibase",
                 "wikidata"
             ],
-            "support": {
-                "issues": "https://github.com/DataValues/DataValues/issues",
-                "source": "https://github.com/DataValues/DataValues/tree/master"
-            },
             "time": "2019-09-19T23:38:17+00:00"
         },
         {
@@ -473,11 +451,6 @@
                 "seconds",
                 "wikidata"
             ],
-            "support": {
-                "irc": "irc://irc.freenode.net/wikidata",
-                "issues": "https://github.com/DataValues/Geo/issues",
-                "source": "https://github.com/DataValues/Geo/tree/4.2.1"
-            },
             "time": "2019-12-19T09:11:16+00:00"
         },
         {
@@ -536,10 +509,6 @@
                 "valuevalidators",
                 "wikidata"
             ],
-            "support": {
-                "issues": "https://github.com/DataValues/Interfaces/issues",
-                "source": "https://github.com/DataValues/Interfaces/tree/0.2.5"
-            },
             "time": "2017-08-09T15:18:46+00:00"
         },
         {
@@ -600,10 +569,6 @@
                 "validators",
                 "wikidata"
             ],
-            "support": {
-                "irc": "irc://irc.freenode.net/wikidata",
-                "source": "https://github.com/DataValues/Validators/tree/0.1.3"
-            },
             "time": "2018-08-28T05:49:45+00:00"
         },
         {
@@ -664,10 +629,6 @@
                 "elasticsearch",
                 "search"
             ],
-            "support": {
-                "issues": "https://github.com/elastic/elasticsearch-php/issues",
-                "source": "https://github.com/elastic/elasticsearch-php/tree/6.7.x"
-            },
             "time": "2019-07-19T14:48:24+00:00"
         },
         {
@@ -735,10 +696,6 @@
                 "rest",
                 "web service"
             ],
-            "support": {
-                "issues": "https://github.com/guzzle/guzzle/issues",
-                "source": "https://github.com/guzzle/guzzle/tree/6.5"
-            },
             "time": "2020-05-25T19:35:05+00:00"
         },
         {
@@ -790,10 +747,6 @@
             "keywords": [
                 "promise"
             ],
-            "support": {
-                "issues": "https://github.com/guzzle/promises/issues",
-                "source": "https://github.com/guzzle/promises/tree/1.4.0"
-            },
             "time": "2020-09-30T07:37:28+00:00"
         },
         {
@@ -865,10 +818,6 @@
                 "uri",
                 "url"
             ],
-            "support": {
-                "issues": "https://github.com/guzzle/psr7/issues",
-                "source": "https://github.com/guzzle/psr7/tree/1.7.0"
-            },
             "time": "2020-09-30T07:37:11+00:00"
         },
         {
@@ -920,10 +869,6 @@
                 }
             ],
             "description": "Provides a simple API and specification that abstracts away the details of HTTP into a single PHP function.",
-            "support": {
-                "issues": "https://github.com/guzzle/RingPHP/issues",
-                "source": "https://github.com/guzzle/RingPHP/tree/1.1.1"
-            },
             "abandoned": true,
             "time": "2018-07-31T13:22:33+00:00"
         },
@@ -975,10 +920,6 @@
                 "Guzzle",
                 "stream"
             ],
-            "support": {
-                "issues": "https://github.com/guzzle/streams/issues",
-                "source": "https://github.com/guzzle/streams/tree/master"
-            },
             "abandoned": true,
             "time": "2014-10-12T19:18:40+00:00"
         },
@@ -1053,10 +994,6 @@
                 "stubs",
                 "wget"
             ],
-            "support": {
-                "issues": "https://github.com/JeroenDeDauw/FileFetcher/issues",
-                "source": "https://github.com/JeroenDeDauw/FileFetcher/tree/master"
-            },
             "time": "2019-01-17T11:44:23+00:00"
         },
         {
@@ -1120,10 +1057,6 @@
                 "simple-cache",
                 "simplecache"
             ],
-            "support": {
-                "issues": "https://github.com/JeroenDeDauw/file-fetcher-cache/issues",
-                "source": "https://github.com/JeroenDeDauw/file-fetcher-cache/tree/1.0.1"
-            },
             "funding": [
                 {
                     "url": "https://github.com/JeroenDeDauw",
@@ -1185,10 +1118,6 @@
                 "cache",
                 "simplecache"
             ],
-            "support": {
-                "issues": "https://github.com/JeroenDeDauw/SimpleCache/issues",
-                "source": "https://github.com/JeroenDeDauw/SimpleCache/tree/2.0.0"
-            },
             "time": "2014-08-19T00:36:41+00:00"
         },
         {
@@ -1246,10 +1175,6 @@
                 }
             ],
             "description": "Simple and minimalistic Geocoder interface with some basic implementations",
-            "support": {
-                "issues": "https://github.com/JeroenDeDauw/SimpleGeocoder/issues",
-                "source": "https://github.com/JeroenDeDauw/SimpleGeocoder/tree/1.3.1"
-            },
             "funding": [
                 {
                     "url": "https://github.com/JeroenDeDauw",
@@ -1313,10 +1238,6 @@
                 "geojson",
                 "geospatial"
             ],
-            "support": {
-                "issues": "https://github.com/jmikola/geojson/issues",
-                "source": "https://github.com/jmikola/geojson/tree/master"
-            },
             "time": "2015-09-27T15:35:21+00:00"
         },
         {
@@ -1383,10 +1304,6 @@
                 "json",
                 "schema"
             ],
-            "support": {
-                "issues": "https://github.com/justinrainbow/json-schema/issues",
-                "source": "https://github.com/justinrainbow/json-schema/tree/5.2.10"
-            },
             "time": "2020-05-27T16:41:55+00:00"
         },
         {
@@ -1437,10 +1354,6 @@
                 "php",
                 "statsd"
             ],
-            "support": {
-                "issues": "https://github.com/liuggio/statsd-php-client/issues",
-                "source": "https://github.com/liuggio/statsd-php-client/tree/v1.0.18"
-            },
             "time": "2015-07-23T23:12:45+00:00"
         },
         {
@@ -1505,15 +1418,6 @@
                 "twitter",
                 "wiki"
             ],
-            "support": {
-                "docs": "https://github.com/cmln/mw-bootstrap/tree/latest/docs",
-                "forum": "https://www.mediawiki.org/wiki/Extension_talk:Bootstrap",
-                "irc": "irc://irc.freenode.org/mediawiki",
-                "issues": "https://github.com/cmln/mw-bootstrap/issues",
-                "rss": "https://github.com/cmln/mw-bootstrap/releases.atom",
-                "source": "https://github.com/cmln/mw-bootstrap",
-                "wiki": "https://www.mediawiki.org/wiki/Extension:Bootstrap"
-            },
             "time": "2020-09-04T17:54:07+00:00"
         },
         {
@@ -1574,12 +1478,6 @@
                 "twitter",
                 "wiki"
             ],
-            "support": {
-                "docs": "https://github.com/ProfessionalWiki/chameleon",
-                "irc": "irc://irc.freenode.org/mediawiki",
-                "issues": "https://github.com/ProfessionalWiki/chameleon/issues",
-                "source": "https://github.com/ProfessionalWiki/chameleon.git"
-            },
             "funding": [
                 {
                     "url": "https://github.com/JeroenDeDauw",
@@ -1673,12 +1571,6 @@
                 "mediawiki",
                 "osm"
             ],
-            "support": {
-                "email": "semediawiki-user@lists.sourceforge.net",
-                "irc": "irc://irc.freenode.net/mediawiki",
-                "issues": "https://github.com/JeroenDeDauw/Maps/issues",
-                "source": "https://github.com/JeroenDeDauw/Maps"
-            },
             "funding": [
                 {
                     "url": "https://github.com/JeroenDeDauw",
@@ -1743,11 +1635,6 @@
                 "parserhooks",
                 "tag extension"
             ],
-            "support": {
-                "irc": "irc://irc.freenode.net/mediawiki",
-                "issues": "https://github.com/JeroenDeDauw/ParserHooks/issues",
-                "source": "https://github.com/JeroenDeDauw/ParserHooks/tree/master"
-            },
             "time": "2020-01-14T02:43:39+00:00"
         },
         {
@@ -1809,13 +1696,6 @@
                 "scssphp",
                 "wiki"
             ],
-            "support": {
-                "docs": "https://github.com/ProfessionalWiki/SCSS/tree/latest/docs",
-                "irc": "irc://irc.freenode.org/mediawiki",
-                "issues": "https://github.com/ProfessionalWiki/SCSS/issues",
-                "rss": "https://github.com/ProfessionalWiki/SCSS/releases.atom",
-                "source": "https://github.com/ProfessionalWiki/SCSS"
-            },
             "funding": [
                 {
                     "url": "https://github.com/JeroenDeDauw",
@@ -1917,13 +1797,6 @@
                 "mediawiki",
                 "wiki"
             ],
-            "support": {
-                "email": "semediawiki-user@lists.sourceforge.net",
-                "forum": "https://www.semantic-mediawiki.org/wiki/semantic-mediawiki.org_talk:Community_portal",
-                "issues": "https://github.com/SemanticMediaWiki/SemanticMediaWiki/issues",
-                "source": "https://github.com/SemanticMediaWiki/SemanticMediaWiki",
-                "wiki": "https://www.semantic-mediawiki.org/wiki/"
-            },
             "funding": [
                 {
                     "url": "https://github.com/JeroenDeDauw",
@@ -1995,11 +1868,6 @@
                 "mediawiki",
                 "validator"
             ],
-            "support": {
-                "irc": "irc://irc.freenode.net/mediawiki",
-                "issues": "https://github.com/JeroenDeDauw/Validator/issues",
-                "source": "https://github.com/JeroenDeDauw/Validator/tree/2.2.3"
-            },
             "funding": [
                 {
                     "url": "https://github.com/JeroenDeDauw",
@@ -2055,10 +1923,6 @@
             "keywords": [
                 "messages"
             ],
-            "support": {
-                "issues": "https://github.com/onoi/blob-store/issues",
-                "source": "https://github.com/onoi/blob-store/tree/master"
-            },
             "time": "2016-07-09T17:32:53+00:00"
         },
         {
@@ -2104,10 +1968,6 @@
             "keywords": [
                 "cache"
             ],
-            "support": {
-                "issues": "https://github.com/onoi/cache/issues",
-                "source": "https://github.com/onoi/cache/tree/master"
-            },
             "time": "2015-06-02T08:52:45+00:00"
         },
         {
@@ -2154,10 +2014,6 @@
             "keywords": [
                 "container"
             ],
-            "support": {
-                "issues": "https://github.com/onoi/callback-container/issues",
-                "source": "https://github.com/onoi/callback-container/tree/master"
-            },
             "time": "2017-02-18T10:46:46+00:00"
         },
         {
@@ -2203,10 +2059,6 @@
                 "events",
                 "listener"
             ],
-            "support": {
-                "issues": "https://github.com/onoi/event-dispatcher/issues",
-                "source": "https://github.com/onoi/event-dispatcher/tree/master"
-            },
             "time": "2019-01-27T03:37:14+00:00"
         },
         {
@@ -2257,10 +2109,6 @@
                 "curl",
                 "http request"
             ],
-            "support": {
-                "issues": "https://github.com/onoi/http-request/issues",
-                "source": "https://github.com/onoi/http-request/tree/master"
-            },
             "time": "2017-01-14T16:25:41+00:00"
         },
         {
@@ -2317,10 +2165,6 @@
                 "messages",
                 "reporter"
             ],
-            "support": {
-                "issues": "https://github.com/onoi/message-reporter/issues",
-                "source": "https://github.com/onoi/message-reporter/tree/master"
-            },
             "time": "2019-04-10T12:19:43+00:00"
         },
         {
@@ -2367,10 +2211,6 @@
             "keywords": [
                 "mediawiki"
             ],
-            "support": {
-                "issues": "https://github.com/onoi/shared-resources/issues",
-                "source": "https://github.com/onoi/shared-resources/tree/0.4.3"
-            },
             "time": "2017-04-23T15:14:49+00:00"
         },
         {
@@ -2414,10 +2254,6 @@
             "keywords": [
                 "transliteration"
             ],
-            "support": {
-                "issues": "https://github.com/onoi/tesa/issues",
-                "source": "https://github.com/onoi/tesa/tree/master"
-            },
             "time": "2016-08-07T10:40:08+00:00"
         },
         {
@@ -2499,9 +2335,6 @@
             ],
             "description": "Provides library of common widgets, layouts, and windows.",
             "homepage": "https://www.mediawiki.org/wiki/OOUI",
-            "support": {
-                "source": "https://github.com/wikimedia/oojs-ui/tree/master"
-            },
             "time": "2020-07-10T06:13:45+00:00"
         },
         {
@@ -2566,11 +2399,6 @@
                 "mediawiki",
                 "validator"
             ],
-            "support": {
-                "irc": "irc://irc.freenode.net/mediawiki",
-                "issues": "https://github.com/JeroenDeDauw/ParamProcessor/issues",
-                "source": "https://github.com/JeroenDeDauw/ParamProcessor/tree/1.10.0"
-            },
             "time": "2019-08-03T15:18:54+00:00"
         },
         {
@@ -2618,10 +2446,6 @@
                 }
             ],
             "description": "More info available on: http://pear.php.net/package/Console_Getopt",
-            "support": {
-                "issues": "http://pear.php.net/bugs/search.php?cmd=display&package_name[]=Console_Getopt",
-                "source": "https://github.com/pear/Console_Getopt"
-            },
             "time": "2019-11-20T18:27:48+00:00"
         },
         {
@@ -2680,10 +2504,6 @@
             ],
             "description": "Class that provides multiple interfaces for sending emails.",
             "homepage": "http://pear.php.net/package/Mail",
-            "support": {
-                "issues": "http://pear.php.net/bugs/search.php?cmd=display&package_name[]=Mail",
-                "source": "https://github.com/pear/Mail"
-            },
             "time": "2017-04-11T17:27:29+00:00"
         },
         {
@@ -2730,10 +2550,6 @@
             ],
             "description": "Mail_Mime provides classes to create MIME messages",
             "homepage": "http://pear.php.net/package/Mail_Mime",
-            "support": {
-                "issues": "http://pear.php.net/bugs/search.php?cmd=display&package_name[]=Mail_Mime",
-                "source": "https://github.com/pear/Mail_Mime"
-            },
             "time": "2020-06-13T06:55:37+00:00"
         },
         {
@@ -2794,10 +2610,6 @@
                 "mail",
                 "smtp"
             ],
-            "support": {
-                "issues": "https://github.com/pear/Net_SMTP/issues",
-                "source": "https://github.com/pear/Net_SMTP"
-            },
             "time": "2020-06-06T22:45:09+00:00"
         },
         {
@@ -2851,10 +2663,6 @@
                 }
             ],
             "description": "More info available on: http://pear.php.net/package/Net_Socket",
-            "support": {
-                "issues": "http://pear.php.net/bugs/search.php?cmd=display&package_name[]=Net_Socket",
-                "source": "https://github.com/pear/Net_Socket"
-            },
             "time": "2015-03-22T15:48:19+00:00"
         },
         {
@@ -2899,10 +2707,6 @@
                 }
             ],
             "description": "Minimal set of PEAR core files to be used as composer dependency",
-            "support": {
-                "issues": "http://pear.php.net/bugs/search.php?cmd=display&package_name[]=PEAR",
-                "source": "https://github.com/pear/pear-core-minimal"
-            },
             "time": "2019-11-19T19:00:24+00:00"
         },
         {
@@ -2958,10 +2762,6 @@
             "keywords": [
                 "exception"
             ],
-            "support": {
-                "issues": "http://pear.php.net/bugs/search.php?cmd=display&package_name[]=PEAR_Exception",
-                "source": "https://github.com/pear/PEAR_Exception"
-            },
             "time": "2019-12-10T10:24:42+00:00"
         },
         {
@@ -3008,11 +2808,6 @@
                 "filter",
                 "sets"
             ],
-            "support": {
-                "email": "matthew.nagi@base-2.net",
-                "issues": "https://github.com/pleonasm/bloom-filter/issues",
-                "source": "https://github.com/pleonasm/bloom-filter/tree/master"
-            },
             "time": "2018-03-03T21:16:42+00:00"
         },
         {
@@ -3062,10 +2857,6 @@
                 "container-interop",
                 "psr"
             ],
-            "support": {
-                "issues": "https://github.com/php-fig/container/issues",
-                "source": "https://github.com/php-fig/container/tree/master"
-            },
             "time": "2017-02-14T16:28:37+00:00"
         },
         {
@@ -3116,9 +2907,6 @@
                 "request",
                 "response"
             ],
-            "support": {
-                "source": "https://github.com/php-fig/http-message/tree/master"
-            },
             "time": "2016-08-06T14:39:51+00:00"
         },
         {
@@ -3166,9 +2954,6 @@
                 "psr",
                 "psr-3"
             ],
-            "support": {
-                "source": "https://github.com/php-fig/log/tree/1.1.3"
-            },
             "time": "2020-03-23T09:12:05+00:00"
         },
         {
@@ -3217,9 +3002,6 @@
                 "psr-16",
                 "simple-cache"
             ],
-            "support": {
-                "source": "https://github.com/php-fig/simple-cache/tree/master"
-            },
             "time": "2017-10-23T01:57:42+00:00"
         },
         {
@@ -3260,10 +3042,6 @@
                 }
             ],
             "description": "A polyfill for getallheaders.",
-            "support": {
-                "issues": "https://github.com/ralouphie/getallheaders/issues",
-                "source": "https://github.com/ralouphie/getallheaders/tree/develop"
-            },
             "time": "2019-03-08T08:55:37+00:00"
         },
         {
@@ -3310,10 +3088,6 @@
                 "promise",
                 "promises"
             ],
-            "support": {
-                "issues": "https://github.com/reactphp/promise/issues",
-                "source": "https://github.com/reactphp/promise/tree/v2.8.0"
-            },
             "time": "2020-05-12T15:16:56+00:00"
         },
         {
@@ -3377,10 +3151,6 @@
                 "scss",
                 "stylesheet"
             ],
-            "support": {
-                "issues": "https://github.com/scssphp/scssphp/issues",
-                "source": "https://github.com/scssphp/scssphp/tree/v1.4.0"
-            },
             "time": "2020-11-07T20:53:41+00:00"
         },
         {
@@ -3430,10 +3200,6 @@
                 "parser",
                 "validator"
             ],
-            "support": {
-                "issues": "https://github.com/Seldaek/jsonlint/issues",
-                "source": "https://github.com/Seldaek/jsonlint/tree/master"
-            },
             "time": "2018-01-24T12:46:19+00:00"
         },
         {
@@ -3491,10 +3257,6 @@
                 "unserialization",
                 "wikidata"
             ],
-            "support": {
-                "irc": "irc://irc.freenode.net/wikidata",
-                "source": "https://github.com/wmde/Serialization/tree/master"
-            },
             "time": "2017-10-25T11:45:30+00:00"
         },
         {
@@ -3543,9 +3305,6 @@
             ],
             "description": "Symfony CssSelector Component",
             "homepage": "https://symfony.com",
-            "support": {
-                "source": "https://github.com/symfony/css-selector/tree/v3.4.47"
-            },
             "funding": [
                 {
                     "url": "https://symfony.com/sponsor",
@@ -3622,9 +3381,6 @@
                 "portable",
                 "shim"
             ],
-            "support": {
-                "source": "https://github.com/symfony/polyfill-intl-idn/tree/master"
-            },
             "funding": [
                 {
                     "url": "https://symfony.com/sponsor",
@@ -3698,9 +3454,6 @@
                 "portable",
                 "shim"
             ],
-            "support": {
-                "source": "https://github.com/symfony/polyfill-php72/tree/v1.20.0"
-            },
             "funding": [
                 {
                     "url": "https://symfony.com/sponsor",
@@ -3770,9 +3523,6 @@
                 "precondition",
                 "qa"
             ],
-            "support": {
-                "source": "https://github.com/wikimedia/Assert/tree/master"
-            },
             "time": "2020-02-14T19:22:00+00:00"
         },
         {
@@ -3825,9 +3575,6 @@
             ],
             "description": "Safe replacement to @ for suppressing warnings.",
             "homepage": "https://www.mediawiki.org/wiki/at-ease",
-            "support": {
-                "source": "https://github.com/wikimedia/at-ease/tree/master"
-            },
             "time": "2018-10-10T15:39:06+00:00"
         },
         {
@@ -3877,9 +3624,6 @@
             ],
             "description": "Convert an arbitrarily-long string from one numeric base to another, optionally zero-padding to a minimum column width.",
             "homepage": "https://www.mediawiki.org/wiki/base_convert",
-            "support": {
-                "source": "https://github.com/wikimedia/base-convert/tree/master"
-            },
             "time": "2020-03-09T05:35:22+00:00"
         },
         {
@@ -3933,9 +3677,6 @@
             ],
             "description": "Constant Database (CDB) wrapper library for PHP. Provides pure-PHP fallback when dba_* functions are absent.",
             "homepage": "https://www.mediawiki.org/wiki/CDB",
-            "support": {
-                "source": "https://github.com/wikimedia/cdb/tree/master"
-            },
             "time": "2016-05-29T07:39:26+00:00"
         },
         {
@@ -3982,9 +3723,6 @@
             ],
             "description": "Evaluates plural rules specified in the CLDR project notation.",
             "homepage": "https://www.mediawiki.org/wiki/CLDRPluralRuleParser",
-            "support": {
-                "source": "https://github.com/wikimedia/CLDRPluralRuleParser/tree/v1.0.0"
-            },
             "time": "2015-08-28T17:03:03+00:00"
         },
         {
@@ -4035,40 +3773,36 @@
             ],
             "description": "List of the 100,000 most commonly used passwords",
             "homepage": "https://www.mediawiki.org/wiki/CommonPasswords",
-            "support": {
-                "issues": "https://github.com/wikimedia/common-passwords/issues",
-                "source": "https://github.com/wikimedia/common-passwords/tree/0.2.0"
-            },
             "time": "2020-06-11T14:00:12+00:00"
         },
         {
             "name": "wikimedia/composer-merge-plugin",
-            "version": "dev-feature/composer-v2",
+            "version": "v1.4.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/mcaskill/composer-merge-plugin.git",
-                "reference": "a8c5a89c6057c6861c79f232ef0b311dc2ec4aa6"
+                "url": "https://github.com/wikimedia/composer-merge-plugin.git",
+                "reference": "81c6ac72a24a67383419c7eb9aa2b3437f2ab100"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mcaskill/composer-merge-plugin/zipball/a8c5a89c6057c6861c79f232ef0b311dc2ec4aa6",
-                "reference": "a8c5a89c6057c6861c79f232ef0b311dc2ec4aa6",
+                "url": "https://api.github.com/repos/wikimedia/composer-merge-plugin/zipball/81c6ac72a24a67383419c7eb9aa2b3437f2ab100",
+                "reference": "81c6ac72a24a67383419c7eb9aa2b3437f2ab100",
                 "shasum": ""
             },
             "require": {
-                "composer-plugin-api": "^1.1||^2.0",
-                "php": ">=7.2.0"
+                "composer-plugin-api": "^1.0",
+                "php": ">=5.3.2"
             },
             "require-dev": {
-                "composer/composer": "^1.1",
-                "php-parallel-lint/php-parallel-lint": "~1.1.0",
-                "phpunit/phpunit": "^8.5||^9.0",
-                "squizlabs/php_codesniffer": "~3.5.4"
+                "composer/composer": "~1.0.0",
+                "jakub-onderka/php-parallel-lint": "~0.8",
+                "phpunit/phpunit": "~4.8|~5.0",
+                "squizlabs/php_codesniffer": "~2.1.0"
             },
             "type": "composer-plugin",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.5.x-dev"
+                    "dev-master": "1.3.x-dev"
                 },
                 "class": "Wikimedia\\Composer\\MergePlugin"
             },
@@ -4077,14 +3811,7 @@
                     "Wikimedia\\Composer\\": "src/"
                 }
             },
-            "scripts": {
-                "test": [
-                    "composer validate --no-interaction",
-                    "parallel-lint src tests",
-                    "phpunit --log-junit=reports/unitreport.xml --coverage-text --coverage-html=reports/coverage --coverage-clover=reports/coverage.xml",
-                    "phpcs --encoding=utf-8 --standard=PSR2 --report-checkstyle=reports/checkstyle-phpcs.xml --report-full --extensions=php src/* tests/phpunit/*"
-                ]
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -4095,10 +3822,56 @@
                 }
             ],
             "description": "Composer plugin to merge multiple composer.json files",
-            "support": {
-                "source": "https://github.com/mcaskill/composer-merge-plugin/tree/feature/composer-v2"
+            "time": "2017-04-25T02:31:25+00:00"
+        },
+        {
+            "name": "wikimedia/css-sanitizer",
+            "version": "v2.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/wikimedia/css-sanitizer.git",
+                "reference": "b61a0af49d98ac8315b3e2eff75d49a240c9939f"
             },
-            "time": "2020-11-20T15:38:00+00:00"
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/wikimedia/css-sanitizer/zipball/b61a0af49d98ac8315b3e2eff75d49a240c9939f",
+                "reference": "b61a0af49d98ac8315b3e2eff75d49a240c9939f",
+                "shasum": ""
+            },
+            "require": {
+                "ext-iconv": "*",
+                "ext-mbstring": "*",
+                "php": ">=5.5.9",
+                "wikimedia/at-ease": "1.2.0 || 2.0.0",
+                "wikimedia/utfnormal": "1.1.0 || 2.0.0"
+            },
+            "require-dev": {
+                "jakub-onderka/php-console-highlighter": "0.3.2",
+                "jakub-onderka/php-parallel-lint": "1.0.0",
+                "mediawiki/mediawiki-codesniffer": "24.0.0",
+                "mediawiki/minus-x": "0.3.1",
+                "phpunit/phpunit": "4.8.36 || ^6.5",
+                "wikimedia/testing-access-wrapper": "1.0.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Wikimedia\\CSS\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Brad Jorsch",
+                    "email": "bjorsch@wikimedia.org"
+                }
+            ],
+            "description": "Classes to parse and sanitize CSS",
+            "homepage": "https://www.mediawiki.org/wiki/Css-sanitizer",
+            "time": "2019-02-11T02:22:19+00:00"
         },
         {
             "name": "wikimedia/html-formatter",
@@ -4142,9 +3915,6 @@
             ],
             "description": "Performs transformations of HTML by wrapping around libxml2 and working around its countless bugs.",
             "homepage": "https://www.mediawiki.org/wiki/HtmlFormatter",
-            "support": {
-                "source": "https://github.com/wikimedia/html-formatter/tree/1.0.2"
-            },
             "time": "2018-04-14T10:06:56+00:00"
         },
         {
@@ -4191,9 +3961,6 @@
             ],
             "description": "Efficiently match IP addresses against a set of CIDR specifications.",
             "homepage": "https://www.mediawiki.org/wiki/IPSet",
-            "support": {
-                "source": "https://github.com/wikimedia/IPSet/tree/2.1.0"
-            },
             "time": "2019-07-16T08:14:03+00:00"
         },
         {
@@ -4241,9 +4008,6 @@
             ],
             "description": "Functions and constants to play with IP addresses and ranges",
             "homepage": "https://www.mediawiki.org/wiki/IPUtils",
-            "support": {
-                "source": "https://github.com/wikimedia/mediawiki-libs-IPUtils/tree/master"
-            },
             "time": "2019-06-25T17:43:18+00:00"
         },
         {
@@ -4307,10 +4071,6 @@
                 "php",
                 "stylesheet"
             ],
-            "support": {
-                "issues": "https://github.com/wikimedia/less.php/issues",
-                "source": "https://github.com/wikimedia/less.php/tree/v3.0.0"
-            },
             "time": "2020-03-11T23:01:29+00:00"
         },
         {
@@ -4357,9 +4117,6 @@
             ],
             "description": "Construct objects from configuration instructions",
             "homepage": "https://www.mediawiki.org/wiki/ObjectFactory",
-            "support": {
-                "source": "https://github.com/wikimedia/object-factory/tree/master"
-            },
             "time": "2019-06-19T17:08:21+00:00"
         },
         {
@@ -4435,11 +4192,6 @@
                 "mediawiki",
                 "parsoid"
             ],
-            "support": {
-                "irc": "irc://irc.freenode.net/mediawiki-parsoid",
-                "source": "https://github.com/wikimedia/parsoid/tree/v0.12.0",
-                "wiki": "https://www.mediawiki.org/wiki/Parsoid"
-            },
             "time": "2020-08-26T12:47:35+00:00"
         },
         {
@@ -4486,9 +4238,6 @@
             ],
             "description": "Provides methods like PHP's session_encode and session_decode that don't mess with $_SESSION",
             "homepage": "https://www.mediawiki.org/wiki/Php-session-serializer",
-            "support": {
-                "source": "https://github.com/wikimedia/php-session-serializer/tree/master"
-            },
             "time": "2019-02-12T00:31:20+00:00"
         },
         {
@@ -4555,10 +4304,6 @@
                 "Turtle",
                 "serializer"
             ],
-            "support": {
-                "irc": "irc://irc.freenode.net/wikimedia-dev",
-                "source": "https://github.com/wikimedia/purtle/tree/v1.0.7"
-            },
             "time": "2018-03-20T09:26:13+00:00"
         },
         {
@@ -4602,9 +4347,6 @@
             ],
             "description": "Compute a relative filepath between two paths.",
             "homepage": "https://www.mediawiki.org/wiki/RelPath",
-            "support": {
-                "source": "https://github.com/wikimedia/RelPath/tree/master"
-            },
             "time": "2018-01-18T21:23:40+00:00"
         },
         {
@@ -4655,9 +4397,6 @@
             ],
             "description": "Fast HTML 5 parser",
             "homepage": "https://www.mediawiki.org/wiki/RemexHtml",
-            "support": {
-                "source": "https://github.com/wikimedia/remex-html/tree/2.2.0"
-            },
             "time": "2020-04-29T21:17:01+00:00"
         },
         {
@@ -4700,9 +4439,6 @@
             ],
             "description": "PHP implementations of online statistical algorithms",
             "homepage": "https://www.mediawiki.org/wiki/RunningStat",
-            "support": {
-                "source": "https://github.com/wikimedia/RunningStat/tree/master"
-            },
             "time": "2018-01-18T22:18:47+00:00"
         },
         {
@@ -4748,10 +4484,6 @@
             ],
             "description": "Class for asserting that a callback happens when a dummy object leaves scope",
             "homepage": "https://www.mediawiki.org/wiki/ScopedCallback",
-            "support": {
-                "issues": "https://github.com/wikimedia/ScopedCallback/issues",
-                "source": "https://github.com/wikimedia/ScopedCallback/tree/master"
-            },
             "time": "2018-10-30T23:52:20+00:00"
         },
         {
@@ -4803,9 +4535,6 @@
             ],
             "description": "Generic service to manage named services using lazy instantiation based on instantiator callback functions",
             "homepage": "https://www.mediawiki.org/wiki/Services",
-            "support": {
-                "source": "https://github.com/wikimedia/mediawiki-libs-Services/tree/master"
-            },
             "time": "2020-06-29T02:46:53+00:00"
         },
         {
@@ -4855,9 +4584,6 @@
             ],
             "description": "PHP port of the TextCat language guesser utility, see http://odur.let.rug.nl/~vannoord/TextCat/.",
             "homepage": "https://www.mediawiki.org/wiki/TextCat",
-            "support": {
-                "source": "https://github.com/wikimedia/wikimedia-textcat/tree/master"
-            },
             "time": "2019-02-12T05:25:57+00:00"
         },
         {
@@ -4906,9 +4632,6 @@
             ],
             "description": "Creation, parsing, and conversion of timestamps",
             "homepage": "https://www.mediawiki.org/wiki/Timestamp",
-            "support": {
-                "source": "https://github.com/wikimedia/Timestamp/tree/master"
-            },
             "time": "2019-06-19T13:12:08+00:00"
         },
         {
@@ -4954,9 +4677,6 @@
             ],
             "description": "Contains Unicode normalization routines, including both pure PHP implementations and automatic use of the 'intl' PHP extension when present",
             "homepage": "https://www.mediawiki.org/wiki/utfnormal",
-            "support": {
-                "source": "https://github.com/wikimedia/utfnormal/tree/master"
-            },
             "time": "2018-02-27T02:26:36+00:00"
         },
         {
@@ -4999,10 +4719,6 @@
             ],
             "description": "Wait loop that reaches a condition or times out",
             "homepage": "https://www.mediawiki.org/wiki/WaitConditionLoop",
-            "support": {
-                "issues": "https://github.com/wikimedia/WaitConditionLoop/issues",
-                "source": "https://github.com/wikimedia/WaitConditionLoop/tree/master"
-            },
             "time": "2016-10-01T06:58:30+00:00"
         },
         {
@@ -5036,9 +4752,6 @@
                 "MIT"
             ],
             "description": "Parser generator for JavaScript and PHP",
-            "support": {
-                "source": "https://github.com/wikimedia/wikipeg/tree/2.0.4"
-            },
             "time": "2020-02-13T19:00:24+00:00"
         },
         {
@@ -5084,9 +4797,6 @@
             ],
             "description": "Automatically compact sequentially-outputted strings that share a common prefix / suffix pair.",
             "homepage": "https://www.mediawiki.org/wiki/WrappedString",
-            "support": {
-                "source": "https://github.com/wikimedia/WrappedString/tree/v3.2.0"
-            },
             "time": "2020-02-29T09:50:58+00:00"
         },
         {
@@ -5146,9 +4856,6 @@
                 "parse",
                 "xmp"
             ],
-            "support": {
-                "source": "https://github.com/wikimedia/xmp-reader/tree/0.7.0"
-            },
             "time": "2020-01-16T19:03:42+00:00"
         },
         {
@@ -5210,9 +4917,6 @@
                 "engine",
                 "selector"
             ],
-            "support": {
-                "source": "https://github.com/wikimedia/mediawiki-libs-Zest/tree/1.1.3"
-            },
             "time": "2020-04-29T22:04:34+00:00"
         },
         {
@@ -5272,9 +4976,6 @@
                 "geocoding",
                 "geoip"
             ],
-            "support": {
-                "source": "https://github.com/geocoder-php/php-common/tree/4.3.0"
-            },
             "time": "2020-07-04T13:18:10+00:00"
         },
         {
@@ -5327,10 +5028,6 @@
                 "php",
                 "template"
             ],
-            "support": {
-                "issues": "https://github.com/zordius/lightncandy/issues",
-                "source": "https://github.com/zordius/lightncandy/tree/master"
-            },
             "time": "2020-03-08T06:00:24+00:00"
         }
     ],
@@ -5393,11 +5090,6 @@
                 "spdx",
                 "validator"
             ],
-            "support": {
-                "irc": "irc://irc.freenode.org/composer",
-                "issues": "https://github.com/composer/spdx-licenses/issues",
-                "source": "https://github.com/composer/spdx-licenses/tree/1.5.3"
-            },
             "time": "2020-02-14T07:44:31+00:00"
         },
         {
@@ -5442,11 +5134,6 @@
                 "Xdebug",
                 "performance"
             ],
-            "support": {
-                "irc": "irc://irc.freenode.org/composer",
-                "issues": "https://github.com/composer/xdebug-handler/issues",
-                "source": "https://github.com/composer/xdebug-handler/tree/1.4.5"
-            },
             "funding": [
                 {
                     "url": "https://packagist.com",
@@ -5494,10 +5181,6 @@
                 "MIT"
             ],
             "description": "implementation of xdg base directory specification for php",
-            "support": {
-                "issues": "https://github.com/dnoegel/php-xdg-base-dir/issues",
-                "source": "https://github.com/dnoegel/php-xdg-base-dir/tree/v0.1.1"
-            },
             "time": "2019-12-04T15:06:13+00:00"
         },
         {
@@ -5580,10 +5263,6 @@
                 "redis",
                 "xcache"
             ],
-            "support": {
-                "issues": "https://github.com/doctrine/cache/issues",
-                "source": "https://github.com/doctrine/cache/tree/1.10.x"
-            },
             "funding": [
                 {
                     "url": "https://www.doctrine-project.org/sponsorship.html",
@@ -5692,10 +5371,6 @@
                 "sqlserver",
                 "sqlsrv"
             ],
-            "support": {
-                "issues": "https://github.com/doctrine/dbal/issues",
-                "source": "https://github.com/doctrine/dbal/tree/2.10.x"
-            },
             "funding": [
                 {
                     "url": "https://www.doctrine-project.org/sponsorship.html",
@@ -5786,10 +5461,6 @@
                 "event system",
                 "events"
             ],
-            "support": {
-                "issues": "https://github.com/doctrine/event-manager/issues",
-                "source": "https://github.com/doctrine/event-manager/tree/1.1.x"
-            },
             "funding": [
                 {
                     "url": "https://www.doctrine-project.org/sponsorship.html",
@@ -5855,10 +5526,6 @@
                 "constructor",
                 "instantiate"
             ],
-            "support": {
-                "issues": "https://github.com/doctrine/instantiator/issues",
-                "source": "https://github.com/doctrine/instantiator/tree/1.4.0"
-            },
             "funding": [
                 {
                     "url": "https://www.doctrine-project.org/sponsorship.html",
@@ -5926,10 +5593,6 @@
                 "highlight",
                 "sql"
             ],
-            "support": {
-                "issues": "https://github.com/doctrine/sql-formatter/issues",
-                "source": "https://github.com/doctrine/sql-formatter/tree/1.1.x"
-            },
             "time": "2020-05-29T18:32:49+00:00"
         },
         {
@@ -5971,10 +5634,6 @@
                 }
             ],
             "description": "A more advanced JSONRPC implementation",
-            "support": {
-                "issues": "https://github.com/felixfbecker/php-advanced-json-rpc/issues",
-                "source": "https://github.com/felixfbecker/php-advanced-json-rpc/tree/master"
-            },
             "time": "2020-03-11T15:21:41+00:00"
         },
         {
@@ -6031,10 +5690,6 @@
                 }
             ],
             "description": "PHP library for property-based testing. Integrates with PHPUnit.",
-            "support": {
-                "issues": "https://github.com/giorgiosironi/eris/issues",
-                "source": "https://github.com/giorgiosironi/eris/tree/master"
-            },
             "time": "2018-03-23T21:09:07+00:00"
         },
         {
@@ -6082,10 +5737,6 @@
             "keywords": [
                 "test"
             ],
-            "support": {
-                "issues": "https://github.com/hamcrest/hamcrest-php/issues",
-                "source": "https://github.com/hamcrest/hamcrest-php/tree/v2.0.1"
-            },
             "time": "2020-07-09T08:09:16+00:00"
         },
         {
@@ -6134,10 +5785,6 @@
                 "profile",
                 "slow"
             ],
-            "support": {
-                "issues": "https://github.com/johnkary/phpunit-speedtrap/issues",
-                "source": "https://github.com/johnkary/phpunit-speedtrap/tree/v3.2.0"
-            },
             "time": "2020-02-12T16:19:51+00:00"
         },
         {
@@ -6184,9 +5831,6 @@
                 "codesniffer",
                 "mediawiki"
             ],
-            "support": {
-                "source": "https://github.com/wikimedia/mediawiki-tools-codesniffer/tree/v31.0.0"
-            },
             "time": "2020-05-26T19:06:48+00:00"
         },
         {
@@ -6229,10 +5873,6 @@
             ],
             "description": "Standard MediaWiki phan configuration",
             "homepage": "https://www.mediawiki.org/wiki/Continuous_integration/Phan",
-            "support": {
-                "issues": "https://github.com/wikimedia/mediawiki-tools-phan/issues",
-                "source": "https://github.com/wikimedia/mediawiki-tools-phan/tree/master"
-            },
             "time": "2020-04-15T16:11:57+00:00"
         },
         {
@@ -6288,12 +5928,6 @@
                 "static",
                 "taint"
             ],
-            "support": {
-                "irc": "irc://freenode.net/wikimedia-dev",
-                "issues": "https://phabricator.wikimedia.org/maniphest/task/edit/form/1/?projects=securitycheckplugin",
-                "source": "https://phabricator.wikimedia.org/diffusion/MTPS/",
-                "wiki": "https://www.mediawiki.org/wiki/SecurityCheckPlugin"
-            },
             "time": "2020-04-13T23:05:36+00:00"
         },
         {
@@ -6335,10 +5969,6 @@
                 }
             ],
             "description": "Tolerant PHP-to-AST parser designed for IDE usage scenarios",
-            "support": {
-                "issues": "https://github.com/microsoft/tolerant-php-parser/issues",
-                "source": "https://github.com/microsoft/tolerant-php-parser/tree/master"
-            },
             "time": "2020-02-18T02:57:19+00:00"
         },
         {
@@ -6416,10 +6046,6 @@
                 "logging",
                 "psr-3"
             ],
-            "support": {
-                "issues": "https://github.com/Seldaek/monolog/issues",
-                "source": "https://github.com/Seldaek/monolog/tree/1.25.5"
-            },
             "funding": [
                 {
                     "url": "https://github.com/Seldaek",
@@ -6478,10 +6104,6 @@
                 "object",
                 "object graph"
             ],
-            "support": {
-                "issues": "https://github.com/myclabs/DeepCopy/issues",
-                "source": "https://github.com/myclabs/DeepCopy/tree/1.10.2"
-            },
             "funding": [
                 {
                     "url": "https://tidelift.com/funding/github/packagist/myclabs/deep-copy",
@@ -6534,11 +6156,6 @@
                 }
             ],
             "description": "Map nested JSON structures onto PHP classes",
-            "support": {
-                "email": "cweiske@cweiske.de",
-                "issues": "https://github.com/cweiske/jsonmapper/issues",
-                "source": "https://github.com/cweiske/jsonmapper/tree/master"
-            },
             "time": "2020-04-16T18:48:43+00:00"
         },
         {
@@ -6591,10 +6208,6 @@
                 "parser",
                 "php"
             ],
-            "support": {
-                "issues": "https://github.com/nikic/PHP-Parser/issues",
-                "source": "https://github.com/nikic/PHP-Parser/tree/master"
-            },
             "time": "2020-04-10T16:34:50+00:00"
         },
         {
@@ -6635,10 +6248,6 @@
                 "client",
                 "kafka"
             ],
-            "support": {
-                "issues": "https://github.com/weiboad/kafka-php/issues",
-                "source": "https://github.com/weiboad/kafka-php/tree/v0.1.5"
-            },
             "time": "2015-12-02T12:06:23+00:00"
         },
         {
@@ -6712,10 +6321,6 @@
                 "php",
                 "static"
             ],
-            "support": {
-                "issues": "https://github.com/phan/phan/issues",
-                "source": "https://github.com/phan/phan/tree/master"
-            },
             "time": "2020-03-13T21:34:53+00:00"
         },
         {
@@ -6772,10 +6377,6 @@
                 }
             ],
             "description": "Component for reading phar.io manifest information from a PHP Archive (PHAR)",
-            "support": {
-                "issues": "https://github.com/phar-io/manifest/issues",
-                "source": "https://github.com/phar-io/manifest/tree/master"
-            },
             "time": "2020-06-27T14:33:11+00:00"
         },
         {
@@ -6823,10 +6424,6 @@
                 }
             ],
             "description": "Library for handling version information and constraints",
-            "support": {
-                "issues": "https://github.com/phar-io/version/issues",
-                "source": "https://github.com/phar-io/version/tree/3.0.3"
-            },
             "time": "2020-11-30T09:21:21+00:00"
         },
         {
@@ -6872,10 +6469,6 @@
                     "email": "jakub.onderka@gmail.com"
                 }
             ],
-            "support": {
-                "issues": "https://github.com/php-parallel-lint/PHP-Console-Color/issues",
-                "source": "https://github.com/php-parallel-lint/PHP-Console-Color/tree/master"
-            },
             "time": "2020-05-14T05:47:14+00:00"
         },
         {
@@ -6925,10 +6518,6 @@
                 }
             ],
             "description": "Highlight PHP code in terminal",
-            "support": {
-                "issues": "https://github.com/php-parallel-lint/PHP-Console-Highlighter/issues",
-                "source": "https://github.com/php-parallel-lint/PHP-Console-Highlighter/tree/master"
-            },
             "time": "2020-05-13T07:37:49+00:00"
         },
         {
@@ -6982,10 +6571,6 @@
             ],
             "description": "This tool check syntax of PHP files about 20x faster than serial check.",
             "homepage": "https://github.com/php-parallel-lint/PHP-Parallel-Lint",
-            "support": {
-                "issues": "https://github.com/php-parallel-lint/PHP-Parallel-Lint/issues",
-                "source": "https://github.com/php-parallel-lint/PHP-Parallel-Lint/tree/master"
-            },
             "time": "2020-04-04T12:18:32+00:00"
         },
         {
@@ -7035,10 +6620,6 @@
                 "reflection",
                 "static analysis"
             ],
-            "support": {
-                "issues": "https://github.com/phpDocumentor/ReflectionCommon/issues",
-                "source": "https://github.com/phpDocumentor/ReflectionCommon/tree/2.x"
-            },
             "time": "2020-06-27T09:03:43+00:00"
         },
         {
@@ -7091,10 +6672,6 @@
                 }
             ],
             "description": "With this component, a library can provide support for annotations via DocBlocks or otherwise retrieve information that is embedded in a DocBlock.",
-            "support": {
-                "issues": "https://github.com/phpDocumentor/ReflectionDocBlock/issues",
-                "source": "https://github.com/phpDocumentor/ReflectionDocBlock/tree/master"
-            },
             "time": "2020-09-03T19:13:55+00:00"
         },
         {
@@ -7140,10 +6717,6 @@
                 }
             ],
             "description": "A PSR-5 based resolver of Class names, Types and Structural Element Names",
-            "support": {
-                "issues": "https://github.com/phpDocumentor/TypeResolver/issues",
-                "source": "https://github.com/phpDocumentor/TypeResolver/tree/1.4.0"
-            },
             "time": "2020-09-17T18:55:26+00:00"
         },
         {
@@ -7207,10 +6780,6 @@
                 "spy",
                 "stub"
             ],
-            "support": {
-                "issues": "https://github.com/phpspec/prophecy/issues",
-                "source": "https://github.com/phpspec/prophecy/tree/1.12.1"
-            },
             "time": "2020-09-29T09:10:42+00:00"
         },
         {
@@ -7274,10 +6843,6 @@
                 "testing",
                 "xunit"
             ],
-            "support": {
-                "issues": "https://github.com/sebastianbergmann/php-code-coverage/issues",
-                "source": "https://github.com/sebastianbergmann/php-code-coverage/tree/7.0.14"
-            },
             "funding": [
                 {
                     "url": "https://github.com/sebastianbergmann",
@@ -7334,10 +6899,6 @@
                 "filesystem",
                 "iterator"
             ],
-            "support": {
-                "issues": "https://github.com/sebastianbergmann/php-file-iterator/issues",
-                "source": "https://github.com/sebastianbergmann/php-file-iterator/tree/2.0.3"
-            },
             "funding": [
                 {
                     "url": "https://github.com/sebastianbergmann",
@@ -7385,10 +6946,6 @@
             "keywords": [
                 "template"
             ],
-            "support": {
-                "issues": "https://github.com/sebastianbergmann/php-text-template/issues",
-                "source": "https://github.com/sebastianbergmann/php-text-template/tree/1.2.1"
-            },
             "time": "2015-06-21T13:50:34+00:00"
         },
         {
@@ -7438,10 +6995,6 @@
             "keywords": [
                 "timer"
             ],
-            "support": {
-                "issues": "https://github.com/sebastianbergmann/php-timer/issues",
-                "source": "https://github.com/sebastianbergmann/php-timer/tree/2.1.3"
-            },
             "funding": [
                 {
                     "url": "https://github.com/sebastianbergmann",
@@ -7497,10 +7050,6 @@
             "keywords": [
                 "tokenizer"
             ],
-            "support": {
-                "issues": "https://github.com/sebastianbergmann/php-token-stream/issues",
-                "source": "https://github.com/sebastianbergmann/php-token-stream/tree/master"
-            },
             "funding": [
                 {
                     "url": "https://github.com/sebastianbergmann",
@@ -7591,10 +7140,6 @@
                 "testing",
                 "xunit"
             ],
-            "support": {
-                "issues": "https://github.com/sebastianbergmann/phpunit/issues",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/8.5.13"
-            },
             "funding": [
                 {
                     "url": "https://phpunit.de/donate.html",
@@ -7655,10 +7200,6 @@
                 "container",
                 "dependency injection"
             ],
-            "support": {
-                "issues": "https://github.com/silexphp/Pimple/issues",
-                "source": "https://github.com/silexphp/Pimple/tree/master"
-            },
             "time": "2020-03-03T09:12:48+00:00"
         },
         {
@@ -7731,10 +7272,6 @@
                 "interactive",
                 "shell"
             ],
-            "support": {
-                "issues": "https://github.com/bobthecow/psysh/issues",
-                "source": "https://github.com/bobthecow/psysh/tree/master"
-            },
             "time": "2020-05-03T19:32:03+00:00"
         },
         {
@@ -7796,11 +7333,6 @@
                 "reactor",
                 "signal"
             ],
-            "support": {
-                "forum": "https://groups.google.com/group/sabredav-discuss",
-                "issues": "https://github.com/sabre-io/event/issues",
-                "source": "https://github.com/fruux/sabre-event"
-            },
             "time": "2020-10-03T11:02:22+00:00"
         },
         {
@@ -7846,10 +7378,6 @@
             ],
             "description": "Looks up which function or method a line of code belongs to",
             "homepage": "https://github.com/sebastianbergmann/code-unit-reverse-lookup/",
-            "support": {
-                "issues": "https://github.com/sebastianbergmann/code-unit-reverse-lookup/issues",
-                "source": "https://github.com/sebastianbergmann/code-unit-reverse-lookup/tree/1.0.2"
-            },
             "funding": [
                 {
                     "url": "https://github.com/sebastianbergmann",
@@ -7920,10 +7448,6 @@
                 "compare",
                 "equality"
             ],
-            "support": {
-                "issues": "https://github.com/sebastianbergmann/comparator/issues",
-                "source": "https://github.com/sebastianbergmann/comparator/tree/3.0.3"
-            },
             "funding": [
                 {
                     "url": "https://github.com/sebastianbergmann",
@@ -7986,10 +7510,6 @@
                 "unidiff",
                 "unified diff"
             ],
-            "support": {
-                "issues": "https://github.com/sebastianbergmann/diff/issues",
-                "source": "https://github.com/sebastianbergmann/diff/tree/3.0.3"
-            },
             "funding": [
                 {
                     "url": "https://github.com/sebastianbergmann",
@@ -8049,10 +7569,6 @@
                 "environment",
                 "hhvm"
             ],
-            "support": {
-                "issues": "https://github.com/sebastianbergmann/environment/issues",
-                "source": "https://github.com/sebastianbergmann/environment/tree/4.2.4"
-            },
             "funding": [
                 {
                     "url": "https://github.com/sebastianbergmann",
@@ -8126,10 +7642,6 @@
                 "export",
                 "exporter"
             ],
-            "support": {
-                "issues": "https://github.com/sebastianbergmann/exporter/issues",
-                "source": "https://github.com/sebastianbergmann/exporter/tree/3.1.3"
-            },
             "funding": [
                 {
                     "url": "https://github.com/sebastianbergmann",
@@ -8190,10 +7702,6 @@
             "keywords": [
                 "global state"
             ],
-            "support": {
-                "issues": "https://github.com/sebastianbergmann/global-state/issues",
-                "source": "https://github.com/sebastianbergmann/global-state/tree/3.0.1"
-            },
             "funding": [
                 {
                     "url": "https://github.com/sebastianbergmann",
@@ -8247,10 +7755,6 @@
             ],
             "description": "Traverses array structures and object graphs to enumerate all referenced objects",
             "homepage": "https://github.com/sebastianbergmann/object-enumerator/",
-            "support": {
-                "issues": "https://github.com/sebastianbergmann/object-enumerator/issues",
-                "source": "https://github.com/sebastianbergmann/object-enumerator/tree/3.0.4"
-            },
             "funding": [
                 {
                     "url": "https://github.com/sebastianbergmann",
@@ -8302,10 +7806,6 @@
             ],
             "description": "Allows reflection of object attributes, including inherited and non-public ones",
             "homepage": "https://github.com/sebastianbergmann/object-reflector/",
-            "support": {
-                "issues": "https://github.com/sebastianbergmann/object-reflector/issues",
-                "source": "https://github.com/sebastianbergmann/object-reflector/tree/1.1.2"
-            },
             "funding": [
                 {
                     "url": "https://github.com/sebastianbergmann",
@@ -8365,10 +7865,6 @@
             ],
             "description": "Provides functionality to recursively process PHP variables",
             "homepage": "http://www.github.com/sebastianbergmann/recursion-context",
-            "support": {
-                "issues": "https://github.com/sebastianbergmann/recursion-context/issues",
-                "source": "https://github.com/sebastianbergmann/recursion-context/tree/3.0.1"
-            },
             "funding": [
                 {
                     "url": "https://github.com/sebastianbergmann",
@@ -8417,10 +7913,6 @@
             ],
             "description": "Provides a list of PHP built-in functions that operate on resources",
             "homepage": "https://www.github.com/sebastianbergmann/resource-operations",
-            "support": {
-                "issues": "https://github.com/sebastianbergmann/resource-operations/issues",
-                "source": "https://github.com/sebastianbergmann/resource-operations/tree/2.0.2"
-            },
             "funding": [
                 {
                     "url": "https://github.com/sebastianbergmann",
@@ -8473,10 +7965,6 @@
             ],
             "description": "Collection of value objects that represent the types of the PHP type system",
             "homepage": "https://github.com/sebastianbergmann/type",
-            "support": {
-                "issues": "https://github.com/sebastianbergmann/type/issues",
-                "source": "https://github.com/sebastianbergmann/type/tree/1.1.4"
-            },
             "funding": [
                 {
                     "url": "https://github.com/sebastianbergmann",
@@ -8526,10 +8014,6 @@
             ],
             "description": "Library that helps with managing the version number of Git-hosted PHP projects",
             "homepage": "https://github.com/sebastianbergmann/version",
-            "support": {
-                "issues": "https://github.com/sebastianbergmann/version/issues",
-                "source": "https://github.com/sebastianbergmann/version/tree/master"
-            },
             "time": "2016-10-03T07:35:21+00:00"
         },
         {
@@ -8581,11 +8065,6 @@
                 "phpcs",
                 "standards"
             ],
-            "support": {
-                "issues": "https://github.com/squizlabs/PHP_CodeSniffer/issues",
-                "source": "https://github.com/squizlabs/PHP_CodeSniffer",
-                "wiki": "https://github.com/squizlabs/PHP_CodeSniffer/wiki"
-            },
             "time": "2020-04-17T01:09:41+00:00"
         },
         {
@@ -8666,9 +8145,6 @@
                 "console",
                 "terminal"
             ],
-            "support": {
-                "source": "https://github.com/symfony/console/tree/v5.2.0"
-            },
             "funding": [
                 {
                     "url": "https://symfony.com/sponsor",
@@ -8747,9 +8223,6 @@
                 "portable",
                 "shim"
             ],
-            "support": {
-                "source": "https://github.com/symfony/polyfill-intl-grapheme/tree/v1.20.0"
-            },
             "funding": [
                 {
                     "url": "https://symfony.com/sponsor",
@@ -8831,9 +8304,6 @@
                 "portable",
                 "shim"
             ],
-            "support": {
-                "source": "https://github.com/symfony/polyfill-intl-normalizer/tree/v1.20.0"
-            },
             "funding": [
                 {
                     "url": "https://symfony.com/sponsor",
@@ -8910,9 +8380,6 @@
                 "portable",
                 "shim"
             ],
-            "support": {
-                "source": "https://github.com/symfony/polyfill-php73/tree/v1.20.0"
-            },
             "funding": [
                 {
                     "url": "https://symfony.com/sponsor",
@@ -8993,9 +8460,6 @@
                 "portable",
                 "shim"
             ],
-            "support": {
-                "source": "https://github.com/symfony/polyfill-php80/tree/v1.20.0"
-            },
             "funding": [
                 {
                     "url": "https://symfony.com/sponsor",
@@ -9072,9 +8536,6 @@
                 "interoperability",
                 "standards"
             ],
-            "support": {
-                "source": "https://github.com/symfony/service-contracts/tree/master"
-            },
             "funding": [
                 {
                     "url": "https://symfony.com/sponsor",
@@ -9155,9 +8616,6 @@
                 "utf-8",
                 "utf8"
             ],
-            "support": {
-                "source": "https://github.com/symfony/string/tree/v5.2.0"
-            },
             "funding": [
                 {
                     "url": "https://symfony.com/sponsor",
@@ -9243,9 +8701,6 @@
                 "debug",
                 "dump"
             ],
-            "support": {
-                "source": "https://github.com/symfony/var-dumper/tree/v5.2.0"
-            },
             "funding": [
                 {
                     "url": "https://symfony.com/sponsor",
@@ -9319,9 +8774,6 @@
             ],
             "description": "Symfony Yaml Component",
             "homepage": "https://symfony.com",
-            "support": {
-                "source": "https://github.com/symfony/yaml/tree/5.0"
-            },
             "funding": [
                 {
                     "url": "https://symfony.com/sponsor",
@@ -9376,10 +8828,6 @@
                 }
             ],
             "description": "A small library for converting tokenized PHP source code into XML and potentially other formats",
-            "support": {
-                "issues": "https://github.com/theseer/tokenizer/issues",
-                "source": "https://github.com/theseer/tokenizer/tree/master"
-            },
             "funding": [
                 {
                     "url": "https://github.com/theseer",
@@ -9435,10 +8883,6 @@
                 "check",
                 "validate"
             ],
-            "support": {
-                "issues": "https://github.com/webmozart/assert/issues",
-                "source": "https://github.com/webmozart/assert/tree/master"
-            },
             "time": "2020-07-08T17:02:28+00:00"
         },
         {
@@ -9508,9 +8952,6 @@
             "keywords": [
                 "serialization"
             ],
-            "support": {
-                "source": "https://github.com/wikimedia/avro-php/tree/master"
-            },
             "time": "2019-09-16T15:18:39+00:00"
         },
         {
@@ -9561,9 +9002,6 @@
             ],
             "description": "A simple helper class to access non-public elements of a class when testing.",
             "homepage": "https://www.mediawiki.org/wiki/Testing-access-wrapper",
-            "support": {
-                "source": "https://github.com/wikimedia/testing-access-wrapper/tree/1.0.0"
-            },
             "time": "2017-04-19T16:43:33+00:00"
         },
         {
@@ -9609,25 +9047,12 @@
                 }
             ],
             "description": "Set of Hamcrest matchers for HTML assertrions ",
-            "support": {
-                "issues": "https://github.com/wmde/hamcrest-html-matchers/issues",
-                "source": "https://github.com/wmde/hamcrest-html-matchers/tree/master"
-            },
             "time": "2017-07-05T07:12:27+00:00"
         }
     ],
-    "aliases": [
-        {
-            "package": "wikimedia/composer-merge-plugin",
-            "version": "dev-feature/composer-v2",
-            "alias": "1.5.0",
-            "alias_normalized": "1.5.0.0"
-        }
-    ],
+    "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "wikimedia/composer-merge-plugin": 20
-    },
+    "stability-flags": [],
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
@@ -9642,5 +9067,5 @@
         "ext-apcu": "*"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.0.0"
+    "plugin-api-version": "1.1.0"
 }
