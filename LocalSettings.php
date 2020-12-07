@@ -1,6 +1,6 @@
 <?php
 
-$isDebugging = getenv("DEBUG") === "TRUE";
+$isDebugging = getenv("DEBUG") === "true";
 
 # Debugging
 error_reporting($isDebugging ? -1 : 0);
