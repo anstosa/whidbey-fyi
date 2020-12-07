@@ -182,7 +182,7 @@ wfLoadSkin('MinervaNeue');
 # wfLoadExtension( 'ExtensionName' );
 # to LocalSettings.php. Check specific extension documentation for more details.
 # The following extensions were automatically enabled:
-wfLoadExtension('Aws');
+wfLoadExtension('AWS');
 wfLoadExtension('Bootstrap');
 wfLoadExtension('CategoryTree');
 wfLoadExtension('Cite');
