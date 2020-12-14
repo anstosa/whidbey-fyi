@@ -181,6 +181,17 @@ $wgAWSRegion = 'us-west-2';
 $wgAWSBucketName = "images.wiki.whidbey.fyi";
 $wgAWSBucketDomain = '$1';
 
+# Analytics
+$wgHeadScriptCode = <<<'START_END_MARKER'
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-64L2YQTKCR"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-64L2YQTKCR');
+</script>
+START_END_MARKER;
+
 # Enabled skins.
 # The following skins were automatically enabled:
 wfLoadSkin('Vector');
@@ -199,6 +210,7 @@ wfLoadExtension('CiteThisPage');
 wfLoadExtension('CodeEditor');
 wfLoadExtension('ConfirmEdit');
 wfLoadExtension('Gadgets');
+wfLoadExtension('HeadScript');
 wfLoadExtension('ImageMap');
 wfLoadExtension('InputBox');
 wfLoadExtension('Interwiki');
